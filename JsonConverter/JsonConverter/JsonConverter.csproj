@@ -72,13 +72,10 @@
     </Compile>
     <Compile Include="Logic\Consts.cs" />
     <Compile Include="Logic\UtilsDB.cs" />
-    <Compile Include="Logic\UtilsShapesCompare.cs" />
     <Compile Include="Models\ModelMotionEventCompact.cs" />
     <Compile Include="Models\ModelShape.cs" />
+    <Compile Include="Models\ModelShapes.cs" />
     <Compile Include="Models\ModelStroke.cs" />
-    <Compile Include="Objects-dontuse\MotionEventCompact.cs" />
-    <Compile Include="Objects-dontuse\Shape.cs" />
-    <Compile Include="Objects-dontuse\Stroke.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">

@@ -67,7 +67,7 @@ namespace JsonConverter.Models
                 }
             }
 
-            string result = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}", EventTime.ToString(), X.ToString(), Y.ToString(), Pressure.ToString(), TouchSurface.ToString(), AngleZ.ToString(), AngleX.ToString(), AngleY.ToString(), VelocityX.ToString(), VelocityY.ToString(), Velocity.ToString(), accelerationX.ToString(), accelerationY.ToString(), acceleration.ToString());
+            string result = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}", EventTime.ToString(), X.ToString(), Y.ToString(), Pressure.ToString(), TouchSurface.ToString(), AngleZ.ToString(), AngleX.ToString(), AngleY.ToString(), VelocityX.ToString(), VelocityY.ToString(), Velocity.ToString());
             return result;
         }
 

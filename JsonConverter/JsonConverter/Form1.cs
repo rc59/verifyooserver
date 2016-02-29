@@ -1,6 +1,5 @@
 ﻿using JsonConverter.Logic;
 using JsonConverter.Models;
-using JsonConverter.Objects;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
@@ -23,7 +22,7 @@ namespace JsonConverter
         string _text = string.Empty;
         string _fileName = string.Empty;
 
-        MongoCollection<ModelShape> _Shapes;
+        MongoCollection<ModelShapes> _Shapes;
 
         List<List<ModelShape>> _baseShapes = new List<List<ModelShape>>();
 
@@ -78,97 +77,6 @@ namespace JsonConverter
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //int idxTemp, idxTempNext;
-            //int numRecord = 1;
-            //bool isComplete = false;
-            //string strNumRecord, strNumRecordNext;
-            //string tempStrObject;
-            //string error;
-
-            //if (!string.IsNullOrEmpty(_fileName))
-            //{
-            //    string path = getConvertedPath(_fileName);
-
-            //    StreamWriter sw = File.CreateText(path);
-            //    sw.WriteLine("Created,ObjectId,Name,ModelName,DeviceId,OS,Instruction,Match,MatchScore,IsSource,ScreenHeight,ScreenWidth,__v,Length,TimeInterval,PauseBeforeStroke,NumEvents,DownTime,UpTime,PressureMax,PressureMin,PressureAvg,TouchSurfaceMax,TouchSurfaceMin,TouchSurfaceAvg,Width,Height,Area,RelativePosX,RelativePosY,TouchEventId,EventTime,X,Y,Pressure,TouchSurface,AngleZ,AngleX,AngleY");
-
-            //    StringBuilder strBuilder;
-
-            //    lblStatus.Text = "Working...";
-            //    while (!isComplete)
-            //    {
-            //        strNumRecord = string.Format("* {0} *", numRecord.ToString());
-            //        strNumRecordNext = string.Format("* {0} *", (numRecord + 1).ToString());
-
-            //        idxTemp = _text.IndexOf(strNumRecord);
-            //        idxTempNext = _text.IndexOf(strNumRecordNext);
-
-            //        if (idxTempNext > 0)
-            //        {
-            //            tempStrObject = _text.Substring(idxTemp + 8, idxTempNext - idxTemp - 9);
-            //        }
-            //        else
-            //        {
-            //            tempStrObject = _text.Substring(idxTemp + 8, _text.Length - 8 - idxTemp);
-            //            isComplete = true;
-            //        }
-
-            //        tempStrObject = tempStrObject.Replace("\r\n", "");
-
-            //        int tempIdxObjId;
-            //        while (tempStrObject.IndexOf("ObjectId") > 0)
-            //        {
-            //            tempIdxObjId = tempStrObject.IndexOf("ObjectId");
-
-            //            tempStrObject = tempStrObject.Remove(tempIdxObjId + 35, 1);
-            //            tempStrObject = tempStrObject.Remove(tempIdxObjId, 9);
-            //        }
-
-            //        Shape obj = Activator.CreateInstance<Shape>();
-            //        MemoryStream ms = new MemoryStream(Encoding.Unicode.GetBytes(tempStrObject));
-            //        DataContractJsonSerializer serializer = new DataContractJsonSerializer(obj.GetType());
-
-            //        try
-            //        {
-            //            obj = (Shape)serializer.ReadObject(ms);
-
-            //            MotionEventCompact tempEvent;
-            //            for (int idxStroke = 0; idxStroke < obj.Strokes.Count; idxStroke++)
-            //            {
-            //                for (int idxEvent = 0; idxEvent < obj.Strokes[idxStroke].ListEvents.Count; idxEvent++)
-            //                {
-            //                    tempEvent = obj.Strokes[idxStroke].ListEvents[idxEvent];
-
-            //                    strBuilder = new StringBuilder();
-            //                    strBuilder.Append(obj.toString());
-            //                    strBuilder.Append(",");
-            //                    strBuilder.Append(obj.Strokes[idxStroke].toString());
-            //                    strBuilder.Append(",");
-            //                    strBuilder.Append(obj.Strokes[idxStroke].ListEvents[idxEvent].toString());
-
-            //                    sw.WriteLine(strBuilder.ToString());
-            //                }
-
-            //                sw.Flush();
-            //            }
-            //        }
-            //        catch (Exception exc)
-            //        {
-            //            error = exc.Message;
-            //            lblStatus.Text = string.Format("An error has occurred: {0}", error);
-            //        }
-
-            //        ms.Close();
-            //        numRecord++;
-            //    }
-
-            //    lblStatus.Text = "Convertion completed. Result file: " + path;
-            //    sw.Close();
-            //}
-            //else
-            //{
-            //    MessageBox.Show("You need to select a file");
-            //}
         }
 
         private void setProgress(string progress)
@@ -180,72 +88,6 @@ namespace JsonConverter
         }
 
 
-        private double[] getScore(ModelShape shape)
-        {
-            int idx = -1;
-            double[] scores = null;
-            string instruction = shape.Instruction;
-
-            if (instruction.ToLower().CompareTo(Consts.STR_INSTRUCTION_HEART.ToLower()) == 0)
-            {
-                idx = Consts.IDX_INSTRUCTION_HEART;
-            }
-
-            if (instruction.ToLower().CompareTo(Consts.STR_INSTRUCTION_TWO_HEARTS.ToLower()) == 0)
-            {
-                idx = Consts.IDX_INSTRUCTION_TWO_HEARTS;
-            }
-
-            if (instruction.ToLower().CompareTo(Consts.STR_INSTRUCTION_SHAPE.ToLower()) == 0)
-            {
-                idx = Consts.IDX_INSTRUCTION_SHAPE;
-            }
-
-            scores = getScoreByInstruction(shape, idx);
-
-            return scores;
-        }
-
-        private double[] getScoreByInstruction(ModelShape shape, int idx)
-        {
-            double[] listScores = null;
-
-            try
-            {
-                List<ModelShape> listToCompare = _baseShapes[idx];
-
-                ModelShape tempShape;
-
-                double[] listScoresTemp = null;
-                double maxScore = 0;
-                double tempScore = 0;
-                int idxMax = 0;
-
-                for (int idxShape = 0; idxShape < listToCompare.Count; idxShape++)
-                {
-                    tempShape = listToCompare[idxShape];
-                    listScoresTemp = compareTwoShapes(shape, tempShape);
-                    if (listScoresTemp == null)
-                    {
-                        break;
-                    }
-                    tempScore = getSum(listScoresTemp);
-
-                    if (tempScore > maxScore)
-                    {
-                        listScores = listScoresTemp;
-                        maxScore = tempScore;
-                        idxMax = idxShape;
-                    }
-                }
-            }
-            catch (Exception exc)
-            {
-                string msg = exc.Message;
-            }
-
-            return listScores;
-        }
 
         private double getSum(double[] scoreList)
         {
@@ -259,60 +101,6 @@ namespace JsonConverter
             return sum;
         }
 
-        private double[] compareTwoShapes(ModelShape shape, ModelShape shapeVerify)
-        {
-            double[] score = null;
-
-            if (shape.Strokes.Count != shapeVerify.Strokes.Count)
-            {
-                return score;
-            }
-            UtilsShapesCompare comparer = new UtilsShapesCompare();
-
-            score = new double[shape.Strokes.Count];
-            for (int idxStroke = 0; idxStroke < shape.Strokes.Count; idxStroke++)
-            {
-                score[idxStroke] = comparer.CompareStrokes(shape.Strokes[idxStroke], shapeVerify.Strokes[idxStroke]);
-            }
-
-            return score;
-        }
-
-        private void initBaseShapes()
-        {
-            const string connectionString = "mongodb://52.26.178.48/?safe=true";
-            var mongoClient = new MongoClient(connectionString);
-            var mongoServer = mongoClient.GetServer();
-
-            const string databaseName = "extserver-dev";
-            MongoDatabase db = mongoServer.GetDatabase(databaseName);
-
-            _Shapes = db.GetCollection<ModelShape>("shapes");
-
-            string[] ids1 = { "56038cfad56cba140fc41d70", "560a95abcbf451500f071c99" };
-            string[] ids2 = { "5617fb9ecbf451500f0a7504", "5618139acbf451500f0a8c64" };
-            string[] ids3 = { "561a53fecbf451500f0afd09", "5603bba0d56cba140fc44301" };
-
-            initInstruction(Consts.IDX_INSTRUCTION_SHAPE, ids1);
-            initInstruction(Consts.IDX_INSTRUCTION_HEART, ids2);
-            initInstruction(Consts.IDX_INSTRUCTION_TWO_HEARTS, ids3);
-        }
-
-        private void initInstruction(int idx, string[] ids)
-        {
-            ModelShape tempShape;
-
-            List<ModelShape> listShapes = _baseShapes[idx];
-
-            for (int idxShape = 0; idxShape < ids.Length; idxShape++)
-            {
-                tempShape = _Shapes.FindOneById(ObjectId.Parse(ids[idxShape]));
-                if (tempShape != null)
-                {
-                    listShapes.Add(tempShape);
-                }
-            }            
-        }
 
         private void appendScores(StringBuilder strBuilder, double[] scores)
         {
@@ -352,22 +140,18 @@ namespace JsonConverter
 
         private void btnConvertFromDB_Click(object sender, EventArgs e)
         {
-            initBaseShapes();
 
             if (!string.IsNullOrEmpty(_fileName))
             {
                 string path = getConvertedPath(_fileName, true);
-
-                //FileStream fs = new FileStream(path, FileMode.CreateNew, FileAccess.Write);
-                //StreamWriter sw = new StreamWriter(fs);
                 StreamWriter sw = File.CreateText(path);
-                sw.WriteLine("CreationDate,CreationTime,CreationTimeMS,ShapeObjectId,Name,ModelName,DeviceId,OS,Instruction,MatchShape,IsSource,ScreenHeight,ScreenWidth,StrokeObjectId,Length,MatchStroke,MatchStrokeScore,TimeInterval,PauseBeforeStroke,NumEvents,DownTime,UpTime,PressureMax,PressureMin,PressureAvg,TouchSurfaceMax,TouchSurfaceMin,TouchSurfaceAvg,Width,Height,Area,RelativePosX,RelativePosY,EventTime,X,Y,Pressure,TouchSurface,AngleZ,AngleX,AngleY,VelocityX,VelocityY,Velocity,AccelerationX,AccelerationY,Acceleration,Score1,Score2,Score3,Score4");
+                sw.WriteLine("CreationDate,CreationTime,CreationTimeMS,Name,ModelName,DeviceId,OS,IsSource, ScreenHeight, ScreenWidth,Xdpi,Ydpi,ShapeObjectId,Instruction,Length, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY, VelocityX, VelocityY, Velocity");
 
                 StringBuilder strBuilder;
 
-                MongoCollection<ModelShape> listMongo = UtilsDB.GetCollShapes();
+                MongoCollection<ModelShapes> listMongo = UtilsDB.GetCollShapes();
 
-                List<ModelShape> list = new List<ModelShape>();
+                List<ModelShapes> list = new List<ModelShapes>();
                 lblStatus.Text = "Converting from DB...";
 
                 int totalNumbRecords = (int)listMongo.Count();
@@ -380,49 +164,57 @@ namespace JsonConverter
                 bool isFinished = false;
                 int count = 0;
 
-                double[] currentScores = null;
-
-                IEnumerable<ModelShape> tempList;
+                IEnumerable<ModelShapes> shapesList;
 
                 try
                 {
                     while (!isFinished)
                     {
-                        tempList = listMongo.FindAll().SetLimit(nPerPage).SetSkip(skip);
-                        foreach (ModelShape obj in tempList)
+                        shapesList = listMongo.FindAll().SetLimit(nPerPage).SetSkip(skip);
+
+
+                        foreach (ModelShapes shapes in shapesList)
                         {
-                            currentScores = getScore(obj);
+                            StringBuilder shapesBuilder = new StringBuilder();
+                            shapesBuilder.Append(shapes.toString());
+                            shapesBuilder.Append(",");
 
-                            count++;
-                            ModelMotionEventCompact tempEvent;
-                            ModelMotionEventCompact prevEvent = null;
-
-                            sw.BaseStream.Seek(sw.BaseStream.Length, SeekOrigin.Begin);
-                            for (int idxStroke = 0; idxStroke < obj.Strokes.Count; idxStroke++)
+                            foreach (ModelShape obj in shapes.ExpShapeList)
                             {
-                                for (int idxEvent = 0; idxEvent < obj.Strokes[idxStroke].ListEvents.Count; idxEvent++)
+                                count++;
+                                ModelMotionEventCompact tempEvent;
+                                ModelMotionEventCompact prevEvent = null;
+                                StringBuilder shapeBuilder = new StringBuilder();
+                                shapeBuilder.Append(shapesBuilder.ToString());
+                                shapeBuilder.Append(obj.toString());
+;                               shapeBuilder.Append(",");
+
+                                sw.BaseStream.Seek(sw.BaseStream.Length, SeekOrigin.Begin);
+                                for (int idxStroke = 0; idxStroke < obj.Strokes.Count; idxStroke++)
                                 {
-                                    if(idxEvent > 0)
+                                    for (int idxEvent = 0; idxEvent < obj.Strokes[idxStroke].ListEvents.Count; idxEvent++)
                                     {
-                                        prevEvent = obj.Strokes[idxStroke].ListEvents[idxEvent - 1];
+                                        if (idxEvent > 0)
+                                        {
+                                            prevEvent = obj.Strokes[idxStroke].ListEvents[idxEvent - 1];
+                                        }
+
+                                        tempEvent = obj.Strokes[idxStroke].ListEvents[idxEvent];
+
+                                        strBuilder = new StringBuilder();
+                                        strBuilder.Append(shapeBuilder.ToString());
+                                        strBuilder.Append(obj.Strokes[idxStroke].
+                                            toString());
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(obj.Strokes[idxStroke].ListEvents[idxEvent].toString(prevEvent));
+                                        strBuilder.Append(",");
+
+                                        sw.WriteLine(strBuilder.ToString());
                                     }
-
-                                    tempEvent = obj.Strokes[idxStroke].ListEvents[idxEvent];
-
-                                    strBuilder = new StringBuilder();
-                                    strBuilder.Append(obj.toString());
-                                    strBuilder.Append(",");
-                                    strBuilder.Append(obj.Strokes[idxStroke].toString());
-                                    strBuilder.Append(",");
-                                    strBuilder.Append(obj.Strokes[idxStroke].ListEvents[idxEvent].toString(prevEvent));
-                                    strBuilder.Append(",");
-                                    appendScores(strBuilder, currentScores);
-
-                                    sw.WriteLine(strBuilder.ToString());
                                 }
-                            }
 
-                            sw.Flush();
+                                sw.Flush();
+                            }
                         }
 
                         pageNumber++;
@@ -439,14 +231,12 @@ namespace JsonConverter
                     }
 
                     sw.Close();
-                    //fs.Close();
                     lblStatus.Text = "Convertion from DB completed. Result file: " + path;
                 }
                 catch (Exception exc)
                 {
                     lblStatus.Text = "Error: " + exc.Message;
                     sw.Close();
-                    //fs.Close();                    
                 }
 
             }

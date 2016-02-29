@@ -22,10 +22,10 @@ namespace JsonConverter.Logic
             return db;
         }
 
-        public static MongoCollection<ModelShape> GetCollShapes()
+        public static MongoCollection<ModelShapes> GetCollShapes()
         {
             MongoDatabase dataBase = GetDbInstance();
-            MongoCollection<ModelShape> shapes = dataBase.GetCollection<ModelShape>("shapes");
+            MongoCollection<ModelShapes> shapes = dataBase.GetCollection<ModelShapes>("templates");
 
             return shapes;
         }
