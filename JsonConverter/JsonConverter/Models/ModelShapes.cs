@@ -30,13 +30,15 @@ namespace JsonConverter.Models
 
         public string OS { get; set; }
 
-        public DateTime Created { get; set; }
-
         public double __v { get; set; }
 
         public double Xdpi { get; set; }
 
         public double Ydpi { get; set; }
+
+        public string Version { get; set; }
+
+        public DateTime Created { get; set; }
 
         //public string State { get; set; }
 
@@ -46,7 +48,7 @@ namespace JsonConverter.Models
 
         public string toString()
         {
-            string result = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", Created.ToShortDateString(), Created.ToLongTimeString(), Created.Millisecond.ToString(), Name, ModelName, DeviceId, OS, IsSource.ToString(), ScreenHeight.ToString(), ScreenWidth.ToString(), Xdpi.ToString(),Ydpi.ToString());
+            string result = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}", Created.ToShortDateString(), Created.ToLongTimeString(), Created.Millisecond.ToString(), Version, Name, ModelName, DeviceId, OS, IsSource.ToString(), ScreenHeight.ToString(), ScreenWidth.ToString(), Xdpi.ToString(),Ydpi.ToString());
             return result;
         }
     }

@@ -145,7 +145,7 @@ namespace JsonConverter
             {
                 string path = getConvertedPath(_fileName, true);
                 StreamWriter sw = File.CreateText(path);
-                sw.WriteLine("CreationDate,CreationTime,CreationTimeMS,Name,ModelName,DeviceId,OS,IsSource, ScreenHeight, ScreenWidth,Xdpi,Ydpi,ShapeObjectId,Instruction,Length, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY, VelocityX, VelocityY, Velocity");
+                sw.WriteLine("CreationDateShapes,CreationTimeShapes,CreationTimeMSShapes,Version,Name,ModelName,DeviceId,OS,IsSource, ScreenHeight, ScreenWidth,Xdpi,Ydpi,CreationDateStroke,CreationTimeStroke,CreationTimeMSStroke,ShapeObjectId,Instruction,StrokeObjectId,Length,EventObjectId, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY, VelocityX, VelocityY, Velocity,ObjectIndex,StrokeIndex,EventIndex,shapesIndex");
 
                 StringBuilder strBuilder;
 
@@ -162,7 +162,10 @@ namespace JsonConverter
                 setProgress(string.Format("Completed {0} out of {1} records", pageNumber*nPerPage, totalNumbRecords));
 
                 bool isFinished = false;
-                int count = 0;
+                int strokeCounter = 0;
+                int shapesCounter = 0;
+                int eventCounter = 0;
+                int objectId = 0;
 
                 IEnumerable<ModelShapes> shapesList;
 
@@ -178,10 +181,11 @@ namespace JsonConverter
                             StringBuilder shapesBuilder = new StringBuilder();
                             shapesBuilder.Append(shapes.toString());
                             shapesBuilder.Append(",");
-
+                            objectId++;
+                            shapesCounter = 0;
                             foreach (ModelShape obj in shapes.ExpShapeList)
                             {
-                                count++;
+                                shapesCounter++;
                                 ModelMotionEventCompact tempEvent;
                                 ModelMotionEventCompact prevEvent = null;
                                 StringBuilder shapeBuilder = new StringBuilder();
@@ -190,10 +194,14 @@ namespace JsonConverter
 ;                               shapeBuilder.Append(",");
 
                                 sw.BaseStream.Seek(sw.BaseStream.Length, SeekOrigin.Begin);
+                                strokeCounter = 0;
                                 for (int idxStroke = 0; idxStroke < obj.Strokes.Count; idxStroke++)
                                 {
+                                    strokeCounter++;
+                                    eventCounter = 0;
                                     for (int idxEvent = 0; idxEvent < obj.Strokes[idxStroke].ListEvents.Count; idxEvent++)
                                     {
+                                        eventCounter++;
                                         if (idxEvent > 0)
                                         {
                                             prevEvent = obj.Strokes[idxStroke].ListEvents[idxEvent - 1];
@@ -208,7 +216,13 @@ namespace JsonConverter
                                         strBuilder.Append(",");
                                         strBuilder.Append(obj.Strokes[idxStroke].ListEvents[idxEvent].toString(prevEvent));
                                         strBuilder.Append(",");
-
+                                        strBuilder.Append(objectId.ToString());
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(strokeCounter.ToString());
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(eventCounter.ToString());
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(shapesCounter.ToString());
                                         sw.WriteLine(strBuilder.ToString());
                                     }
                                 }
