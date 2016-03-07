@@ -24,7 +24,7 @@ namespace JsonConverter.Models
         public string toString()
         {
 
-            string result = string.Format("{0},{1},{2},{3},{4}", Created.ToShortDateString(), Created.ToLongTimeString(), Created.Millisecond.ToString(), _id.ToString(),Instruction.ToString());
+            string result = string.Format("{0},{1}", _id.ToString(),Instruction.ToString());
             return result;
         }
     }

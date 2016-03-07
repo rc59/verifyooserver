@@ -19,7 +19,7 @@ namespace JsonConverter.Models
 
         public string toString()
         {
-            string result = string.Format("{0},{1}", _id.ToString(), Length.ToString());
+            string result = string.Format("{0}", _id.ToString());
             return result;
         }
     }

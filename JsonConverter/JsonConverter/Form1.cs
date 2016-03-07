@@ -19,19 +19,22 @@ namespace JsonConverter
 {
     public partial class Form1 : Form
     {
-        string _text = string.Empty;
-        string _fileName = string.Empty;
-
-        MongoCollection<ModelShapes> _Shapes;
-
-        List<List<ModelShape>> _baseShapes = new List<List<ModelShape>>();
+        private string _text = string.Empty;
+        private string _fileName = string.Empty;
+        private MongoCollection<ModelShapes> listMongo;
 
         public Form1()
         {
+            
             InitializeComponent();
-            _baseShapes.Add(new List<ModelShape>());
-            _baseShapes.Add(new List<ModelShape>());
-            _baseShapes.Add(new List<ModelShape>());
+            setFields();
+        }
+
+        private void setFields()
+        {
+            listMongo = UtilsDB.GetCollShapes();
+            fromTextBox.Text = "1";
+            ToTextBox.Text = listMongo.Count().ToString();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -40,8 +43,6 @@ namespace JsonConverter
             if (FD.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 string fileToOpen = FD.FileName;
-
-                //System.IO.FileInfo file = new System.IO.FileInfo(FD.FileName);
 
                 _text = File.ReadAllText(fileToOpen);
                 _fileName = fileToOpen;
@@ -81,85 +82,48 @@ namespace JsonConverter
 
         private void setProgress(string progress)
         {
-            lblProgress.Text = progress;
-            lblProgress.Invalidate();
-            lblProgress.Update();
-            lblProgress.Refresh();
-        }
-
-
-
-        private double getSum(double[] scoreList)
-        {
-            double sum = 0;
-
-            for(int idxScore = 0; idxScore < scoreList.Length; idxScore++)
-            {
-                sum += scoreList[idxScore];
-            }
-
-            return sum;
-        }
-
-
-        private void appendScores(StringBuilder strBuilder, double[] scores)
-        {
-            try
-            {
-                if (scores == null)
-                {
-                    strBuilder.Append(" , , , ");
-                }
-                else
-                {
-                    for (int idxScore = 0; idxScore < scores.Length; idxScore++)
-                    {
-                        strBuilder.Append(scores[idxScore]);
-                        if (idxScore + 1 < scores.Length)
-                        {
-                            strBuilder.Append(",");
-                        }
-                    }
-
-                    for (int idx = 0; idx < (4 - scores.Length); idx++)
-                    {
-                        if (idx < (4 - scores.Length))
-                        {
-                            strBuilder.Append(", ");
-                        }
-                    }
-                }
-            }
-            catch (Exception exc)
-            {
-                string msg = exc.Message;
-            }
-
-            
+            this.lblProgress.Invoke(new MethodInvoker(() => this.lblProgress.Text = progress));
         }
 
         private void btnConvertFromDB_Click(object sender, EventArgs e)
         {
+            Task task = Task.Run((Action)getDataFromDB);
+        }
 
+
+        private  void getDataFromDB()
+        {
             if (!string.IsNullOrEmpty(_fileName))
             {
                 string path = getConvertedPath(_fileName, true);
                 StreamWriter sw = File.CreateText(path);
-                sw.WriteLine("CreationDateShapes,CreationTimeShapes,CreationTimeMSShapes,Version,Name,ModelName,DeviceId,OS,IsSource, ScreenHeight, ScreenWidth,Xdpi,Ydpi,CreationDateStroke,CreationTimeStroke,CreationTimeMSStroke,ShapeObjectId,Instruction,StrokeObjectId,Length,EventObjectId, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY, VelocityX, VelocityY, Velocity,ObjectIndex,StrokeIndex,EventIndex,shapesIndex");
+                sw.WriteLine("CreationDateShapes,CreationTimeShapes,Name,Version,ObjectId,ModelName,DeviceId,OS, ScreenHeight, ScreenWidth,Xdpi,Ydpi,ShapeObjectId,Instruction,StrokeObjectId,EventObjectId, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY,ObjectIndex,StrokeIndex,EventIndex,shapesIndex,PreX,PreY");
 
                 StringBuilder strBuilder;
 
-                MongoCollection<ModelShapes> listMongo = UtilsDB.GetCollShapes();
-
                 List<ModelShapes> list = new List<ModelShapes>();
-                lblStatus.Text = "Converting from DB...";
+
+                this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = "Converting from DB..."));
+
 
                 int totalNumbRecords = (int)listMongo.Count();
-                int nPerPage = 5;
-                int pageNumber = 1;
+                int limit = 1;
                 int skip = 0;
 
-                setProgress(string.Format("Completed {0} out of {1} records", pageNumber*nPerPage, totalNumbRecords));
+                int startNumberToPrint = limit;
+
+                if (!string.IsNullOrWhiteSpace(fromTextBox.Text) && Int32.Parse(fromTextBox.Text) > 0)
+                {
+                    skip = Int32.Parse(fromTextBox.Text) - 1;
+                    startNumberToPrint = Int32.Parse(fromTextBox.Text);
+                }
+
+                if (!string.IsNullOrWhiteSpace(ToTextBox.Text) && Int32.Parse(ToTextBox.Text) > 0)
+                {
+                    totalNumbRecords = Int32.Parse(ToTextBox.Text);
+                }
+
+                setProgress(string.Format("Completed {0} out of {1} records", startNumberToPrint, totalNumbRecords));
 
                 bool isFinished = false;
                 int strokeCounter = 0;
@@ -173,8 +137,7 @@ namespace JsonConverter
                 {
                     while (!isFinished)
                     {
-                        shapesList = listMongo.FindAll().SetLimit(nPerPage).SetSkip(skip);
-
+                        shapesList = listMongo.FindAll().SetLimit(limit).SetSkip(skip);
 
                         foreach (ModelShapes shapes in shapesList)
                         {
@@ -186,12 +149,11 @@ namespace JsonConverter
                             foreach (ModelShape obj in shapes.ExpShapeList)
                             {
                                 shapesCounter++;
-                                ModelMotionEventCompact tempEvent;
                                 ModelMotionEventCompact prevEvent = null;
                                 StringBuilder shapeBuilder = new StringBuilder();
                                 shapeBuilder.Append(shapesBuilder.ToString());
                                 shapeBuilder.Append(obj.toString());
-;                               shapeBuilder.Append(",");
+                                shapeBuilder.Append(",");
 
                                 sw.BaseStream.Seek(sw.BaseStream.Length, SeekOrigin.Begin);
                                 strokeCounter = 0;
@@ -207,8 +169,6 @@ namespace JsonConverter
                                             prevEvent = obj.Strokes[idxStroke].ListEvents[idxEvent - 1];
                                         }
 
-                                        tempEvent = obj.Strokes[idxStroke].ListEvents[idxEvent];
-
                                         strBuilder = new StringBuilder();
                                         strBuilder.Append(shapeBuilder.ToString());
                                         strBuilder.Append(obj.Strokes[idxStroke].
@@ -223,6 +183,17 @@ namespace JsonConverter
                                         strBuilder.Append(eventCounter.ToString());
                                         strBuilder.Append(",");
                                         strBuilder.Append(shapesCounter.ToString());
+
+                                        if (prevEvent != null)
+                                        {
+                                            strBuilder.Append(",");
+                                            strBuilder.Append(prevEvent.X.ToString());
+
+                                            strBuilder.Append(",");
+                                            strBuilder.Append(prevEvent.Y.ToString());
+
+
+                                        }
                                         sw.WriteLine(strBuilder.ToString());
                                     }
                                 }
@@ -230,26 +201,21 @@ namespace JsonConverter
                                 sw.Flush();
                             }
                         }
-
-                        pageNumber++;
-                        skip = (pageNumber - 1) * nPerPage;
-                        if (totalNumbRecords <= skip)
+                        skip++;
+                        if (totalNumbRecords == skip)
                         {
-                            setProgress(string.Format("Completed {0} out of {1} records", totalNumbRecords, totalNumbRecords));
                             isFinished = true;
                         }
-                        else
-                        {
-                            setProgress(string.Format("Completed {0} out of {1} records", pageNumber * nPerPage, totalNumbRecords));
-                        }
+                        setProgress(string.Format("Completed {0} out of {1} records", skip, totalNumbRecords));
                     }
 
                     sw.Close();
-                    lblStatus.Text = "Convertion from DB completed. Result file: " + path;
+                    this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = "Convertion from DB completed. Result file: " + path));
                 }
                 catch (Exception exc)
                 {
-                    lblStatus.Text = "Error: " + exc.Message;
+                    this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = "Error: " + exc.Message));
+
                     sw.Close();
                 }
 
@@ -258,6 +224,7 @@ namespace JsonConverter
             {
                 MessageBox.Show("You need to select a file");
             }
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
