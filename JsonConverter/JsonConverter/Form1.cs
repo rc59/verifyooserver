@@ -22,6 +22,7 @@ namespace JsonConverter
         private string _text = string.Empty;
         private string _fileName = string.Empty;
         private MongoCollection<ModelShapes> listMongo;
+        private long listMongoCount;
 
         public Form1()
         {
@@ -33,8 +34,9 @@ namespace JsonConverter
         private void setFields()
         {
             listMongo = UtilsDB.GetCollShapes();
+            listMongoCount = listMongo.Count();
             fromTextBox.Text = "1";
-            ToTextBox.Text = listMongo.Count().ToString();
+            ToTextBox.Text = listMongoCount.ToString();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -97,7 +99,7 @@ namespace JsonConverter
             {
                 string path = getConvertedPath(_fileName, true);
                 StreamWriter sw = File.CreateText(path);
-                sw.WriteLine("CreationDateShapes,CreationTimeShapes,Name,Version,ObjectId,ModelName,DeviceId,OS, ScreenHeight, ScreenWidth,Xdpi,Ydpi,ShapeObjectId,Instruction,StrokeObjectId,EventObjectId, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY,ObjectIndex,StrokeIndex,EventIndex,shapesIndex,PreX,PreY");
+                sw.WriteLine("CreationDateShapes,CreationTimeShapes,Name,Version,ObjectId,ModelName,DeviceId,OS,ScreenHeight,ScreenWidth,Xdpi,Ydpi,ShapeObjectId,Instruction,StrokeObjectId,EventObjectId, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY,ObjectIndex,StrokeIndex,EventIndex,shapesIndex,PreX,PreY");
 
                 StringBuilder strBuilder;
 
@@ -105,8 +107,7 @@ namespace JsonConverter
 
                 this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = "Converting from DB..."));
 
-
-                int totalNumbRecords = (int)listMongo.Count();
+                int totalNumbRecords = (int)listMongoCount;
                 int limit = 1;
                 int skip = 0;
 
@@ -116,11 +117,16 @@ namespace JsonConverter
                 {
                     skip = Int32.Parse(fromTextBox.Text) - 1;
                     startNumberToPrint = Int32.Parse(fromTextBox.Text);
+
                 }
 
                 if (!string.IsNullOrWhiteSpace(ToTextBox.Text) && Int32.Parse(ToTextBox.Text) > 0)
                 {
                     totalNumbRecords = Int32.Parse(ToTextBox.Text);
+                    if (totalNumbRecords >= listMongoCount)
+                    {
+                        totalNumbRecords = (int)(listMongoCount);
+                    } 
                 }
 
                 setProgress(string.Format("Completed {0} out of {1} records", startNumberToPrint, totalNumbRecords));
