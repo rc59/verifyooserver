@@ -1,4 +1,4 @@
-﻿using JsonConverter.Logic;
+using JsonConverter.Logic;
 using JsonConverter.Models;
 using JsonConverter.Objects;
 using MongoDB.Bson;
