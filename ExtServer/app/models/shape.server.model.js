@@ -1,4 +1,4 @@
-'use strict';
+    'use strict';
 
 
 var mongoose = require('mongoose'),
@@ -141,6 +141,14 @@ var TemplateSchema = new Schema({
     Ydpi: {
         type: Number,
         default: 0
+    },
+    UserCountry: {
+        type: String,
+        default: ''
+    },
+    AppLocale: {
+        type: String,
+        default: ''
     },
     ExpShapeList: [ ShapeSchema ]
 });
