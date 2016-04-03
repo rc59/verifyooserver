@@ -39,6 +39,18 @@ var EventDemoSchema = new Schema({
         type: Number,
         default: 0
     },
+    GyroZ: {
+        type: Number,
+        default: 0
+    },
+    GyroX: {
+        type: Number,
+        default: 0
+    },
+    GyroY: {
+        type: Number,
+        default: 0
+    },
     AngleZ: {
         type: Number,
         default: 0
