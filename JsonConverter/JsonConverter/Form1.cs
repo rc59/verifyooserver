@@ -99,7 +99,7 @@ namespace JsonConverter
             {
                 string path = getConvertedPath(_fileName, true);
                 StreamWriter sw = File.CreateText(path);
-                sw.WriteLine("CreationDateShapes,CreationTimeShapes,Name,Version,ObjectId,ModelName,DeviceId,OS,ScreenHeight,ScreenWidth,Xdpi,Ydpi,ShapeObjectId,Instruction,StrokeObjectId,EventObjectId, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY,ObjectIndex,StrokeIndex,EventIndex,ShapesIndex,PreX,PreY,PRE_EventTime,DownTime");
+                sw.WriteLine("CreationDateShapes,CreationTimeShapes,Name,Version,ObjectId,ModelName,DeviceId,OS,ScreenHeight,ScreenWidth,Xdpi,Ydpi,UserCountry,AppLocale,ShapeObjectId,Instruction,StrokeObjectId,EventObjectId, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY,ObjectIndex,StrokeIndex,EventIndex,ShapesIndex,PreX,PreY,PRE_EventTime,DownTime");
 
                 StringBuilder strBuilder;
 
