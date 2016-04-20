@@ -52,6 +52,11 @@ namespace JsonConverter.Models
 
         public string toString()
         {
+            if(Name.Contains(","))
+            {
+                int idx = Name.IndexOf(",");
+                Name.Remove(idx, 1);
+            }
             string result = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}", Created.ToShortDateString(), Created.ToLongTimeString(),Name, Version,_id.ToString(), ModelName, DeviceId, OS, ScreenHeight.ToString(), ScreenWidth.ToString(), Xdpi.ToString(),Ydpi.ToString(), UserCountry, AppLocale);
             return result;
         }

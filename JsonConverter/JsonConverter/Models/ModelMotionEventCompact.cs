@@ -36,6 +36,8 @@ namespace JsonConverter.Models
         
         public double AngleY;
 
+        public bool IsHistory;
+
         public string toString(ModelMotionEventCompact prevEvent)
         {
             double accelerationX = 0;
@@ -67,7 +69,7 @@ namespace JsonConverter.Models
             //    }
             //}
 
-            string result = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", _id.ToString(), EventTime.ToString(), X.ToString(), Y.ToString(), Pressure.ToString(), TouchSurface.ToString(), AngleZ.ToString(), AngleX.ToString(), AngleY.ToString());
+            string result = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}", _id.ToString(), EventTime.ToString(), X.ToString(), Y.ToString(), Pressure.ToString(), TouchSurface.ToString(), AngleZ.ToString(), AngleX.ToString(), AngleY.ToString(), IsHistory.ToString());
             return result;
         }
 
