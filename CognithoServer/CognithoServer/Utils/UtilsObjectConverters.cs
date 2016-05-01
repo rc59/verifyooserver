@@ -17,7 +17,7 @@ namespace CognithoServer.Utils
             for(int idx = 0; idx < modelTemplate.Gestures.Count; idx++)
             {
                 tempGesture = ConvertGesture(modelTemplate.Gestures[idx]);
-                template.ListGestures.add(template);
+                template.ListGestures.add(tempGesture);
             }
             return template;
         }

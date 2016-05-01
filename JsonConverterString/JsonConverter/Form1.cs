@@ -160,6 +160,9 @@ namespace JsonConverter
                             tempTemplate = new Template();
                             tempTemplate.ListGestures = new java.util.ArrayList();
 
+                            tempTemplate.XDpi = shapes.Xdpi;
+                            tempTemplate.YDpi = shapes.Ydpi;
+
                             StringBuilder shapesBuilder = new StringBuilder();
                             shapesBuilder.Append(shapes.toString());
                             //shapesBuilder.Append(",");
@@ -201,10 +204,11 @@ namespace JsonConverter
                                         tempStroke.ListEvents.add(tempEvent);
                                     }
 
+                                    tempStroke.Length = obj.Strokes[idxStroke].Length;
                                     tempGesture.ListStrokes.add(tempStroke);
                                 }
 
-                                tempTemplate.ListGestures.add(tempGesture);                                
+                                tempTemplate.ListGestures.add(tempGesture);                    
                             }
 
                             tempString = jsonSerializer.deepSerialize(tempTemplate);
