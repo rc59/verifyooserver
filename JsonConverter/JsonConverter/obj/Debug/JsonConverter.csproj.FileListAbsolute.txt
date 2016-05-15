@@ -45,3 +45,7 @@ C:\Users\ivgeni\Documents\verifyoo-server\JsonConverter\JsonConverter\obj\Debug\
 C:\Users\ivgeni\Documents\verifyoo-server\JsonConverter\JsonConverter\obj\Debug\JsonConverter.Form1.resources
 C:\Users\ivgeni\Documents\verifyoo-server\JsonConverter\JsonConverter\obj\Debug\JsonConverter.Properties.Resources.resources
 C:\Users\ivgeni\Documents\verifyoo-server\JsonConverter\JsonConverter\obj\Debug\JsonConverter.csproj.GenerateResource.Cache
+C:\GitHub\Verifyoo\VerifyooServer\JsonConverter\JsonConverter\bin\Debug\JsonConverter.exe.config
+C:\GitHub\Verifyoo\VerifyooServer\JsonConverter\JsonConverter\obj\Debug\JsonConverter.exe
+C:\GitHub\Verifyoo\VerifyooServer\JsonConverter\JsonConverter\obj\Debug\JsonConverter.pdb
+C:\GitHub\Verifyoo\VerifyooServer\JsonConverter\JsonConverter\obj\Debug\JsonConverter.csprojResolveAssemblyReference.cache

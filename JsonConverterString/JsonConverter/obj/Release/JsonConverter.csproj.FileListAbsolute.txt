@@ -82,7 +82,6 @@ C:\GitHub\Verifyoo\VerifyooServer\JsonConverterString\JsonConverter\bin\Release\
 C:\GitHub\Verifyoo\VerifyooServer\JsonConverterString\JsonConverter\bin\Release\IKVM.Runtime.dll
 C:\GitHub\Verifyoo\VerifyooServer\JsonConverterString\JsonConverter\bin\Release\IKVM.Runtime.JNI.dll
 C:\GitHub\Verifyoo\VerifyooServer\JsonConverterString\JsonConverter\bin\Release\verifyoologic.dll
-C:\GitHub\Verifyoo\VerifyooServer\JsonConverterString\JsonConverter\obj\Release\JsonConverter.csprojResolveAssemblyReference.cache
 C:\GitHub\Verifyoo\VerifyooServer\JsonConverterString\JsonConverter\obj\Release\JsonConverter.Form1.resources
 C:\GitHub\Verifyoo\VerifyooServer\JsonConverterString\JsonConverter\obj\Release\JsonConverter.Properties.Resources.resources
 C:\GitHub\Verifyoo\VerifyooServer\JsonConverterString\JsonConverter\obj\Release\JsonConverter.csproj.GenerateResource.Cache

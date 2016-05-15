@@ -142,7 +142,7 @@ namespace JsonConverter
                 IEnumerable<ModelShapes> shapesList;
 
                 JSONSerializer jsonSerializer = new JSONSerializer();
-                String tempString;
+                String tempString;                
 
                 try
                 {
@@ -156,65 +156,68 @@ namespace JsonConverter
                         MotionEventCompact tempEvent;                        
 
                         foreach (ModelShapes shapes in shapesList)
-                        {
+                        {                           
                             tempTemplate = new Template();
                             tempTemplate.ListGestures = new java.util.ArrayList();
 
                             tempTemplate.XDpi = shapes.Xdpi;
                             tempTemplate.YDpi = shapes.Ydpi;
-
-                            StringBuilder shapesBuilder = new StringBuilder();
-                            shapesBuilder.Append(shapes.toString());
-                            //shapesBuilder.Append(",");
-                            objectId++;
-                            shapesCounter = 0;
-                            foreach (ModelShape obj in shapes.ExpShapeList)
+                            
+                            if (shapes.Name.ToLower().Contains("rafi"))
                             {
-                                tempGesture = new CompactGesture();
-                                tempGesture.ListStrokes = new java.util.ArrayList();
-
-                                shapesCounter++;
-                                ModelMotionEventCompact prevEvent = null;
-                                StringBuilder shapeBuilder = new StringBuilder();
-                                shapeBuilder.Append(shapesBuilder.ToString());
-                                shapeBuilder.Append(obj.toString());
-                                //shapeBuilder.Append(",");
-
-                                sw.BaseStream.Seek(sw.BaseStream.Length, SeekOrigin.Begin);
-                                strokeCounter = 0;
-                                for (int idxStroke = 0; idxStroke < obj.Strokes.Count; idxStroke++)
+                                StringBuilder shapesBuilder = new StringBuilder();
+                                shapesBuilder.Append(shapes.toString());
+                                //shapesBuilder.Append(",");
+                                objectId++;
+                                shapesCounter = 0;
+                                foreach (ModelShape obj in shapes.ExpShapeList)
                                 {
-                                    tempStroke = new Stroke();
-                                    tempStroke.ListEvents = new java.util.ArrayList();
+                                    tempGesture = new CompactGesture();
+                                    tempGesture.ListStrokes = new java.util.ArrayList();
 
-                                    strokeCounter++;
-                                    eventCounter = 0;
-                                    for (int idxEvent = 0; idxEvent < obj.Strokes[idxStroke].ListEvents.Count; idxEvent++)
+                                    shapesCounter++;
+                                    ModelMotionEventCompact prevEvent = null;
+                                    StringBuilder shapeBuilder = new StringBuilder();
+                                    shapeBuilder.Append(shapesBuilder.ToString());
+                                    shapeBuilder.Append(obj.toString());
+                                    //shapeBuilder.Append(",");
+
+                                    sw.BaseStream.Seek(sw.BaseStream.Length, SeekOrigin.Begin);
+                                    strokeCounter = 0;
+                                    for (int idxStroke = 0; idxStroke < obj.Strokes.Count; idxStroke++)
                                     {
-                                        tempEvent = new MotionEventCompact();
-                                        tempEvent.AngleX = obj.Strokes[idxStroke].ListEvents[idxEvent].AngleX;
-                                        tempEvent.AngleY = obj.Strokes[idxStroke].ListEvents[idxEvent].AngleY;
-                                        tempEvent.AngleZ = obj.Strokes[idxStroke].ListEvents[idxEvent].AngleZ;
-                                        tempEvent.EventTime = obj.Strokes[idxStroke].ListEvents[idxEvent].EventTime;
-                                        tempEvent.Pressure = obj.Strokes[idxStroke].ListEvents[idxEvent].Pressure;
-                                        tempEvent.TouchSurface = obj.Strokes[idxStroke].ListEvents[idxEvent].TouchSurface;
-                                        tempEvent.Xpixel = obj.Strokes[idxStroke].ListEvents[idxEvent].X;
-                                        tempEvent.Ypixel = obj.Strokes[idxStroke].ListEvents[idxEvent].Y;
+                                        tempStroke = new Stroke();
+                                        tempStroke.ListEvents = new java.util.ArrayList();
 
-                                        tempStroke.ListEvents.add(tempEvent);
+                                        strokeCounter++;
+                                        eventCounter = 0;
+                                        for (int idxEvent = 0; idxEvent < obj.Strokes[idxStroke].ListEvents.Count; idxEvent++)
+                                        {
+                                            tempEvent = new MotionEventCompact();
+                                            tempEvent.AngleX = obj.Strokes[idxStroke].ListEvents[idxEvent].AngleX;
+                                            tempEvent.AngleY = obj.Strokes[idxStroke].ListEvents[idxEvent].AngleY;
+                                            tempEvent.AngleZ = obj.Strokes[idxStroke].ListEvents[idxEvent].AngleZ;
+                                            tempEvent.EventTime = obj.Strokes[idxStroke].ListEvents[idxEvent].EventTime;
+                                            tempEvent.Pressure = obj.Strokes[idxStroke].ListEvents[idxEvent].Pressure;
+                                            tempEvent.TouchSurface = obj.Strokes[idxStroke].ListEvents[idxEvent].TouchSurface;
+                                            tempEvent.Xpixel = obj.Strokes[idxStroke].ListEvents[idxEvent].X;
+                                            tempEvent.Ypixel = obj.Strokes[idxStroke].ListEvents[idxEvent].Y;
+
+                                            tempStroke.ListEvents.add(tempEvent);
+                                        }
+
+                                        tempStroke.Length = obj.Strokes[idxStroke].Length;
+                                        tempGesture.ListStrokes.add(tempStroke);
                                     }
 
-                                    tempStroke.Length = obj.Strokes[idxStroke].Length;
-                                    tempGesture.ListStrokes.add(tempStroke);
+                                    tempTemplate.ListGestures.add(tempGesture);
                                 }
 
-                                tempTemplate.ListGestures.add(tempGesture);                    
-                            }
-
-                            tempString = jsonSerializer.deepSerialize(tempTemplate);
-                            tempString = tempString.Replace("\"", "'");
-                            sw.WriteLine(tempString);
-                            sw.Flush();
+                                tempString = jsonSerializer.deepSerialize(tempTemplate);
+                                tempString = tempString.Replace("\"", "'");
+                                sw.WriteLine(tempString);
+                                sw.Flush();
+                            }                                                                             
                         }
 
                         skip++;
