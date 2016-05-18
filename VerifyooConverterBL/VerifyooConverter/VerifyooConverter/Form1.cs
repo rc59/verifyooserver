@@ -25,6 +25,7 @@ namespace VerifyooConverter
         private long mListMongoCount;
         bool mIsFinished = false;
         string mBaseObjectId;
+        string mFilterDevice;
 
         public Form1()
         {
@@ -60,7 +61,7 @@ namespace VerifyooConverter
 
                 ModelTemplate tempModelTemplate = templates.FindOne(query);
                 mBaseObjectId = tempModelTemplate._id.ToString();
-                tempTemplate = UtilsTemplateConverter.ConvertTemplate(tempModelTemplate);                
+                tempTemplate = UtilsTemplateConverter.ConvertTemplate(tempModelTemplate);
             }
             else
             {
@@ -88,6 +89,12 @@ namespace VerifyooConverter
             {
                 isValid = false;
             }
+
+            if(mFilterDevice.Length > 0 && string.Compare(template.ModelName, mFilterDevice) != 0)
+            {
+                isValid = false;
+            }
+
             return isValid;
         }
 
@@ -97,7 +104,7 @@ namespace VerifyooConverter
             try
             {
                 StreamWriter sw = File.CreateText(txtPath.Text);
-                sw.WriteLine("Object ID,Type,Score,Threshold,User Name,Device Name,Instruction");
+                sw.WriteLine("Object ID,Idx1,Idx2,Type,Score,Threshold,User Name,Device Name,Instruction");
                 StringBuilder strBuilder;
 
                 double fpLow = 0;
@@ -138,6 +145,11 @@ namespace VerifyooConverter
                 double threasholdLow, threasholdMed, threasholdHigh;
                 double recordsLimit;
 
+                if(txtDevice.Text.Length > 0)
+                {
+                    mFilterDevice = txtDevice.Text;
+                }
+
                 try
                 {
                     threasholdLow = double.Parse(txtThreasholdLow.Text);
@@ -176,15 +188,13 @@ namespace VerifyooConverter
 
                             try
                             {
-
-                                for (idx1 = 14; idx1 < tempTemplate.ListGestureExtended.size(); idx1++)
+                                for (idx1 = 14; idx1 < 21; idx1++)
                                 {
-                                    for (int idx2 = idx1; idx2 < tempTemplate.ListGestureExtended.size(); idx2++)
-                                    {                                       
-                                        tempGestureUserBase = (GestureExtended)tempTemplate.ListGestureExtended.get(idx1);
+                                    tempGestureUserBase = (GestureExtended)tempTemplate.ListGestureExtended.get(idx1);
+                                    for (int idx2 = 21; idx2 < tempTemplate.ListGestureExtended.size(); idx2++)
+                                    {                                        
                                         tempGestureUserAuth = (GestureExtended)tempTemplate.ListGestureExtended.get(idx2);
-
-                                        if (idx1 != idx2 && tempGestureUserBase.Instruction == tempGestureUserAuth.Instruction)
+                                        if (tempGestureUserBase.Instruction == tempGestureUserAuth.Instruction)
                                         {
                                             //tempGestureUserBase.XDpi = tempTemplate.XDpi;
                                             //tempGestureUserBase.YDpi = tempTemplate.YDpi;
@@ -192,12 +202,11 @@ namespace VerifyooConverter
                                             //tempGestureUserAuth.XDpi = tempTemplate.XDpi;
                                             //tempGestureUserAuth.YDpi = tempTemplate.YDpi;
 
-                                            if (IsGestureValid(tempGestureUserBase) && IsGestureValid(tempGestureUserAuth) && tempGestureUserBase.ListStrokesExtended.size() == tempGestureUserAuth.ListStrokesExtended.size())                                                
+                                            if (IsGestureValid(tempGestureUserBase) && IsGestureValid(tempGestureUserAuth) && tempGestureUserBase.ListStrokesExtended.size() == tempGestureUserAuth.ListStrokesExtended.size())
                                             {
                                                 comparer = new GestureComparer(false);
                                                 comparer.CompareGestures(tempGestureUserBase, tempGestureUserAuth);
                                                 tempScore = comparer.GetScore();
-
                                                 if (!Double.IsNaN(tempScore))
                                                 {
                                                     totalGesturesFn++;
@@ -205,6 +214,10 @@ namespace VerifyooConverter
                                                     {
                                                         strBuilder = new StringBuilder();
                                                         strBuilder.Append(template._id.ToString());
+                                                        strBuilder.Append(",");
+                                                        strBuilder.Append(idx1.ToString());
+                                                        strBuilder.Append(",");
+                                                        strBuilder.Append(idx2.ToString());
                                                         strBuilder.Append(",");
                                                         strBuilder.Append("False Negative");
                                                         strBuilder.Append(",");
@@ -216,7 +229,7 @@ namespace VerifyooConverter
                                                         strBuilder.Append(",");
                                                         strBuilder.Append(template.ModelName);
                                                         strBuilder.Append(",");
-                                                        strBuilder.Append((template.ExpShapeList[idxGesture]).Instruction);
+                                                        strBuilder.Append(tempGestureUserBase.Instruction);
 
                                                         sw.WriteLine(strBuilder.ToString());
                                                         sw.Flush();
@@ -241,7 +254,6 @@ namespace VerifyooConverter
                                 swLog.WriteLine(String.Format("FN Error in object {0} in gesture {1}. Reason: {2}", template._id.ToString(), idx1.ToString(), exc.Message));
                                 swLog.Flush();
                             }
-
                             //isFpFinished = false;
                             //skipFp = skip;
                             //while (!isFpFinished)
@@ -307,7 +319,7 @@ namespace VerifyooConverter
                             {
                                 try
                                 {
-                                    for (idxGesture = 0; idxGesture < baseTemplate.ListGestureExtended.size(); idxGesture++)
+                                    for (idxGesture = 0; idxGesture < 7; idxGesture++)
                                     {
                                         for (int idxGestureAuth = 0; idxGestureAuth < tempTemplate.ListGestureExtended.size(); idxGestureAuth++)
                                         {
@@ -336,6 +348,10 @@ namespace VerifyooConverter
                                                             fpLow++;
                                                             strBuilder = new StringBuilder();
                                                             strBuilder.Append(template._id.ToString());
+                                                            strBuilder.Append(",");
+                                                            strBuilder.Append(idxGesture.ToString());
+                                                            strBuilder.Append(",");
+                                                            strBuilder.Append(idxGestureAuth.ToString());
                                                             strBuilder.Append(",");
                                                             strBuilder.Append("False Positive");
                                                             strBuilder.Append(",");

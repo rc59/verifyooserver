@@ -48,6 +48,8 @@
             this.lblSubCounter = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.txtLimit = new System.Windows.Forms.TextBox();
+            this.txtDevice = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblProgress
@@ -62,7 +64,7 @@
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(12, 474);
+            this.btnStart.Location = new System.Drawing.Point(12, 505);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(75, 23);
             this.btnStart.TabIndex = 1;
@@ -81,7 +83,7 @@
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(93, 474);
+            this.btnCancel.Location = new System.Drawing.Point(93, 505);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 3;
@@ -214,7 +216,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 443);
+            this.label2.Location = new System.Drawing.Point(12, 474);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(41, 17);
             this.label2.TabIndex = 19;
@@ -223,16 +225,36 @@
             // 
             // txtLimit
             // 
-            this.txtLimit.Location = new System.Drawing.Point(93, 443);
+            this.txtLimit.Location = new System.Drawing.Point(93, 474);
             this.txtLimit.Name = "txtLimit";
             this.txtLimit.Size = new System.Drawing.Size(165, 22);
             this.txtLimit.TabIndex = 20;
+            // 
+            // txtDevice
+            // 
+            this.txtDevice.Location = new System.Drawing.Point(93, 446);
+            this.txtDevice.Name = "txtDevice";
+            this.txtDevice.Size = new System.Drawing.Size(165, 22);
+            this.txtDevice.TabIndex = 22;
+            this.txtDevice.Text = "LGE Nexus 5";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(12, 446);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(55, 17);
+            this.label3.TabIndex = 21;
+            this.label3.Text = "Device:";
+            this.label3.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(521, 600);
+            this.Controls.Add(this.txtDevice);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.txtLimit);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.lblSubCounter);
@@ -282,6 +304,8 @@
         private System.Windows.Forms.Label lblSubCounter;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtLimit;
+        private System.Windows.Forms.TextBox txtDevice;
+        private System.Windows.Forms.Label label3;
     }
 }
 

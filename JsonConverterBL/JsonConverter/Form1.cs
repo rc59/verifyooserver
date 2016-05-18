@@ -102,7 +102,7 @@ namespace JsonConverter
                 StreamWriter sw = File.CreateText(path);
                 //sw.WriteLine("CreationDateShapes,CreationTimeShapes,Name,Version,ObjectId,ModelName,DeviceId,OS,ScreenHeight,ScreenWidth,Xdpi,Ydpi,UserCountry,AppLocale,ShapeObjectId,Instruction,StrokeObjectId,EventObjectId, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY,IsHistory,ObjectIndex,StrokeIndex,EventIndex,ShapesIndex,PreX,PreY,PRE_EventTime,DownTime");
 
-                sw.WriteLine("TemplateId,GestureId,Name,ModelName,Xdpi,Ydpi,Instruction,GestureAverageVelocity,GestureLength,GestureTotalTimeWithoutPauses,GestureTotalTimeWithPauses,GestureTotalStrokeArea,GestureMaxPressure,GestureMaxSurface,GestureAvgPressure,GestureAvgSurface,GestureAvgMiddlePressure,GestureAvgMiddleSurface,GestureMaxAccX,GestureMaxAccY,GestureMaxAccZ,GestureAvgAccX,GestureAvgAccY,GestureAvgAccZ,GestureVelocityPeakMax");
+                sw.WriteLine("TemplateId,GestureId,Name,ModelName,Xdpi,Ydpi,Instruction,GestureAverageVelocity,GestureLength,GestureTotalTimeWithoutPauses,GestureTotalTimeWithPauses,GestureTotalStrokeArea,GestureMaxPressure,GestureMaxSurface,GestureAvgPressure,GestureAvgSurface,GestureAvgMiddlePressure,GestureAvgMiddleSurface,GestureMaxAccX,GestureMaxAccY,GestureMaxAccZ,GestureAvgAccX,GestureAvgAccY,GestureAvgAccZ,GestureAverageStartAcceleration,GestureVelocityPeakMax");
 
                 StringBuilder strBuilder;
 
