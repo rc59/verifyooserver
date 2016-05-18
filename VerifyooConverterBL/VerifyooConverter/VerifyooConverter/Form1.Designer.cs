@@ -50,6 +50,16 @@
             this.txtLimit = new System.Windows.Forms.TextBox();
             this.txtDevice = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.txtInstruction = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.lblValidGestures = new System.Windows.Forms.Label();
+            this.lblInvalidGestures = new System.Windows.Forms.Label();
+            this.lblInvalidTemplates = new System.Windows.Forms.Label();
+            this.lblValidTemplates = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblProgress
@@ -64,7 +74,7 @@
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(12, 505);
+            this.btnStart.Location = new System.Drawing.Point(12, 587);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(75, 23);
             this.btnStart.TabIndex = 1;
@@ -74,16 +84,17 @@
             // 
             // txtPath
             // 
-            this.txtPath.Location = new System.Drawing.Point(12, 566);
+            this.txtPath.Location = new System.Drawing.Point(12, 648);
             this.txtPath.Name = "txtPath";
             this.txtPath.Size = new System.Drawing.Size(282, 22);
             this.txtPath.TabIndex = 2;
             this.txtPath.Text = "C:\\Temp\\Result.csv";
             this.txtPath.Visible = false;
+            this.txtPath.TextChanged += new System.EventHandler(this.txtPath_TextChanged);
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(93, 505);
+            this.btnCancel.Location = new System.Drawing.Point(93, 587);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 3;
@@ -188,21 +199,23 @@
             // 
             // txtObjectID
             // 
-            this.txtObjectID.Location = new System.Drawing.Point(95, 416);
+            this.txtObjectID.Location = new System.Drawing.Point(95, 464);
             this.txtObjectID.Name = "txtObjectID";
             this.txtObjectID.Size = new System.Drawing.Size(165, 22);
             this.txtObjectID.TabIndex = 15;
-            this.txtObjectID.Text = "dalal.roy@gmail.com";
+            this.txtObjectID.Text = "roy-STAM123";
+            this.txtObjectID.TextChanged += new System.EventHandler(this.txtObjectID_TextChanged);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 416);
+            this.label1.Location = new System.Drawing.Point(12, 464);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(49, 17);
             this.label1.TabIndex = 16;
             this.label1.Text = "Name:";
             this.label1.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // lblSubCounter
             // 
@@ -216,43 +229,163 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 474);
+            this.label2.Location = new System.Drawing.Point(12, 556);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(41, 17);
             this.label2.TabIndex = 19;
             this.label2.Text = "Limit:";
             this.label2.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label2.Click += new System.EventHandler(this.label2_Click_1);
             // 
             // txtLimit
             // 
-            this.txtLimit.Location = new System.Drawing.Point(93, 474);
+            this.txtLimit.Location = new System.Drawing.Point(93, 556);
             this.txtLimit.Name = "txtLimit";
             this.txtLimit.Size = new System.Drawing.Size(165, 22);
             this.txtLimit.TabIndex = 20;
+            this.txtLimit.TextChanged += new System.EventHandler(this.txtLimit_TextChanged);
             // 
             // txtDevice
             // 
-            this.txtDevice.Location = new System.Drawing.Point(93, 446);
+            this.txtDevice.Location = new System.Drawing.Point(93, 494);
             this.txtDevice.Name = "txtDevice";
             this.txtDevice.Size = new System.Drawing.Size(165, 22);
             this.txtDevice.TabIndex = 22;
             this.txtDevice.Text = "LGE Nexus 5";
+            this.txtDevice.TextChanged += new System.EventHandler(this.txtDevice_TextChanged);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 446);
+            this.label3.Location = new System.Drawing.Point(12, 494);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(55, 17);
             this.label3.TabIndex = 21;
             this.label3.Text = "Device:";
             this.label3.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label3.Click += new System.EventHandler(this.label3_Click);
+            // 
+            // txtInstruction
+            // 
+            this.txtInstruction.Location = new System.Drawing.Point(93, 525);
+            this.txtInstruction.Name = "txtInstruction";
+            this.txtInstruction.Size = new System.Drawing.Size(165, 22);
+            this.txtInstruction.TabIndex = 23;
+            this.txtInstruction.TextChanged += new System.EventHandler(this.txtInstruction_TextChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(12, 525);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(77, 17);
+            this.label4.TabIndex = 24;
+            this.label4.Text = "Instruction:";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label4.Click += new System.EventHandler(this.label4_Click);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(11, 408);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(105, 17);
+            this.label5.TabIndex = 25;
+            this.label5.Text = "Valid Gestures:";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label5.Click += new System.EventHandler(this.label5_Click);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(12, 434);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(114, 17);
+            this.label6.TabIndex = 26;
+            this.label6.Text = "Invalid Gestures:";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label6.Click += new System.EventHandler(this.label6_Click);
+            // 
+            // lblValidGestures
+            // 
+            this.lblValidGestures.AutoSize = true;
+            this.lblValidGestures.Location = new System.Drawing.Point(128, 408);
+            this.lblValidGestures.Name = "lblValidGestures";
+            this.lblValidGestures.Size = new System.Drawing.Size(109, 17);
+            this.lblValidGestures.TabIndex = 27;
+            this.lblValidGestures.Text = "[Valid Gestures]";
+            this.lblValidGestures.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.lblValidGestures.Click += new System.EventHandler(this.lblValidGestures_Click);
+            // 
+            // lblInvalidGestures
+            // 
+            this.lblInvalidGestures.AutoSize = true;
+            this.lblInvalidGestures.Location = new System.Drawing.Point(128, 434);
+            this.lblInvalidGestures.Name = "lblInvalidGestures";
+            this.lblInvalidGestures.Size = new System.Drawing.Size(118, 17);
+            this.lblInvalidGestures.TabIndex = 28;
+            this.lblInvalidGestures.Text = "[Invalid Gestures]";
+            this.lblInvalidGestures.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.lblInvalidGestures.Click += new System.EventHandler(this.lblInvalidGestures_Click);
+            // 
+            // lblInvalidTemplates
+            // 
+            this.lblInvalidTemplates.AutoSize = true;
+            this.lblInvalidTemplates.Location = new System.Drawing.Point(128, 382);
+            this.lblInvalidTemplates.Name = "lblInvalidTemplates";
+            this.lblInvalidTemplates.Size = new System.Drawing.Size(126, 17);
+            this.lblInvalidTemplates.TabIndex = 32;
+            this.lblInvalidTemplates.Text = "[Invalid Templates]";
+            this.lblInvalidTemplates.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.lblInvalidTemplates.Click += new System.EventHandler(this.label7_Click);
+            // 
+            // lblValidTemplates
+            // 
+            this.lblValidTemplates.AutoSize = true;
+            this.lblValidTemplates.Location = new System.Drawing.Point(128, 356);
+            this.lblValidTemplates.Name = "lblValidTemplates";
+            this.lblValidTemplates.Size = new System.Drawing.Size(117, 17);
+            this.lblValidTemplates.TabIndex = 31;
+            this.lblValidTemplates.Text = "[Valid Templates]";
+            this.lblValidTemplates.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(12, 382);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(122, 17);
+            this.label9.TabIndex = 30;
+            this.label9.Text = "Invalid Templates:";
+            this.label9.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label9.Click += new System.EventHandler(this.label9_Click);
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(11, 356);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(113, 17);
+            this.label10.TabIndex = 29;
+            this.label10.Text = "Valid Templates:";
+            this.label10.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.label10.Click += new System.EventHandler(this.label10_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(521, 600);
+            this.ClientSize = new System.Drawing.Size(521, 691);
+            this.Controls.Add(this.lblInvalidTemplates);
+            this.Controls.Add(this.lblValidTemplates);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.label10);
+            this.Controls.Add(this.lblInvalidGestures);
+            this.Controls.Add(this.lblValidGestures);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.txtInstruction);
             this.Controls.Add(this.txtDevice);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.txtLimit);
@@ -306,6 +439,16 @@
         private System.Windows.Forms.TextBox txtLimit;
         private System.Windows.Forms.TextBox txtDevice;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtInstruction;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label lblValidGestures;
+        private System.Windows.Forms.Label lblInvalidGestures;
+        private System.Windows.Forms.Label lblInvalidTemplates;
+        private System.Windows.Forms.Label lblValidTemplates;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Label label10;
     }
 }
 

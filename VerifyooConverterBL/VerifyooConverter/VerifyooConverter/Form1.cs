@@ -26,6 +26,13 @@ namespace VerifyooConverter
         bool mIsFinished = false;
         string mBaseObjectId;
         string mFilterDevice;
+        string mFilterInstruction;
+
+        int mTemplateValid;
+        int mTemplateInvalid;
+
+        int mValid;
+        int mInvalid;
 
         public Form1()
         {
@@ -35,6 +42,11 @@ namespace VerifyooConverter
 
         private void Init()
         {
+            mTemplateValid = 0;
+            mTemplateInvalid = 0;
+
+            mValid = 0;
+            mInvalid = 0;
             mListMongo = UtilsDB.GetCollShapes();
             mListMongoCount = mListMongo.Count();
 
@@ -95,7 +107,37 @@ namespace VerifyooConverter
                 isValid = false;
             }
 
+            if(isValid)
+            {
+                mTemplateValid++;
+            }
+            else
+            {
+                mTemplateInvalid++;
+            }
             return isValid;
+        }
+
+
+        private bool IsUseInstruction(string instruction)
+        {
+            bool useInstruction;
+            if (mFilterInstruction.Length > 0)
+            {
+                if (string.Compare(mFilterInstruction, instruction) == 0)
+                {
+                    useInstruction = true;
+                }
+                else
+                {
+                    useInstruction = false;
+                }
+            }
+            else
+            {
+                useInstruction = true;
+            }
+            return useInstruction;
         }
 
 
@@ -145,9 +187,16 @@ namespace VerifyooConverter
                 double threasholdLow, threasholdMed, threasholdHigh;
                 double recordsLimit;
 
-                if(txtDevice.Text.Length > 0)
+                mFilterDevice = string.Empty;
+                if (txtDevice.Text.Length > 0)
                 {
                     mFilterDevice = txtDevice.Text;
+                }
+
+                mFilterInstruction = string.Empty;
+                if (txtInstruction.Text.Length > 0)
+                {
+                    mFilterInstruction = txtInstruction.Text;
                 }
 
                 try
@@ -171,7 +220,7 @@ namespace VerifyooConverter
                
                 GestureComparer comparer = new GestureComparer(false);
 
-                bool isFpFinished;
+                bool isFpFinished;               
 
                 while (!mIsFinished)
                 {
@@ -192,9 +241,10 @@ namespace VerifyooConverter
                                 {
                                     tempGestureUserBase = (GestureExtended)tempTemplate.ListGestureExtended.get(idx1);
                                     for (int idx2 = 21; idx2 < tempTemplate.ListGestureExtended.size(); idx2++)
-                                    {                                        
-                                        tempGestureUserAuth = (GestureExtended)tempTemplate.ListGestureExtended.get(idx2);
-                                        if (tempGestureUserBase.Instruction == tempGestureUserAuth.Instruction)
+                                    {
+                                        tempGestureUserAuth = (GestureExtended)tempTemplate.ListGestureExtended.get(idx2);                                        
+
+                                        if (tempGestureUserBase.Instruction == tempGestureUserAuth.Instruction && IsUseInstruction(tempGestureUserBase.Instruction))
                                         {
                                             //tempGestureUserBase.XDpi = tempTemplate.XDpi;
                                             //tempGestureUserBase.YDpi = tempTemplate.YDpi;
@@ -326,7 +376,7 @@ namespace VerifyooConverter
                                             tempGestureAuth = (GestureExtended)tempTemplate.ListGestureExtended.get(idxGestureAuth);
                                             tempGestureBase = (GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture);
 
-                                            if (String.Compare(tempGestureAuth.Instruction, tempGestureBase.Instruction) == 0)
+                                            if (String.Compare(tempGestureAuth.Instruction, tempGestureBase.Instruction) == 0 && IsUseInstruction(tempGestureBase.Instruction))
                                             {
                                                 //tempGestureAuth.XDpi = tempTemplate.XDpi;
                                                 //tempGestureAuth.YDpi = tempTemplate.YDpi;
@@ -414,6 +464,12 @@ namespace VerifyooConverter
                     this.lblFPTotalGestures.Invoke(new MethodInvoker(() => this.lblFPTotalGestures.Text = string.Format("FP Gestures analyzed: {0}", totalGesturesFp.ToString())));
                     this.lblFNTotalGestures.Invoke(new MethodInvoker(() => this.lblFNTotalGestures.Text = string.Format("FN Gestures analyzed: {0}", totalGesturesFn.ToString())));
 
+                    this.lblValidGestures.Invoke(new MethodInvoker(() => this.lblValidGestures.Text = mValid.ToString()));
+                    this.lblInvalidGestures.Invoke(new MethodInvoker(() => this.lblInvalidGestures.Text = mInvalid.ToString()));
+
+                    this.lblValidTemplates.Invoke(new MethodInvoker(() => this.lblValidTemplates.Text = mTemplateValid.ToString()));
+                    this.lblInvalidTemplates.Invoke(new MethodInvoker(() => this.lblInvalidTemplates.Text = mTemplateInvalid.ToString()));
+
                     if (mIsFinished)
                     {
                         SetProgress(String.Format("{0} out of {1}", totalNumbRecords.ToString(), totalNumbRecords.ToString()));
@@ -432,10 +488,12 @@ namespace VerifyooConverter
         {
             if(g.GestureLengthMM > 0 && g.GestureTotalTimeWithPauses > 0 && g.GestureAverageVelocity > 0)
             {
+                mValid++;
                 return true;
             }
             else
             {
+                mInvalid++;
                 return false;
             }
         }
@@ -463,6 +521,7 @@ namespace VerifyooConverter
 
         private void btnStart_Click(object sender, EventArgs e)
         {
+            btnStart.Enabled = false;
             Task task = Task.Run((Action)CalculateFalsePositives);
         }
 
@@ -472,6 +531,86 @@ namespace VerifyooConverter
         }
 
         private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label7_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label9_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label10_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblInvalidGestures_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblValidGestures_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtInstruction_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtDevice_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtLimit_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label2_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtObjectID_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtPath_TextChanged(object sender, EventArgs e)
         {
 
         }

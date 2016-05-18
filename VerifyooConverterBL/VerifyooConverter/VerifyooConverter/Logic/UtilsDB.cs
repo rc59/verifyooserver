@@ -12,7 +12,8 @@ namespace VerifyooConverter.Logic
     {
         public static MongoDatabase GetDbInstance()
         {
-            const string connectionString = "mongodb://52.26.178.48/?safe=true";
+            //const string connectionString = "mongodb://52.26.178.48/?safe=true";
+            const string connectionString = "mongodb://localhost/?safe=true";
             var mongoClient = new MongoClient(connectionString);
             var mongoServer = mongoClient.GetServer();
 

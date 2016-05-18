@@ -102,7 +102,7 @@ namespace JsonConverter
                 StreamWriter sw = File.CreateText(path);
                 //sw.WriteLine("CreationDateShapes,CreationTimeShapes,Name,Version,ObjectId,ModelName,DeviceId,OS,ScreenHeight,ScreenWidth,Xdpi,Ydpi,UserCountry,AppLocale,ShapeObjectId,Instruction,StrokeObjectId,EventObjectId, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY,IsHistory,ObjectIndex,StrokeIndex,EventIndex,ShapesIndex,PreX,PreY,PRE_EventTime,DownTime");
 
-                sw.WriteLine("TemplateId,GestureId,Name,ModelName,Xdpi,Ydpi,Instruction,GestureAverageVelocity,GestureLength,GestureTotalTimeWithoutPauses,GestureTotalTimeWithPauses,GestureTotalStrokeArea,GestureMaxPressure,GestureMaxSurface,GestureAvgPressure,GestureAvgSurface,GestureAvgMiddlePressure,GestureAvgMiddleSurface,GestureMaxAccX,GestureMaxAccY,GestureMaxAccZ,GestureAvgAccX,GestureAvgAccY,GestureAvgAccZ,GestureAverageStartAcceleration,GestureVelocityPeakMax");
+                sw.WriteLine("TemplateId,GestureId,Name,ModelName,Xdpi,Ydpi,Instruction,GestureAverageVelocity,GestureLength,GestureTotalTimeWithoutPauses,GestureTotalTimeWithPauses,GestureTotalStrokeArea,GestureMaxPressure,GestureMaxSurface,GestureAvgPressure,GestureAvgSurface,GestureAvgMiddlePressure,GestureAvgMiddleSurface,GestureMaxAccX,GestureMaxAccY,GestureMaxAccZ,GestureAvgAccX,GestureAvgAccY,GestureAvgAccZ,GestureAverageStartAcceleration,GestureAccumulatedLengthLinearRegIntercept,GestureAccumulatedLengthLinearRegRSqr,GestureAccumulatedLengthLinearRegSlope,GestureVelocityPeakMax");
 
                 StringBuilder strBuilder;
 
@@ -143,6 +143,7 @@ namespace JsonConverter
                 string strGesture = string.Empty;
 
                 IEnumerable<ModelShapes> shapesList;
+                string id = string.Empty;
 
                 try
                 {
@@ -151,16 +152,27 @@ namespace JsonConverter
                         shapesList = listMongo.FindAll().SetLimit(limit).SetSkip(skip);
 
                         foreach (ModelShapes shapes in shapesList)
-                        { 
-                            TemplateExtended template = UtilsConvert.ConvertTemplate(shapes);
-
-                            for(int idxGesture = 0; idxGesture < template.ListGestureExtended.size(); idxGesture++)
-                            {
-                                strGesture = UtilsConvert.GestureToString(shapes, shapes.ExpShapeList[idxGesture], (GestureExtended)template.ListGestureExtended.get(idxGesture));
-                                sw.WriteLine(strGesture);
-                            }                            
+                        {
                             
-                            sw.Flush();
+                            try
+                            {
+                                id = shapes._id.ToString();
+                                TemplateExtended template = UtilsConvert.ConvertTemplate(shapes);
+
+                                for (int idxGesture = 0; idxGesture < template.ListGestureExtended.size(); idxGesture++)
+                                {
+                                    strGesture = UtilsConvert.GestureToString(shapes, shapes.ExpShapeList[idxGesture], (GestureExtended)template.ListGestureExtended.get(idxGesture));
+                                    sw.WriteLine(strGesture);
+                                }
+
+                                sw.Flush();
+                            }
+                            catch (Exception exc)
+                            {
+
+                            }
+
+                            
                         }
                         skip++;
                         if (totalNumbRecords == skip)
@@ -175,7 +187,7 @@ namespace JsonConverter
                 }
                 catch (Exception exc)
                 {
-                    this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = "Error: " + exc.StackTrace));
+                    this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = string.Format("Error: {0}, ObjId:{1}", exc.StackTrace, id)));
 
                     sw.Close();
                 }

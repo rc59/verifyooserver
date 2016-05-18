@@ -162,6 +162,15 @@ namespace JsonConverter.Logic
             strBuilder.Append(gesture.GestureAverageStartAcceleration.ToString());
             strBuilder.Append(",");
 
+            strBuilder.Append(gesture.GestureAccumulatedLengthLinearRegIntercept.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureAccumulatedLengthLinearRegRSqr.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureAccumulatedLengthLinearRegSlope.ToString());
+            strBuilder.Append(",");
+
             strBuilder.Append(gesture.GestureVelocityPeakMax.ToString());         
 
             return strBuilder.ToString();
