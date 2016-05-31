@@ -1,5 +1,7 @@
-﻿using Data.UserProfile.Extended;
+﻿using Data.Comparison.Interfaces;
+using Data.UserProfile.Extended;
 using Data.UserProfile.Raw;
+using java.util;
 using JsonConverter.Models;
 using Logic.Comparison;
 using Logic.Comparison.Stats;
@@ -24,15 +26,29 @@ namespace VerifyooConverter
         private MongoCollection<ModelTemplate> mListMongo;
         private long mListMongoCount;
         bool mIsFinished = false;
+        bool mIsFinishedFp = false;
         string mBaseObjectId;
         string mFilterDevice;
         string mFilterInstruction;
+        string mPathFaultyGestures;
+        string mUserName;
+        string currentBaseName;
+        string currentBaseTemplateId;
+        string currentBaseGestureId;
+
+        string currentAuthName;
+        string currentAuthTemplateId;
+        string currentAuthGestureId;
+
+        UtilsInvalidGestures mUtilInvalid;
 
         int mTemplateValid;
         int mTemplateInvalid;
 
         int mValid;
         int mInvalid;
+
+        HashMap mDict;
 
         public Form1()
         {
@@ -50,10 +66,14 @@ namespace VerifyooConverter
             mListMongo = UtilsDB.GetCollShapes();
             mListMongoCount = mListMongo.Count();
 
+            mPathFaultyGestures = txtFaultyGestures.Text;
+
             txtThreasholdLow.Text = UtilsConsts.THRESHOLD_LOW.ToString();
             txtThreasholdMedium.Text = UtilsConsts.THRESHOLD_MED.ToString();
             txtThreasholdHigh.Text = UtilsConsts.THRESHOLD_HIGH.ToString();
             txtLimit.Text = "0";
+
+            mUtilInvalid = new UtilsInvalidGestures();
         }
         private void SetProgress(string progress)
         {
@@ -64,6 +84,8 @@ namespace VerifyooConverter
         {
             TemplateExtended tempTemplate = null;
 
+            mUserName = txtObjectID.Text;
+
             if (txtObjectID.Text.Length > 0)
             {                
                 MongoCollection<ModelTemplate> templates = mListMongo;
@@ -73,7 +95,7 @@ namespace VerifyooConverter
 
                 ModelTemplate tempModelTemplate = templates.FindOne(query);
                 mBaseObjectId = tempModelTemplate._id.ToString();
-                tempTemplate = UtilsTemplateConverter.ConvertTemplate(tempModelTemplate);
+                tempTemplate = UtilsTemplateConverter.ConvertTemplate(tempModelTemplate, mUtilInvalid);
             }
             else
             {
@@ -86,7 +108,7 @@ namespace VerifyooConverter
                 foreach (ModelTemplate template in modelTemplates)
                 {
                     mBaseObjectId = template._id.ToString();
-                    tempTemplate = UtilsTemplateConverter.ConvertTemplate(template);
+                    tempTemplate = UtilsTemplateConverter.ConvertTemplate(template, mUtilInvalid);
                     break;
                 }
             }
@@ -141,12 +163,47 @@ namespace VerifyooConverter
         }
 
 
+        protected string GetParameterDetails(GestureComparer comparer, int idx)
+        {
+            string str;
+            if (idx < comparer.GetResultsSummary().ListCompareResults.size())
+            {
+                double value = ((ICompareResult)comparer.GetResultsSummary().ListCompareResults.get(idx)).GetValue();
+                value = Math.Round(value, 3);
+
+                double zScore = ((ICompareResult)comparer.GetResultsSummary().ListCompareResults.get(idx)).GetWeight();
+                zScore = Math.Round(zScore, 3);
+
+                string name = ((ICompareResult)comparer.GetResultsSummary().ListCompareResults.get(idx)).GetName();
+
+                str = String.Format("[Score={0}]  [Z={1}]  [Name={2}]", value.ToString(), zScore.ToString(), name);
+            }
+            else
+            {
+                str = "[No Value]";
+            }
+            
+            return str;
+        }
+
+
         private void GetDataFromDB()
         {
             try
             {
+                
+                StreamReader srFaultyGestures = new StreamReader(mPathFaultyGestures);
+
+                string faultyId;
+                while(!srFaultyGestures.EndOfStream)
+                {
+                    faultyId = srFaultyGestures.ReadLine();
+                    mUtilInvalid.HashInvalid.Add(faultyId, true);
+                }
+                srFaultyGestures.Close();
+
                 StreamWriter sw = File.CreateText(txtPath.Text);
-                sw.WriteLine("Object ID,Idx1,Idx2,Type,Score,Threshold,User Name,Device Name,Instruction");
+                sw.WriteLine("Object ID,Base Gesture ID,Auth Gesture ID,Type,Score,ShapeScore,Threshold,User Name,Device Name,Instruction,P01,P02,P03,P04,P05,P06,P07,P08,P09,P10,P11,P12,P13,P14,P15");
                 StringBuilder strBuilder;
 
                 double fpLow = 0;
@@ -158,17 +215,19 @@ namespace VerifyooConverter
                 double fnHigh = 0;
 
                 string logfile = txtPath.Text.Replace("csv", "log");
-                StreamWriter swLog = File.CreateText(logfile);
+                StreamWriter swLog = File.CreateText(@"C:\temp\log.txt");
 
                 bool isFirst = true;
 
                 int totalNumbRecords = (int)mListMongoCount;
                 int limit = 10;
                 int skip = 0;
+
+                int limitFp = 10;
                 int skipFp = 0;
 
                 IEnumerable<ModelTemplate> modelTemplates;
-                IEnumerable<ModelTemplate> modelTemplatesFp;
+                IEnumerable<ModelTemplate> modelTemplatesFp;             
 
                 TemplateExtended baseTemplate = null;
                 TemplateExtended tempTemplate = null;
@@ -220,7 +279,10 @@ namespace VerifyooConverter
                
                 GestureComparer comparer = new GestureComparer(false);
 
-                bool isFpFinished;               
+                bool isFpFinished;
+
+                InitMethodFilters();
+                List<Double> listScores;
 
                 while (!mIsFinished)
                 {
@@ -233,215 +295,339 @@ namespace VerifyooConverter
                     {
                         if (IsRecordValid(template))
                         {
-                            tempTemplate = UtilsTemplateConverter.ConvertTemplate(template);
-
                             try
                             {
-                                for (idx1 = 14; idx1 < 21; idx1++)
+                                tempTemplate = UtilsTemplateConverter.ConvertTemplate(template, mUtilInvalid);
+                            
+                                listScores = new List<Double>();
+                                if (tempTemplate.ListGestureExtended.size() > 21)
                                 {
-                                    tempGestureUserBase = (GestureExtended)tempTemplate.ListGestureExtended.get(idx1);
-                                    for (int idx2 = 21; idx2 < tempTemplate.ListGestureExtended.size(); idx2++)
+                                    for (idx1 = 7; idx1 < 14; idx1++)
                                     {
-                                        tempGestureUserAuth = (GestureExtended)tempTemplate.ListGestureExtended.get(idx2);                                        
-
-                                        if (tempGestureUserBase.Instruction == tempGestureUserAuth.Instruction && IsUseInstruction(tempGestureUserBase.Instruction))
+                                        tempGestureUserBase = (GestureExtended)tempTemplate.ListGestureExtended.get(idx1);
+                                        for (int idx2 = 14; idx2 < tempTemplate.ListGestureExtended.size(); idx2++)
                                         {
-                                            //tempGestureUserBase.XDpi = tempTemplate.XDpi;
-                                            //tempGestureUserBase.YDpi = tempTemplate.YDpi;
+                                            tempGestureUserAuth = (GestureExtended)tempTemplate.ListGestureExtended.get(idx2);
 
-                                            //tempGestureUserAuth.XDpi = tempTemplate.XDpi;
-                                            //tempGestureUserAuth.YDpi = tempTemplate.YDpi;
-
-                                            if (IsGestureValid(tempGestureUserBase) && IsGestureValid(tempGestureUserAuth) && tempGestureUserBase.ListStrokesExtended.size() == tempGestureUserAuth.ListStrokesExtended.size())
+                                            if (tempGestureUserBase.Instruction == tempGestureUserAuth.Instruction && IsUseInstruction(tempGestureUserBase.Instruction))
                                             {
-                                                comparer = new GestureComparer(false);
-                                                comparer.CompareGestures(tempGestureUserBase, tempGestureUserAuth);
-                                                tempScore = comparer.GetScore();
-                                                if (!Double.IsNaN(tempScore))
+                                                if (IsGestureValid(tempGestureUserBase, tempTemplate.Id) && IsGestureValid(tempGestureUserAuth, tempTemplate.Id) && tempGestureUserBase.ListStrokesExtended.size() == tempGestureUserAuth.ListStrokesExtended.size())
                                                 {
-                                                    totalGesturesFn++;
-                                                    if (tempScore <= threasholdLow)
+                                                    comparer = new GestureComparer(false);
+                                                    comparer.CompareGestures(tempGestureUserBase, tempGestureUserAuth, mDict);
+                                                    tempScore = comparer.GetScore();
+                                                    if (!Double.IsNaN(tempScore))
                                                     {
-                                                        strBuilder = new StringBuilder();
-                                                        strBuilder.Append(template._id.ToString());
-                                                        strBuilder.Append(",");
-                                                        strBuilder.Append(idx1.ToString());
-                                                        strBuilder.Append(",");
-                                                        strBuilder.Append(idx2.ToString());
-                                                        strBuilder.Append(",");
-                                                        strBuilder.Append("False Negative");
-                                                        strBuilder.Append(",");
-                                                        strBuilder.Append(tempScore.ToString());
-                                                        strBuilder.Append(",");
-                                                        strBuilder.Append(threasholdLow.ToString());
-                                                        strBuilder.Append(",");
-                                                        strBuilder.Append(template.Name);
-                                                        strBuilder.Append(",");
-                                                        strBuilder.Append(template.ModelName);
-                                                        strBuilder.Append(",");
-                                                        strBuilder.Append(tempGestureUserBase.Instruction);
-
-                                                        sw.WriteLine(strBuilder.ToString());
-                                                        sw.Flush();
-                                                        fnLow++;
-                                                    }
-                                                    if (tempScore <= threasholdMed)
-                                                    {
-                                                        fnMed++;
-                                                    }
-                                                    if (tempScore <= threasholdHigh)
-                                                    {
-                                                        fnHigh++;
+                                                        listScores.Add(tempScore);
                                                     }
                                                 }
-                                            }                                      
+                                            }
                                         }
+                                    }                                    
+
+                                    tempScore = CalculateScore(listScores);
+                                    totalGesturesFn++;
+                                    if (tempScore <= threasholdLow)
+                                    {
+                                        strBuilder = new StringBuilder();
+                                        strBuilder.Append(template._id.ToString());
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(tempGestureUserBase.Id.ToString());
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(tempGestureUserAuth.Id.ToString());                                       
+                                        strBuilder.Append(",");
+                                        strBuilder.Append("False Negative");
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(tempScore.ToString());
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(comparer.GetMinCosineDistance().ToString());
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(threasholdLow.ToString());
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(template.Name);
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(template.ModelName);
+                                        strBuilder.Append(",");
+                                        strBuilder.Append(tempGestureUserBase.Instruction);
+
+                                        AddParamsToResults(strBuilder, comparer);
+
+                                        sw.WriteLine(strBuilder.ToString());
+                                        sw.Flush();
+                                        fnLow++;
                                     }
-                                }
+                                    if (tempScore <= threasholdMed)
+                                    {
+                                        fnMed++;
+                                    }
+                                    if (tempScore <= threasholdHigh)
+                                    {
+                                        fnHigh++;
+                                    }
+                                }                                
                             }
                             catch (Exception exc)
                             {
                                 swLog.WriteLine(String.Format("FN Error in object {0} in gesture {1}. Reason: {2}", template._id.ToString(), idx1.ToString(), exc.Message));
                                 swLog.Flush();
                             }
-                            //isFpFinished = false;
-                            //skipFp = skip;
-                            //while (!isFpFinished)
-                            //{
-                            //    modelTemplatesFp = mListMongo.FindAll().SetLimit(limit).SetSkip(skipFp);
 
-                            //    foreach (ModelTemplate templateFp in modelTemplatesFp)
-                            //    {
-                            //        baseTemplate = UtilsTemplateConverter.ConvertTemplate(templateFp);
+                            this.lblFnLow.Invoke(new MethodInvoker(() => this.lblFnLow.Text = string.Format("False negative Low ({1}%) : {0}", getPercentage(fnLow, totalGesturesFn), threasholdLow.ToString())));
+                            this.lblFnMed.Invoke(new MethodInvoker(() => this.lblFnMed.Text = string.Format("False negative Medium ({1}%) : {0}", getPercentage(fnMed, totalGesturesFn), threasholdMed.ToString())));
+                            this.lblFnHigh.Invoke(new MethodInvoker(() => this.lblFnHigh.Text = string.Format("False negative High ({1}%) : {0}", getPercentage(fnHigh, totalGesturesFn), threasholdHigh.ToString())));
+                            this.lblFNTotalGestures.Invoke(new MethodInvoker(() => this.lblFNTotalGestures.Text = string.Format("FN Gestures analyzed: {0}", totalGesturesFn.ToString())));
 
-                            //        if (String.Compare(templateFp._id.ToString(), template._id.ToString()) != 0)
-                            //        {
-                            //            try
-                            //            {
-                            //                for (idxGesture = 0; idxGesture < baseTemplate.ListGestureExtended.size(); idxGesture++)
-                            //                {
-                            //                    for (int idxGestureAuth = 0; idxGestureAuth < tempTemplate.ListGestureExtended.size(); idxGestureAuth++)
-                            //                    {
-                            //                        tempGestureAuth = (Gesture)tempTemplate.ListGestureExtended.get(idxGestureAuth);
-                            //                        tempGestureBase = (Gesture)baseTemplate.ListGestureExtended.get(idxGesture);
+                            this.lblValidGestures.Invoke(new MethodInvoker(() => this.lblValidGestures.Text = mValid.ToString()));
+                            this.lblInvalidGestures.Invoke(new MethodInvoker(() => this.lblInvalidGestures.Text = mInvalid.ToString()));
 
-                            //                        if (String.Compare(tempGestureAuth.Instruction, tempGestureBase.Instruction) == 0)
-                            //                        {                                                    
-                            //                            comparer = new GestureComparer();
-                            //                            comparer.CompareGestures(tempGestureAuth, tempGestureBase);
-                            //                            tempScore = comparer.GetScore();
+                            this.lblValidTemplates.Invoke(new MethodInvoker(() => this.lblValidTemplates.Text = mTemplateValid.ToString()));
+                            this.lblInvalidTemplates.Invoke(new MethodInvoker(() => this.lblInvalidTemplates.Text = mTemplateInvalid.ToString()));
 
-                            //                            totalGesturesFp++;
-                            //                            if (tempScore > threasholdLow)
-                            //                            {
-                            //                                fpLow++;                                                            
-                            //                            }
-                            //                            if (tempScore > threasholdMed)
-                            //                            {
-                            //                                fpMed++;
-                            //                            }
-                            //                            if (tempScore > threasholdHigh)
-                            //                            {
-                            //                                fpHigh++;
-                            //                            }
-                            //                        }
-                            //                    }
-                            //                }
-                            //            }
-                            //            catch (Exception exc)
-                            //            {
-                            //                swLog.WriteLine(String.Format("FP Error in object {0} in gesture {1}. Reason: {2}", template._id.ToString(), idxGesture.ToString(), exc.Message));
-                            //                swLog.Flush();
-                            //            }
-                            //        }
-                            //    }
+                            mIsFinishedFp = false;
+                            skipFp = skip;
 
-                            //    skipFp += limit;
-                            //    this.lblSubCounter.Invoke(new MethodInvoker(() => this.lblSubCounter.Text = String.Format("Sub-counter: {0}", skipFp.ToString())));
-
-                            //    if (totalNumbRecords <= skipFp)
-                            //    {
-                            //        isFpFinished = true;
-                            //    }
-                            //}
-
-                            if (String.Compare(mBaseObjectId, template._id.ToString()) != 0)
+                            if(mUserName.Length == 0)
                             {
-                                try
+                                while (!mIsFinishedFp)
                                 {
-                                    for (idxGesture = 0; idxGesture < 7; idxGesture++)
+                                    modelTemplates = mListMongo.FindAll().SetLimit(limitFp).SetSkip(skipFp);
+
+                                    foreach (ModelTemplate templateBaseFp in modelTemplates)
                                     {
-                                        for (int idxGestureAuth = 0; idxGestureAuth < tempTemplate.ListGestureExtended.size(); idxGestureAuth++)
+                                        if (IsRecordValid(templateBaseFp))
                                         {
-                                            tempGestureAuth = (GestureExtended)tempTemplate.ListGestureExtended.get(idxGestureAuth);
-                                            tempGestureBase = (GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture);
-
-                                            if (String.Compare(tempGestureAuth.Instruction, tempGestureBase.Instruction) == 0 && IsUseInstruction(tempGestureBase.Instruction))
+                                            try
                                             {
-                                                //tempGestureAuth.XDpi = tempTemplate.XDpi;
-                                                //tempGestureAuth.YDpi = tempTemplate.YDpi;
+                                                baseTemplate = UtilsTemplateConverter.ConvertTemplate(templateBaseFp, mUtilInvalid);
 
-                                                //tempGestureBase.XDpi = baseTemplate.XDpi;
-                                                //tempGestureBase.YDpi = baseTemplate.YDpi;
-
-                                                if (IsGestureValid(tempGestureAuth) && IsGestureValid(tempGestureBase))
+                                                if (String.Compare(templateBaseFp._id.ToString(), template._id.ToString()) != 0)
                                                 {
-                                                    comparer = new GestureComparer(false);
-                                                    comparer.CompareGestures(tempGestureBase, tempGestureAuth);
-                                                    tempScore = comparer.GetScore();
+                                                
+                                                        listScores = new List<Double>();
+                                                        for (idxGesture = 0; idxGesture < 7; idxGesture++)
+                                                        {
+                                                            for (int idxGestureAuth = 0; idxGestureAuth < tempTemplate.ListGestureExtended.size(); idxGestureAuth++)
+                                                            {
+                                                                if (idxGesture < baseTemplate.ListGestureExtended.size() && idxGestureAuth < tempTemplate.ListGestureExtended.size())
+                                                                {
+                                                                    tempGestureAuth = (GestureExtended)tempTemplate.ListGestureExtended.get(idxGestureAuth);
+                                                                    tempGestureBase = (GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture);
 
-                                                    if (!Double.IsNaN(tempScore))
-                                                    {
-                                                        totalGesturesFp++;
-                                                        if (tempScore > threasholdLow)
-                                                        {
-                                                            fpLow++;
-                                                            strBuilder = new StringBuilder();
-                                                            strBuilder.Append(template._id.ToString());
-                                                            strBuilder.Append(",");
-                                                            strBuilder.Append(idxGesture.ToString());
-                                                            strBuilder.Append(",");
-                                                            strBuilder.Append(idxGestureAuth.ToString());
-                                                            strBuilder.Append(",");
-                                                            strBuilder.Append("False Positive");
-                                                            strBuilder.Append(",");
-                                                            strBuilder.Append(tempScore.ToString());
-                                                            strBuilder.Append(",");
-                                                            strBuilder.Append(threasholdLow.ToString());
-                                                            strBuilder.Append(",");
-                                                            strBuilder.Append(template.Name);
-                                                            strBuilder.Append(",");
-                                                            strBuilder.Append(template.ModelName);
-                                                            strBuilder.Append(",");
-                                                            strBuilder.Append((template.ExpShapeList[idxGesture]).Instruction);
+                                                                    if (String.Compare(tempGestureAuth.Instruction, tempGestureBase.Instruction) == 0 && IsUseInstruction(tempGestureBase.Instruction))
+                                                                    {
+                                                                        if (IsGestureValid(tempGestureAuth, tempTemplate.Id) && IsGestureValid(tempGestureBase, tempTemplate.Id))
+                                                                        {
+                                                                            comparer = new GestureComparer(false);
 
-                                                            sw.WriteLine(strBuilder.ToString());
-                                                            sw.Flush();
+                                                                            currentBaseName = baseTemplate.Name;
+                                                                            currentBaseTemplateId = baseTemplate.Id;
+                                                                            currentBaseGestureId = tempGestureBase.Id;
+
+                                                                            currentAuthName = tempTemplate.Name;
+                                                                            currentAuthTemplateId = tempTemplate.Id;
+                                                                            currentAuthGestureId = tempGestureAuth.Id;
+
+                                                                            comparer.CompareGestures(tempGestureBase, tempGestureAuth, mDict);
+                                                                            tempScore = comparer.GetScore();
+
+                                                                            if (!Double.IsNaN(tempScore))
+                                                                            {
+                                                                                listScores.Add(tempScore);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
                                                         }
-                                                        if (tempScore > threasholdMed)
+
+                                                        if (listScores.Count > 10)
                                                         {
-                                                            fpMed++;
+                                                            tempScore = CalculateScore(listScores);
+                                                            totalGesturesFp++;
+                                                            if (tempScore > threasholdLow)
+                                                            {
+                                                                fpLow++;
+                                                                strBuilder = new StringBuilder();
+                                                                strBuilder.Append(template._id.ToString());
+                                                                strBuilder.Append(",");
+                                                                strBuilder.Append(tempGestureBase.Id.ToString());
+                                                                strBuilder.Append(",");
+                                                                strBuilder.Append(tempGestureAuth.Id.ToString());
+                                                                strBuilder.Append(",");
+                                                                strBuilder.Append("False Positive");
+                                                                strBuilder.Append(",");
+                                                                strBuilder.Append(tempScore.ToString());
+                                                                strBuilder.Append(",");
+                                                                strBuilder.Append(comparer.GetMinCosineDistance().ToString());
+                                                                strBuilder.Append(",");
+                                                                strBuilder.Append(threasholdLow.ToString());
+                                                                strBuilder.Append(",");
+                                                                strBuilder.Append(template.Name);
+                                                                strBuilder.Append(",");
+                                                                strBuilder.Append(template.ModelName);
+                                                                strBuilder.Append(",");
+                                                                strBuilder.Append((template.ExpShapeList[idxGesture]).Instruction);
+
+                                                                AddParamsToResults(strBuilder, comparer);
+
+                                                                sw.WriteLine(strBuilder.ToString());
+                                                                sw.Flush();
+                                                            }
+                                                            if (tempScore > threasholdMed)
+                                                            {
+                                                                fpMed++;
+                                                            }
+                                                            if (tempScore > threasholdHigh)
+                                                            {
+                                                                fpHigh++;
+                                                            }
                                                         }
-                                                        if (tempScore > threasholdHigh)
-                                                        {
-                                                            fpHigh++;
-                                                        }
-                                                    }
-                                                }                                          
+                                                
+                                                }
+                                            }
+                                            catch (Exception exc)
+                                            {
+                                                swLog.WriteLine(String.Format("FP Error in object {0} in gesture {1}. Reason: {2}", template._id.ToString(), idxGesture.ToString(), exc.Message));
+                                                swLog.Flush();
                                             }
                                         }
                                     }
-                                }
-                                catch (Exception exc)
-                                {
-                                    swLog.WriteLine(String.Format("FP Error in object {0} in gesture {1}. Reason: {2}", template._id.ToString(), idxGesture.ToString(), exc.Message));
-                                    swLog.Flush();
+
+                                    this.lblFpLow.Invoke(new MethodInvoker(() => this.lblFpLow.Text = string.Format("False positive Low ({1}%) : {0}", getPercentage(fpLow, totalGesturesFp), threasholdLow.ToString())));
+                                    this.lblFpMed.Invoke(new MethodInvoker(() => this.lblFpMed.Text = string.Format("False positive Medium ({1}%) : {0}", getPercentage(fpMed, totalGesturesFp), threasholdMed.ToString())));
+                                    this.lblFpHigh.Invoke(new MethodInvoker(() => this.lblFpHigh.Text = string.Format("False positive High ({1}%) : {0}", getPercentage(fpHigh, totalGesturesFp), threasholdHigh.ToString())));
+                                    this.lblFPTotalGestures.Invoke(new MethodInvoker(() => this.lblFPTotalGestures.Text = string.Format("FP Gestures analyzed: {0}", totalGesturesFp.ToString())));
+
+                                    this.lblValidGestures.Invoke(new MethodInvoker(() => this.lblValidGestures.Text = mValid.ToString()));
+                                    this.lblInvalidGestures.Invoke(new MethodInvoker(() => this.lblInvalidGestures.Text = mInvalid.ToString()));
+
+                                    this.lblValidTemplates.Invoke(new MethodInvoker(() => this.lblValidTemplates.Text = mTemplateValid.ToString()));
+                                    this.lblInvalidTemplates.Invoke(new MethodInvoker(() => this.lblInvalidTemplates.Text = mTemplateInvalid.ToString()));
+
+                                    skipFp += limitFp;
+
+                                    if (totalNumbRecords <= skipFp)
+                                    {
+                                        mIsFinishedFp = true;
+                                    }
                                 }
                             }
-                        } 
+                            else
+                            {
+                                if (String.Compare(baseTemplate.Id.ToString(), template._id.ToString()) != 0)
+                                {
+                                    if (IsRecordValid(template))
+                                    {
+                                        try
+                                        {
+                                            listScores = new List<Double>();
+                                            for (idxGesture = 0; idxGesture < 7; idxGesture++)
+                                            {
+                                                for (int idxGestureAuth = 0; idxGestureAuth < tempTemplate.ListGestureExtended.size(); idxGestureAuth++)
+                                                {
+                                                    if (idxGesture < baseTemplate.ListGestureExtended.size() && idxGestureAuth < tempTemplate.ListGestureExtended.size())
+                                                    {
+                                                        tempGestureAuth = (GestureExtended)tempTemplate.ListGestureExtended.get(idxGestureAuth);
+                                                        tempGestureBase = (GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture);
+
+                                                        if (String.Compare(tempGestureAuth.Instruction, tempGestureBase.Instruction) == 0 && IsUseInstruction(tempGestureBase.Instruction))
+                                                        {
+                                                            if (IsGestureValid(tempGestureAuth, tempTemplate.Id) && IsGestureValid(tempGestureBase, tempTemplate.Id))
+                                                            {
+                                                                comparer = new GestureComparer(false);
+
+                                                                currentBaseName = baseTemplate.Name;
+                                                                currentBaseTemplateId = baseTemplate.Id;
+                                                                currentBaseGestureId = tempGestureBase.Id;
+
+                                                                currentAuthName = tempTemplate.Name;
+                                                                currentAuthTemplateId = tempTemplate.Id;
+                                                                currentAuthGestureId = tempGestureAuth.Id;
+
+                                                                comparer.CompareGestures(tempGestureBase, tempGestureAuth, mDict);
+                                                                tempScore = comparer.GetScore();
+
+                                                                if (!Double.IsNaN(tempScore))
+                                                                {
+                                                                    listScores.Add(tempScore);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            if (listScores.Count > 10)
+                                            {
+                                                tempScore = CalculateScore(listScores);
+                                                totalGesturesFp++;
+                                                if (tempScore > threasholdLow)
+                                                {
+                                                    fpLow++;
+                                                    strBuilder = new StringBuilder();
+                                                    strBuilder.Append(template._id.ToString());
+                                                    strBuilder.Append(",");
+                                                    strBuilder.Append(tempGestureBase.Id.ToString());
+                                                    strBuilder.Append(",");
+                                                    strBuilder.Append(tempGestureAuth.Id.ToString());
+                                                    strBuilder.Append(",");
+                                                    strBuilder.Append("False Positive");
+                                                    strBuilder.Append(",");
+                                                    strBuilder.Append(tempScore.ToString());
+                                                    strBuilder.Append(",");
+                                                    strBuilder.Append(comparer.GetMinCosineDistance().ToString());
+                                                    strBuilder.Append(",");
+                                                    strBuilder.Append(threasholdLow.ToString());
+                                                    strBuilder.Append(",");
+                                                    strBuilder.Append(template.Name);
+                                                    strBuilder.Append(",");
+                                                    strBuilder.Append(template.ModelName);
+                                                    strBuilder.Append(",");
+                                                    strBuilder.Append((template.ExpShapeList[idxGesture]).Instruction);
+
+                                                    AddParamsToResults(strBuilder, comparer);
+
+                                                    sw.WriteLine(strBuilder.ToString());
+                                                    sw.Flush();
+                                                }
+                                                if (tempScore > threasholdMed)
+                                                {
+                                                    fpMed++;
+                                                }
+                                                if (tempScore > threasholdHigh)
+                                                {
+                                                    fpHigh++;
+                                                }
+                                            }
+                                        }
+                                        catch (Exception exc)
+                                        {
+                                            swLog.WriteLine(String.Format("FP Error in object {0} in gesture {1}. Reason: {2}", template._id.ToString(), idxGesture.ToString(), exc.Message));
+                                            swLog.Flush();
+                                        }
+                                    }                                    
+                                }
+                            }
+                        }                          
                     }
 
-                    skip += limit;                    
+                    this.lblFnLow.Invoke(new MethodInvoker(() => this.lblFnLow.Text = string.Format("False negative Low ({1}%) : {0}", getPercentage(fnLow, totalGesturesFn), threasholdLow.ToString())));
+                    this.lblFnMed.Invoke(new MethodInvoker(() => this.lblFnMed.Text = string.Format("False negative Medium ({1}%) : {0}", getPercentage(fnMed, totalGesturesFn), threasholdMed.ToString())));
+                    this.lblFnHigh.Invoke(new MethodInvoker(() => this.lblFnHigh.Text = string.Format("False negative High ({1}%) : {0}", getPercentage(fnHigh, totalGesturesFn), threasholdHigh.ToString())));
+                    this.lblFNTotalGestures.Invoke(new MethodInvoker(() => this.lblFNTotalGestures.Text = string.Format("FN Gestures analyzed: {0}", totalGesturesFn.ToString())));
+
+                    this.lblFpLow.Invoke(new MethodInvoker(() => this.lblFpLow.Text = string.Format("False positive Low ({1}%) : {0}", getPercentage(fpLow, totalGesturesFp), threasholdLow.ToString())));
+                    this.lblFpMed.Invoke(new MethodInvoker(() => this.lblFpMed.Text = string.Format("False positive Medium ({1}%) : {0}", getPercentage(fpMed, totalGesturesFp), threasholdMed.ToString())));
+                    this.lblFpHigh.Invoke(new MethodInvoker(() => this.lblFpHigh.Text = string.Format("False positive High ({1}%) : {0}", getPercentage(fpHigh, totalGesturesFp), threasholdHigh.ToString())));
+                    this.lblFPTotalGestures.Invoke(new MethodInvoker(() => this.lblFPTotalGestures.Text = string.Format("FP Gestures analyzed: {0}", totalGesturesFp.ToString())));
+
+                    this.lblValidGestures.Invoke(new MethodInvoker(() => this.lblValidGestures.Text = mValid.ToString()));
+                    this.lblInvalidGestures.Invoke(new MethodInvoker(() => this.lblInvalidGestures.Text = mInvalid.ToString()));
+
+                    this.lblValidTemplates.Invoke(new MethodInvoker(() => this.lblValidTemplates.Text = mTemplateValid.ToString()));
+                    this.lblInvalidTemplates.Invoke(new MethodInvoker(() => this.lblInvalidTemplates.Text = mTemplateInvalid.ToString()));
+
+                    skip += limit;
 
                     if (totalNumbRecords <= skip)
                     {
@@ -452,24 +638,7 @@ namespace VerifyooConverter
                     {
                         mIsFinished = true;
                     }
-
-                    this.lblFpLow.Invoke(new MethodInvoker(() => this.lblFpLow.Text = string.Format("False positive Low ({1}%) : {0}", getPercentage(fpLow, totalGesturesFp), threasholdLow.ToString())));
-                    this.lblFpMed.Invoke(new MethodInvoker(() => this.lblFpMed.Text = string.Format("False positive Medium ({1}%) : {0}", getPercentage(fpMed, totalGesturesFp), threasholdMed.ToString())));
-                    this.lblFpHigh.Invoke(new MethodInvoker(() => this.lblFpHigh.Text = string.Format("False positive High ({1}%) : {0}", getPercentage(fpHigh, totalGesturesFp), threasholdHigh.ToString())));
-
-                    this.lblFnLow.Invoke(new MethodInvoker(() => this.lblFnLow.Text = string.Format("False negative Low ({1}%) : {0}", getPercentage(fnLow, totalGesturesFn), threasholdLow.ToString())));
-                    this.lblFnMed.Invoke(new MethodInvoker(() => this.lblFnMed.Text = string.Format("False negative Medium ({1}%) : {0}", getPercentage(fnMed, totalGesturesFn), threasholdMed.ToString())));
-                    this.lblFnHigh.Invoke(new MethodInvoker(() => this.lblFnHigh.Text = string.Format("False negative High ({1}%) : {0}", getPercentage(fnHigh, totalGesturesFn), threasholdHigh.ToString())));
-
-                    this.lblFPTotalGestures.Invoke(new MethodInvoker(() => this.lblFPTotalGestures.Text = string.Format("FP Gestures analyzed: {0}", totalGesturesFp.ToString())));
-                    this.lblFNTotalGestures.Invoke(new MethodInvoker(() => this.lblFNTotalGestures.Text = string.Format("FN Gestures analyzed: {0}", totalGesturesFn.ToString())));
-
-                    this.lblValidGestures.Invoke(new MethodInvoker(() => this.lblValidGestures.Text = mValid.ToString()));
-                    this.lblInvalidGestures.Invoke(new MethodInvoker(() => this.lblInvalidGestures.Text = mInvalid.ToString()));
-
-                    this.lblValidTemplates.Invoke(new MethodInvoker(() => this.lblValidTemplates.Text = mTemplateValid.ToString()));
-                    this.lblInvalidTemplates.Invoke(new MethodInvoker(() => this.lblInvalidTemplates.Text = mTemplateInvalid.ToString()));
-
+                   
                     if (mIsFinished)
                     {
                         SetProgress(String.Format("{0} out of {1}", totalNumbRecords.ToString(), totalNumbRecords.ToString()));
@@ -480,13 +649,136 @@ namespace VerifyooConverter
             }
             catch(Exception exc)
             {
-                this.lblProgress.Invoke(new MethodInvoker(() => this.lblProgress.Text = ("Error: " + exc.Message)));
+                string templateId = EnvVars.TemplateId;
+                string gestureId = EnvVars.GestureId;
+
+                this.lblProgress.Invoke(new MethodInvoker(() => this.lblProgress.Text = string.Format("Error in base template: {0} - {1} - {2}, and auth template: {3} - {4} - {5}. Reason:{6}", currentBaseName, currentBaseTemplateId, currentBaseGestureId, currentAuthName, currentAuthTemplateId, currentAuthGestureId, exc.Message)));
             }            
         }
 
-        private bool IsGestureValid(GestureExtended g)
+        private double CalculateScore(List<Double> listScores)
         {
-            if(g.GestureLengthMM > 0 && g.GestureTotalTimeWithPauses > 0 && g.GestureAverageVelocity > 0)
+            int numToRemove = listScores.Count / 3;
+            int numToUse = listScores.Count - numToRemove;
+
+            int currentlyUsed = 0;
+
+            int indexOfMax;
+            double maxValue;
+
+            double totalScore = 0;           
+
+            while (currentlyUsed < numToUse)
+            {
+                indexOfMax = 0;
+                maxValue = listScores[0];
+
+                for (int idx = 0; idx < listScores.Count; idx++) {
+                    if (listScores[idx] > maxValue) {
+                        maxValue = listScores[idx];
+                        indexOfMax = idx;
+                    }
+                }
+
+                totalScore += maxValue;
+                listScores.RemoveAt(indexOfMax);
+
+                currentlyUsed++;
+            }
+
+            totalScore = totalScore / numToUse;
+            return totalScore;
+        }
+
+        private void AddParamsToResults(StringBuilder strBuilder, GestureComparer comparer)
+        {
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 0));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 1));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 2));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 3));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 4));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 5));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 6));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 7));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 8));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 9));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 10));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 11));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 12));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 13));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 14));
+        }
+
+
+        private void InitMethodFilters()
+        {
+            mDict = new HashMap();
+            //mDict.Add("CompareGestureMinCosineDistance", 1);
+
+            //mDict.Add("CompareGestureLengths", 1);
+            //mDict.Add("CompareNumEvents", 1);
+            //mDict.Add("CompareGestureAvgVelocity", 1);
+            //mDict.Add("CompareGestureTotalTimeInterval", 1);
+            //mDict.Add("CompareGestureTotalStrokesTime", 1);
+            //mDict.Add("CompareGestureAreas", 1);
+            //mDict.Add("CompareGesturePressure", 1);
+            //mDict.Add("CompareGestureSurface", 1);
+            //mDict.Add("CompareGestureVelocityPeaks", 1);
+            //mDict.Add("CompareGestureAverageStartAcceleration", 1);
+            mDict.Add("CompareGestureVelocityPeaksIntervalPercentage", 1);
+            mDict.Add("CompareGestureStartDirection", 1);
+            mDict.Add("CompareGestureEndDirection", 1);
+            mDict.Add("CompareGestureMaxDirection", 1);
+        }
+
+        private bool IsGestureValid(GestureExtended g, string templateId)
+        {
+            if (mUtilInvalid.HashInvalid.ContainsKey(string.Format("{0}-{1}", templateId, g.Instruction)))  
+            {
+                return false;
+            }
+
+            bool isTimeIntervalsValid = true;
+
+            int limit = 5;
+            if (g.ListGestureEventsExtended.size() < limit)
+            {
+                limit = g.ListGestureEventsExtended.size();
+            }
+
+            double totalTimeDiffs = 0;
+            double currentTimeDiff;
+            for (int idx = 1; idx < limit; idx++)
+            {
+                currentTimeDiff = ((MotionEventExtended)g.ListGestureEventsExtended.get(idx)).EventTime - ((MotionEventExtended)g.ListGestureEventsExtended.get(idx - 1)).EventTime;
+                totalTimeDiffs += currentTimeDiff;
+
+                if(currentTimeDiff == 1000)
+                {
+                    isTimeIntervalsValid = false;
+                }
+            }
+            if (totalTimeDiffs == 0)
+            {
+                isTimeIntervalsValid = false;
+            }
+            
+            if(g.GestureLengthMM > 0 && g.GestureTotalTimeInterval > 0 && g.GestureAverageVelocity > 0 && isTimeIntervalsValid)
             {
                 mValid++;
                 return true;

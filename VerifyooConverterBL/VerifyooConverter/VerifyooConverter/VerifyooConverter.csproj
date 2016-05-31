@@ -174,8 +174,10 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Logic\EnvVars.cs" />
     <Compile Include="Logic\UtilsConsts.cs" />
     <Compile Include="Logic\UtilsDB.cs" />
+    <Compile Include="Logic\UtilsInvalidGestures.cs" />
     <Compile Include="Logic\UtilsRandom.cs" />
     <Compile Include="Logic\UtilsTemplateConverter.cs" />
     <Compile Include="Models\ModelMotionEventCompact.cs" />

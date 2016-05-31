@@ -83,8 +83,29 @@ namespace JsonConverter.Logic
             return tempObj;
         }
 
-        public static string GestureToString(ModelShapes shapes, ModelShape shape, GestureExtended gesture)
+        public static string GestureToString(ModelShapes shapes, ModelShape shape, GestureExtended gesture, int gestureIdx)
         {
+            if (gesture.GestureTotalTimeInterval == 0)
+            {
+                return string.Empty;
+            }
+
+            int limit = 3;
+            if(gesture.ListGestureEvents.size() < limit)
+            {
+                limit = gesture.ListGestureEvents.size() - 1;
+            }
+
+            double totalTimeDiffForFirstEvents = 0;
+            for (int idx = 1; idx < limit; idx++)
+            {
+                totalTimeDiffForFirstEvents += (shape.Strokes[0].ListEvents[idx].EventTime - shape.Strokes[0].ListEvents[idx - 1].EventTime);
+            }
+            if (totalTimeDiffForFirstEvents == 0 || totalTimeDiffForFirstEvents == 1000)
+            {
+                return string.Empty;
+            }
+
             StringBuilder strBuilder = new StringBuilder();
 
             strBuilder.Append(shapes._id.ToString());
@@ -105,6 +126,12 @@ namespace JsonConverter.Logic
             strBuilder.Append(shapes.Ydpi);
             strBuilder.Append(",");
 
+            strBuilder.Append(((StrokeExtended)gesture.ListStrokesExtended.get(0)).ListEventsExtended.size());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gestureIdx);
+            strBuilder.Append(",");
+
             strBuilder.Append(gesture.Instruction);
             strBuilder.Append(",");
 
@@ -114,10 +141,10 @@ namespace JsonConverter.Logic
             strBuilder.Append(gesture.GestureLengthMM.ToString());
             strBuilder.Append(",");
 
-            strBuilder.Append(gesture.GestureTotalTimeWithoutPauses.ToString());
+            strBuilder.Append(gesture.GestureTotalStrokeTimeInterval.ToString());
             strBuilder.Append(",");
 
-            strBuilder.Append(gesture.GestureTotalTimeWithPauses.ToString());
+            strBuilder.Append(gesture.GestureTotalTimeInterval.ToString());
             strBuilder.Append(",");
 
             strBuilder.Append(gesture.GestureTotalStrokeArea.ToString());
@@ -171,9 +198,42 @@ namespace JsonConverter.Logic
             strBuilder.Append(gesture.GestureAccumulatedLengthLinearRegSlope.ToString());
             strBuilder.Append(",");
 
-            strBuilder.Append(gesture.GestureVelocityPeakMax.ToString());         
+            strBuilder.Append(gesture.GestureStartDirection.ToString());
+            strBuilder.Append(",");
 
-            return strBuilder.ToString();
+            strBuilder.Append(gesture.GestureEndDirection.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureMaxVelocity.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureVelocityPeakIntervalPercentage.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureVelocityPeakMax.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureAccelerationPeakIntervalPercentage.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureAccelerationPeakMax.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureAverageAcceleration.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureMaxAcceleration.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureMaxDirection.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureStartDirection.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureEndDirection.ToString());       
+
+            return strBuilder.ToString();           
         }
     }
 }

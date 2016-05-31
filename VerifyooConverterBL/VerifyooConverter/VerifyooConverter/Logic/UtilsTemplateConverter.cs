@@ -13,29 +13,55 @@ namespace VerifyooConverter.Logic
     class UtilsTemplateConverter
     {
         static double tempXdpi;
-        static double tempYdpi;
+        static double tempYdpi;       
 
-        public static TemplateExtended ConvertTemplate(ModelTemplate modelTemplate)
+        public static TemplateExtended ConvertTemplate(ModelTemplate modelTemplate, UtilsInvalidGestures invalidGestures)
         {            
             Template template = new Template();
             template.ListGestures = new java.util.ArrayList();
             Gesture tempGesture;
 
+            EnvVars.TemplateId = modelTemplate._id.ToString();
+
             tempXdpi = modelTemplate.Xdpi;
             tempYdpi = modelTemplate.Ydpi;
+
+            double startTime, endTime, tempInterval;
+
+            int tempSize;
+
+            MotionEventCompact tempEvent;
+            Stroke tempStrokeLast;
+            int tempStrokeSize;
 
             for (int idx = 0; idx < modelTemplate.ExpShapeList.Count; idx++)
             {
                 tempGesture = ConvertGesture(modelTemplate.ExpShapeList[idx]);
-                template.ListGestures.add(tempGesture);
-            }
+
+                startTime = ((MotionEventCompact)((Stroke)tempGesture.ListStrokes.get(0)).ListEvents.get(0)).EventTime;
+                tempSize = tempGesture.ListStrokes.size();
+                tempStrokeLast = (Stroke)tempGesture.ListStrokes.get(tempSize - 1);
+                tempStrokeSize = tempStrokeLast.ListEvents.size();
+                tempEvent = (MotionEventCompact)tempStrokeLast.ListEvents.get(tempStrokeSize - 1);
+                endTime = tempEvent.EventTime;
+                tempInterval = endTime - startTime;
+                if (!invalidGestures.HashInvalid.ContainsKey(tempGesture.Id))
+                {
+                    template.ListGestures.add(tempGesture);
+                }
+            }            
 
             TemplateExtended templateExtended = new TemplateExtended(template);
+            templateExtended.Id = modelTemplate._id.ToString();
+            templateExtended.Name = modelTemplate.Name;
+            templateExtended.ModelName = modelTemplate.ModelName;
             return templateExtended;
         }
 
         public static Gesture ConvertGesture(ModelGesture modelGesture)
         {
+            EnvVars.GestureId = modelGesture._id.ToString();
+
             Gesture tempObj = new Gesture();
             tempObj.ListStrokes = new java.util.ArrayList();
             Stroke tempStroke;
@@ -47,6 +73,7 @@ namespace VerifyooConverter.Logic
                 tempObj.ListStrokes.add(tempStroke);
             }
 
+            tempObj.Id = modelGesture._id.ToString();
             return tempObj;
         }
 
@@ -66,6 +93,7 @@ namespace VerifyooConverter.Logic
 
             tempObj.Xdpi = tempXdpi;
             tempObj.Ydpi = tempYdpi;
+            tempObj.Id = modelStroke._id.ToString();
             return tempObj;
         }
 
@@ -81,6 +109,7 @@ namespace VerifyooConverter.Logic
             tempObj.Xpixel = modelMotionEvent.X;
             tempObj.Ypixel = modelMotionEvent.Y;
 
+            tempObj.Id = modelMotionEvent._id.ToString();
             return tempObj;
         }
     }

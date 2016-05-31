@@ -102,12 +102,15 @@ namespace JsonConverter
                 StreamWriter sw = File.CreateText(path);
                 //sw.WriteLine("CreationDateShapes,CreationTimeShapes,Name,Version,ObjectId,ModelName,DeviceId,OS,ScreenHeight,ScreenWidth,Xdpi,Ydpi,UserCountry,AppLocale,ShapeObjectId,Instruction,StrokeObjectId,EventObjectId, EventTime, X, Y, Pressure, TouchSurface, AngleZ, AngleX, AngleY,IsHistory,ObjectIndex,StrokeIndex,EventIndex,ShapesIndex,PreX,PreY,PRE_EventTime,DownTime");
 
-                sw.WriteLine("TemplateId,GestureId,Name,ModelName,Xdpi,Ydpi,Instruction,GestureAverageVelocity,GestureLength,GestureTotalTimeWithoutPauses,GestureTotalTimeWithPauses,GestureTotalStrokeArea,GestureMaxPressure,GestureMaxSurface,GestureAvgPressure,GestureAvgSurface,GestureAvgMiddlePressure,GestureAvgMiddleSurface,GestureMaxAccX,GestureMaxAccY,GestureMaxAccZ,GestureAvgAccX,GestureAvgAccY,GestureAvgAccZ,GestureAverageStartAcceleration,GestureAccumulatedLengthLinearRegIntercept,GestureAccumulatedLengthLinearRegRSqr,GestureAccumulatedLengthLinearRegSlope,GestureVelocityPeakMax");
+                string logfile = @"C:\temp\log.txt";
+                StreamWriter swLog = File.CreateText(logfile);
+
+                sw.WriteLine("TemplateId,GestureId,Name,ModelName,Xdpi,Ydpi,NumEvents,GestureIndex,Instruction,GestureAverageVelocity,GestureLength,GestureTotalTimeWithoutPauses,GestureTotalTimeWithPauses,GestureTotalStrokeArea,GestureMaxPressure,GestureMaxSurface,GestureAvgPressure,GestureAvgSurface,GestureAvgMiddlePressure,GestureAvgMiddleSurface,GestureMaxAccX,GestureMaxAccY,GestureMaxAccZ,GestureAvgAccX,GestureAvgAccY,GestureAvgAccZ,GestureAverageStartAcceleration,GestureAccumulatedLengthLinearRegIntercept,GestureAccumulatedLengthLinearRegRSqr,GestureAccumulatedLengthLinearRegSlope,GestureStartDirection,GestureEndDirection,VelocityMax,GestureVelocityPeakMaxIntervalPercentage,GestureVelocityPeakMax,GestureAccelerationPeakIntervalPercentage,GestureAccelerationPeakMax,AverageAcceleration,MaxAcceleration,GestureMaxDirection,GestureStartDirection,GestureEndDirection");
 
                 StringBuilder strBuilder;
 
                 List<ModelShapes> list = new List<ModelShapes>();
-
+                
                 this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = "Converting from DB..."));
 
                 int totalNumbRecords = (int)listMongoCount;
@@ -152,26 +155,31 @@ namespace JsonConverter
                         shapesList = listMongo.FindAll().SetLimit(limit).SetSkip(skip);
 
                         foreach (ModelShapes shapes in shapesList)
-                        {
-                            
+                        {                            
                             try
                             {
-                                id = shapes._id.ToString();
-                                TemplateExtended template = UtilsConvert.ConvertTemplate(shapes);
-
-                                for (int idxGesture = 0; idxGesture < template.ListGestureExtended.size(); idxGesture++)
+                                if(ShapesValid(shapes))
                                 {
-                                    strGesture = UtilsConvert.GestureToString(shapes, shapes.ExpShapeList[idxGesture], (GestureExtended)template.ListGestureExtended.get(idxGesture));
-                                    sw.WriteLine(strGesture);
-                                }
+                                    id = shapes._id.ToString();
+                                    TemplateExtended template = UtilsConvert.ConvertTemplate(shapes);
 
-                                sw.Flush();
+                                    for (int idxGesture = 0; idxGesture < template.ListGestureExtended.size(); idxGesture++)
+                                    {
+                                        strGesture = UtilsConvert.GestureToString(shapes, shapes.ExpShapeList[idxGesture], (GestureExtended)template.ListGestureExtended.get(idxGesture), idxGesture);
+                                        if(!string.IsNullOrEmpty(strGesture))
+                                        {
+                                            sw.WriteLine(strGesture);
+                                        }
+                                    }
+
+                                    sw.Flush();
+                                }                                    
                             }
                             catch (Exception exc)
                             {
-
+                                swLog.WriteLine(string.Format("Error: {0}, ObjId:{1}", exc.StackTrace, id));
+                                swLog.Flush();                                
                             }
-
                             
                         }
                         skip++;
@@ -183,6 +191,7 @@ namespace JsonConverter
                     }
 
                     sw.Close();
+                    swLog.Close();
                     this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = "Convertion from DB completed. Result file: " + path));
                 }
                 catch (Exception exc)
@@ -190,6 +199,7 @@ namespace JsonConverter
                     this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = string.Format("Error: {0}, ObjId:{1}", exc.StackTrace, id)));
 
                     sw.Close();
+                    swLog.Close();
                 }
 
             }
@@ -198,6 +208,24 @@ namespace JsonConverter
                 MessageBox.Show("You need to select a file");
             }
 
+        }
+
+        private bool ShapesValid(ModelShapes shapes)
+        {
+            bool isValid = true;
+            if (string.Compare(shapes.ModelName, "LGE Nexus 5") != 0)
+            {
+                isValid = false;
+            }
+            if (shapes.Name.ToLower().Contains("prob"))
+            {
+                isValid = false;
+            }
+            if (shapes.Name.ToLower().Contains("stam"))
+            {
+                isValid = false;
+            }
+            return isValid;
         }
 
         private void Form1_Load(object sender, EventArgs e)
