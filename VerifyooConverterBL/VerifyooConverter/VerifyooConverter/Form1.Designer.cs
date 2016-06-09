@@ -63,6 +63,10 @@
             this.txtFaultyGestures = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
+            this.label11 = new System.Windows.Forms.Label();
+            this.lblCurrentBaseUser = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
+            this.lblCurrAuthUser = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblProgress
@@ -77,7 +81,7 @@
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(12, 587);
+            this.btnStart.Location = new System.Drawing.Point(12, 626);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(75, 23);
             this.btnStart.TabIndex = 1;
@@ -87,7 +91,7 @@
             // 
             // txtPath
             // 
-            this.txtPath.Location = new System.Drawing.Point(130, 644);
+            this.txtPath.Location = new System.Drawing.Point(130, 683);
             this.txtPath.Name = "txtPath";
             this.txtPath.Size = new System.Drawing.Size(282, 22);
             this.txtPath.TabIndex = 2;
@@ -97,7 +101,7 @@
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(93, 587);
+            this.btnCancel.Location = new System.Drawing.Point(93, 626);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 3;
@@ -108,7 +112,7 @@
             // lblFpLow
             // 
             this.lblFpLow.AutoSize = true;
-            this.lblFpLow.Location = new System.Drawing.Point(128, 134);
+            this.lblFpLow.Location = new System.Drawing.Point(128, 189);
             this.lblFpLow.Name = "lblFpLow";
             this.lblFpLow.Size = new System.Drawing.Size(132, 17);
             this.lblFpLow.TabIndex = 4;
@@ -117,7 +121,7 @@
             // lblFpMed
             // 
             this.lblFpMed.AutoSize = true;
-            this.lblFpMed.Location = new System.Drawing.Point(128, 214);
+            this.lblFpMed.Location = new System.Drawing.Point(128, 253);
             this.lblFpMed.Name = "lblFpMed";
             this.lblFpMed.Size = new System.Drawing.Size(156, 17);
             this.lblFpMed.TabIndex = 5;
@@ -126,7 +130,7 @@
             // lblFpHigh
             // 
             this.lblFpHigh.AutoSize = true;
-            this.lblFpHigh.Location = new System.Drawing.Point(128, 294);
+            this.lblFpHigh.Location = new System.Drawing.Point(128, 320);
             this.lblFpHigh.Name = "lblFpHigh";
             this.lblFpHigh.Size = new System.Drawing.Size(136, 17);
             this.lblFpHigh.TabIndex = 6;
@@ -134,21 +138,21 @@
             // 
             // txtThreasholdLow
             // 
-            this.txtThreasholdLow.Location = new System.Drawing.Point(12, 131);
+            this.txtThreasholdLow.Location = new System.Drawing.Point(12, 186);
             this.txtThreasholdLow.Name = "txtThreasholdLow";
             this.txtThreasholdLow.Size = new System.Drawing.Size(100, 22);
             this.txtThreasholdLow.TabIndex = 7;
             // 
             // txtThreasholdMedium
             // 
-            this.txtThreasholdMedium.Location = new System.Drawing.Point(12, 209);
+            this.txtThreasholdMedium.Location = new System.Drawing.Point(12, 248);
             this.txtThreasholdMedium.Name = "txtThreasholdMedium";
             this.txtThreasholdMedium.Size = new System.Drawing.Size(100, 22);
             this.txtThreasholdMedium.TabIndex = 8;
             // 
             // txtThreasholdHigh
             // 
-            this.txtThreasholdHigh.Location = new System.Drawing.Point(12, 294);
+            this.txtThreasholdHigh.Location = new System.Drawing.Point(12, 320);
             this.txtThreasholdHigh.Name = "txtThreasholdHigh";
             this.txtThreasholdHigh.Size = new System.Drawing.Size(100, 22);
             this.txtThreasholdHigh.TabIndex = 9;
@@ -156,7 +160,7 @@
             // lblFnLow
             // 
             this.lblFnLow.AutoSize = true;
-            this.lblFnLow.Location = new System.Drawing.Point(128, 165);
+            this.lblFnLow.Location = new System.Drawing.Point(128, 220);
             this.lblFnLow.Name = "lblFnLow";
             this.lblFnLow.Size = new System.Drawing.Size(139, 17);
             this.lblFnLow.TabIndex = 11;
@@ -165,7 +169,7 @@
             // lblFnMed
             // 
             this.lblFnMed.AutoSize = true;
-            this.lblFnMed.Location = new System.Drawing.Point(128, 242);
+            this.lblFnMed.Location = new System.Drawing.Point(128, 281);
             this.lblFnMed.Name = "lblFnMed";
             this.lblFnMed.Size = new System.Drawing.Size(163, 17);
             this.lblFnMed.TabIndex = 12;
@@ -174,7 +178,7 @@
             // lblFnHigh
             // 
             this.lblFnHigh.AutoSize = true;
-            this.lblFnHigh.Location = new System.Drawing.Point(128, 327);
+            this.lblFnHigh.Location = new System.Drawing.Point(128, 353);
             this.lblFnHigh.Name = "lblFnHigh";
             this.lblFnHigh.Size = new System.Drawing.Size(143, 17);
             this.lblFnHigh.TabIndex = 13;
@@ -202,7 +206,7 @@
             // 
             // txtObjectID
             // 
-            this.txtObjectID.Location = new System.Drawing.Point(95, 464);
+            this.txtObjectID.Location = new System.Drawing.Point(95, 503);
             this.txtObjectID.Name = "txtObjectID";
             this.txtObjectID.Size = new System.Drawing.Size(165, 22);
             this.txtObjectID.TabIndex = 15;
@@ -212,7 +216,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 464);
+            this.label1.Location = new System.Drawing.Point(12, 503);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(49, 17);
             this.label1.TabIndex = 16;
@@ -223,7 +227,7 @@
             // lblSubCounter
             // 
             this.lblSubCounter.AutoSize = true;
-            this.lblSubCounter.Location = new System.Drawing.Point(141, 20);
+            this.lblSubCounter.Location = new System.Drawing.Point(141, 59);
             this.lblSubCounter.Name = "lblSubCounter";
             this.lblSubCounter.Size = new System.Drawing.Size(0, 17);
             this.lblSubCounter.TabIndex = 18;
@@ -232,7 +236,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 556);
+            this.label2.Location = new System.Drawing.Point(12, 595);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(41, 17);
             this.label2.TabIndex = 19;
@@ -242,7 +246,7 @@
             // 
             // txtLimit
             // 
-            this.txtLimit.Location = new System.Drawing.Point(93, 556);
+            this.txtLimit.Location = new System.Drawing.Point(93, 595);
             this.txtLimit.Name = "txtLimit";
             this.txtLimit.Size = new System.Drawing.Size(165, 22);
             this.txtLimit.TabIndex = 20;
@@ -250,7 +254,7 @@
             // 
             // txtDevice
             // 
-            this.txtDevice.Location = new System.Drawing.Point(93, 494);
+            this.txtDevice.Location = new System.Drawing.Point(93, 533);
             this.txtDevice.Name = "txtDevice";
             this.txtDevice.Size = new System.Drawing.Size(165, 22);
             this.txtDevice.TabIndex = 22;
@@ -260,7 +264,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 494);
+            this.label3.Location = new System.Drawing.Point(12, 533);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(55, 17);
             this.label3.TabIndex = 21;
@@ -270,7 +274,7 @@
             // 
             // txtInstruction
             // 
-            this.txtInstruction.Location = new System.Drawing.Point(93, 525);
+            this.txtInstruction.Location = new System.Drawing.Point(93, 564);
             this.txtInstruction.Name = "txtInstruction";
             this.txtInstruction.Size = new System.Drawing.Size(165, 22);
             this.txtInstruction.TabIndex = 23;
@@ -279,7 +283,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(12, 525);
+            this.label4.Location = new System.Drawing.Point(12, 564);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(77, 17);
             this.label4.TabIndex = 24;
@@ -290,7 +294,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(11, 408);
+            this.label5.Location = new System.Drawing.Point(11, 447);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(105, 17);
             this.label5.TabIndex = 25;
@@ -301,7 +305,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(12, 434);
+            this.label6.Location = new System.Drawing.Point(12, 473);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(114, 17);
             this.label6.TabIndex = 26;
@@ -312,7 +316,7 @@
             // lblValidGestures
             // 
             this.lblValidGestures.AutoSize = true;
-            this.lblValidGestures.Location = new System.Drawing.Point(128, 408);
+            this.lblValidGestures.Location = new System.Drawing.Point(128, 447);
             this.lblValidGestures.Name = "lblValidGestures";
             this.lblValidGestures.Size = new System.Drawing.Size(109, 17);
             this.lblValidGestures.TabIndex = 27;
@@ -323,7 +327,7 @@
             // lblInvalidGestures
             // 
             this.lblInvalidGestures.AutoSize = true;
-            this.lblInvalidGestures.Location = new System.Drawing.Point(128, 434);
+            this.lblInvalidGestures.Location = new System.Drawing.Point(128, 473);
             this.lblInvalidGestures.Name = "lblInvalidGestures";
             this.lblInvalidGestures.Size = new System.Drawing.Size(118, 17);
             this.lblInvalidGestures.TabIndex = 28;
@@ -334,7 +338,7 @@
             // lblInvalidTemplates
             // 
             this.lblInvalidTemplates.AutoSize = true;
-            this.lblInvalidTemplates.Location = new System.Drawing.Point(128, 382);
+            this.lblInvalidTemplates.Location = new System.Drawing.Point(128, 421);
             this.lblInvalidTemplates.Name = "lblInvalidTemplates";
             this.lblInvalidTemplates.Size = new System.Drawing.Size(126, 17);
             this.lblInvalidTemplates.TabIndex = 32;
@@ -345,7 +349,7 @@
             // lblValidTemplates
             // 
             this.lblValidTemplates.AutoSize = true;
-            this.lblValidTemplates.Location = new System.Drawing.Point(128, 356);
+            this.lblValidTemplates.Location = new System.Drawing.Point(128, 395);
             this.lblValidTemplates.Name = "lblValidTemplates";
             this.lblValidTemplates.Size = new System.Drawing.Size(117, 17);
             this.lblValidTemplates.TabIndex = 31;
@@ -355,7 +359,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(12, 382);
+            this.label9.Location = new System.Drawing.Point(12, 421);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(122, 17);
             this.label9.TabIndex = 30;
@@ -366,7 +370,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(11, 356);
+            this.label10.Location = new System.Drawing.Point(11, 395);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(113, 17);
             this.label10.TabIndex = 29;
@@ -376,7 +380,7 @@
             // 
             // txtFaultyGestures
             // 
-            this.txtFaultyGestures.Location = new System.Drawing.Point(130, 672);
+            this.txtFaultyGestures.Location = new System.Drawing.Point(130, 711);
             this.txtFaultyGestures.Name = "txtFaultyGestures";
             this.txtFaultyGestures.Size = new System.Drawing.Size(282, 22);
             this.txtFaultyGestures.TabIndex = 33;
@@ -386,7 +390,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(12, 644);
+            this.label7.Location = new System.Drawing.Point(12, 683);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(55, 17);
             this.label7.TabIndex = 34;
@@ -396,18 +400,62 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(14, 672);
+            this.label8.Location = new System.Drawing.Point(14, 711);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(112, 17);
             this.label8.TabIndex = 35;
             this.label8.Text = "Faulty Gestures:";
             this.label8.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(12, 126);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(126, 17);
+            this.label11.TabIndex = 36;
+            this.label11.Text = "Current base user:";
+            this.label11.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // lblCurrentBaseUser
+            // 
+            this.lblCurrentBaseUser.AutoSize = true;
+            this.lblCurrentBaseUser.Location = new System.Drawing.Point(141, 126);
+            this.lblCurrentBaseUser.Name = "lblCurrentBaseUser";
+            this.lblCurrentBaseUser.Size = new System.Drawing.Size(87, 17);
+            this.lblCurrentBaseUser.TabIndex = 37;
+            this.lblCurrentBaseUser.Text = "[User Name]";
+            this.lblCurrentBaseUser.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(12, 152);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(126, 17);
+            this.label12.TabIndex = 38;
+            this.label12.Text = "Current base user:";
+            this.label12.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // lblCurrAuthUser
+            // 
+            this.lblCurrAuthUser.AutoSize = true;
+            this.lblCurrAuthUser.Location = new System.Drawing.Point(141, 152);
+            this.lblCurrAuthUser.Name = "lblCurrAuthUser";
+            this.lblCurrAuthUser.Size = new System.Drawing.Size(87, 17);
+            this.lblCurrAuthUser.TabIndex = 39;
+            this.lblCurrAuthUser.Text = "[User Name]";
+            this.lblCurrAuthUser.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(515, 742);
+            this.ClientSize = new System.Drawing.Size(515, 749);
+            this.Controls.Add(this.lblCurrAuthUser);
+            this.Controls.Add(this.label12);
+            this.Controls.Add(this.lblCurrentBaseUser);
+            this.Controls.Add(this.label11);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.txtFaultyGestures);
@@ -487,6 +535,10 @@
         private System.Windows.Forms.TextBox txtFaultyGestures;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.Label lblCurrentBaseUser;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Label lblCurrAuthUser;
     }
 }
 

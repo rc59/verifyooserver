@@ -175,6 +175,7 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Logic\EnvVars.cs" />
+    <Compile Include="Logic\InstructionScore.cs" />
     <Compile Include="Logic\UtilsConsts.cs" />
     <Compile Include="Logic\UtilsDB.cs" />
     <Compile Include="Logic\UtilsInvalidGestures.cs" />

@@ -203,7 +203,7 @@ namespace VerifyooConverter
                 srFaultyGestures.Close();
 
                 StreamWriter sw = File.CreateText(txtPath.Text);
-                sw.WriteLine("Object ID,Base Gesture ID,Auth Gesture ID,Type,Score,ShapeScore,Threshold,User Name,Device Name,Instruction,P01,P02,P03,P04,P05,P06,P07,P08,P09,P10,P11,P12,P13,P14,P15");
+                sw.WriteLine("Object ID,Base Gesture ID,Auth Gesture ID,Type,Score,ShapeScore,Threshold,User Name,Device Name,Instruction,P01,P02,P03,P04,P05,P06,P07,P08,P09,P10,P11,P12,P13,P14,P15,P16,P17,P18,P19");
                 StringBuilder strBuilder;
 
                 double fpLow = 0;
@@ -283,6 +283,7 @@ namespace VerifyooConverter
 
                 InitMethodFilters();
                 List<Double> listScores;
+                List<string> listInstructions;
 
                 while (!mIsFinished)
                 {
@@ -300,6 +301,7 @@ namespace VerifyooConverter
                                 tempTemplate = UtilsTemplateConverter.ConvertTemplate(template, mUtilInvalid);
                             
                                 listScores = new List<Double>();
+                                listInstructions = new List<string>();
                                 if (tempTemplate.ListGestureExtended.size() > 21)
                                 {
                                     for (idx1 = 7; idx1 < 14; idx1++)
@@ -313,19 +315,23 @@ namespace VerifyooConverter
                                             {
                                                 if (IsGestureValid(tempGestureUserBase, tempTemplate.Id) && IsGestureValid(tempGestureUserAuth, tempTemplate.Id) && tempGestureUserBase.ListStrokesExtended.size() == tempGestureUserAuth.ListStrokesExtended.size())
                                                 {
+                                                    this.lblCurrentBaseUser.Invoke(new MethodInvoker(() => this.lblCurrentBaseUser.Text = template.Name));
+                                                    this.lblCurrAuthUser.Invoke(new MethodInvoker(() => this.lblCurrAuthUser.Text = template.Name));
+
                                                     comparer = new GestureComparer(false);
                                                     comparer.CompareGestures(tempGestureUserBase, tempGestureUserAuth, mDict);
                                                     tempScore = comparer.GetScore();
                                                     if (!Double.IsNaN(tempScore))
                                                     {
                                                         listScores.Add(tempScore);
+                                                        listInstructions.Add(tempGestureUserBase.Instruction);
                                                     }
                                                 }
                                             }
                                         }
                                     }                                    
 
-                                    tempScore = CalculateScore(listScores);
+                                    tempScore = CalculateScore(listScores, listInstructions);
                                     totalGesturesFn++;
                                     if (tempScore <= threasholdLow)
                                     {
@@ -404,6 +410,7 @@ namespace VerifyooConverter
                                                 {
                                                 
                                                         listScores = new List<Double>();
+                                                        listInstructions = new List<String>();
                                                         for (idxGesture = 0; idxGesture < 7; idxGesture++)
                                                         {
                                                             for (int idxGestureAuth = 0; idxGestureAuth < tempTemplate.ListGestureExtended.size(); idxGestureAuth++)
@@ -427,12 +434,16 @@ namespace VerifyooConverter
                                                                             currentAuthTemplateId = tempTemplate.Id;
                                                                             currentAuthGestureId = tempGestureAuth.Id;
 
+                                                                            this.lblCurrentBaseUser.Invoke(new MethodInvoker(() => this.lblCurrentBaseUser.Text = baseTemplate.Name));
+                                                                            this.lblCurrAuthUser.Invoke(new MethodInvoker(() => this.lblCurrAuthUser.Text = template.Name));
+
                                                                             comparer.CompareGestures(tempGestureBase, tempGestureAuth, mDict);
                                                                             tempScore = comparer.GetScore();
 
                                                                             if (!Double.IsNaN(tempScore))
                                                                             {
                                                                                 listScores.Add(tempScore);
+                                                                                listInstructions.Add(tempGestureBase.Instruction);
                                                                             }
                                                                         }
                                                                     }
@@ -442,7 +453,7 @@ namespace VerifyooConverter
 
                                                         if (listScores.Count > 10)
                                                         {
-                                                            tempScore = CalculateScore(listScores);
+                                                            tempScore = CalculateScore(listScores, listInstructions);
                                                             totalGesturesFp++;
                                                             if (tempScore > threasholdLow)
                                                             {
@@ -521,6 +532,7 @@ namespace VerifyooConverter
                                         try
                                         {
                                             listScores = new List<Double>();
+                                            listInstructions = new List<String>();
                                             for (idxGesture = 0; idxGesture < 7; idxGesture++)
                                             {
                                                 for (int idxGestureAuth = 0; idxGestureAuth < tempTemplate.ListGestureExtended.size(); idxGestureAuth++)
@@ -544,12 +556,16 @@ namespace VerifyooConverter
                                                                 currentAuthTemplateId = tempTemplate.Id;
                                                                 currentAuthGestureId = tempGestureAuth.Id;
 
+                                                                this.lblCurrentBaseUser.Invoke(new MethodInvoker(() => this.lblCurrentBaseUser.Text = baseTemplate.Name));
+                                                                this.lblCurrAuthUser.Invoke(new MethodInvoker(() => this.lblCurrAuthUser.Text = template.Name));
+
                                                                 comparer.CompareGestures(tempGestureBase, tempGestureAuth, mDict);
                                                                 tempScore = comparer.GetScore();
 
                                                                 if (!Double.IsNaN(tempScore))
                                                                 {
                                                                     listScores.Add(tempScore);
+                                                                    listInstructions.Add(tempGestureBase.Instruction);
                                                                 }
                                                             }
                                                         }
@@ -559,7 +575,7 @@ namespace VerifyooConverter
 
                                             if (listScores.Count > 10)
                                             {
-                                                tempScore = CalculateScore(listScores);
+                                                tempScore = CalculateScore(listScores, listInstructions);
                                                 totalGesturesFp++;
                                                 if (tempScore > threasholdLow)
                                                 {
@@ -656,35 +672,58 @@ namespace VerifyooConverter
             }            
         }
 
-        private double CalculateScore(List<Double> listScores)
+        private double CalculateScore(List<Double> listScores, List<string> listInstructions)
         {
-            int numToRemove = listScores.Count / 3;
-            int numToUse = listScores.Count - numToRemove;
+            Dictionary<string, InstructionScore> dictScores = new Dictionary<string, InstructionScore>();
 
+            string currInstruction;
+            for(int idx = 0; idx < listScores.Count; idx++)
+            {
+                currInstruction = listInstructions[idx];
+                if (dictScores.ContainsKey(currInstruction))
+                {
+                    dictScores[currInstruction].NumScores++;
+                    dictScores[currInstruction].TotalScore += listScores[idx];
+                }
+                else
+                {
+                    dictScores.Add(currInstruction, new InstructionScore(currInstruction, listScores[idx]));
+                }
+            }
+
+            string maxValueKey;
+            double currentScore;
+            double maxScore;
+
+            int numToUse = 4;
             int currentlyUsed = 0;
 
-            int indexOfMax;
-            double maxValue;
+            double totalScore = 0;
 
-            double totalScore = 0;           
-
-            while (currentlyUsed < numToUse)
-            {
-                indexOfMax = 0;
-                maxValue = listScores[0];
-
-                for (int idx = 0; idx < listScores.Count; idx++) {
-                    if (listScores[idx] > maxValue) {
-                        maxValue = listScores[idx];
-                        indexOfMax = idx;
+            while (currentlyUsed < numToUse) {
+                maxValueKey = string.Empty;
+                foreach (InstructionScore score in dictScores.Values)
+                {
+                    if (String.IsNullOrEmpty(maxValueKey))
+                    {
+                        maxValueKey = score.Instruction;
+                    }
+                    else
+                    {
+                        currentScore = (score.TotalScore / score.NumScores);
+                        maxScore = (dictScores[maxValueKey].TotalScore / dictScores[maxValueKey].NumScores);
+    
+                    if (currentScore > maxScore)
+                        {
+                            maxValueKey = score.Instruction;
+                        }
                     }
                 }
 
-                totalScore += maxValue;
-                listScores.RemoveAt(indexOfMax);
-
+                totalScore += ((dictScores[maxValueKey].TotalScore / dictScores[maxValueKey].NumScores));
+                dictScores.Remove(maxValueKey);
                 currentlyUsed++;
-            }
+            }            
 
             totalScore = totalScore / numToUse;
             return totalScore;
@@ -722,8 +761,15 @@ namespace VerifyooConverter
             strBuilder.Append(GetParameterDetails(comparer, 13));
             strBuilder.Append(",");
             strBuilder.Append(GetParameterDetails(comparer, 14));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 15));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 16));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 17));
+            strBuilder.Append(",");
+            strBuilder.Append(GetParameterDetails(comparer, 18));
         }
-
 
         private void InitMethodFilters()
         {
@@ -744,7 +790,11 @@ namespace VerifyooConverter
             mDict.Add("CompareGestureStartDirection", 1);
             mDict.Add("CompareGestureEndDirection", 1);
             mDict.Add("CompareGestureMaxDirection", 1);
+
+            //mDict.Add("CompareGestureAccumulatedLengthRSqr", 1);
+            //mDict.Add("CompareGestureAccumulatedLengthSlope", 1);
         }
+
 
         private bool IsGestureValid(GestureExtended g, string templateId)
         {
