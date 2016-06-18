@@ -231,7 +231,16 @@ namespace JsonConverter.Logic
             strBuilder.Append(gesture.GestureStartDirection.ToString());
             strBuilder.Append(",");
 
-            strBuilder.Append(gesture.GestureEndDirection.ToString());       
+            strBuilder.Append(gesture.GestureEndDirection.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureTotalStrokeAreaMinXMinY.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.MidOfFirstStrokeVelocity.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.MidOfFirstStrokeAngle.ToString());
 
             return strBuilder.ToString();           
         }
