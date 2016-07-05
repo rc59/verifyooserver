@@ -197,13 +197,7 @@ namespace JsonConverter.Logic
 
             strBuilder.Append(gesture.GestureAccumulatedLengthLinearRegSlope.ToString());
             strBuilder.Append(",");
-
-            strBuilder.Append(gesture.GestureStartDirection.ToString());
-            strBuilder.Append(",");
-
-            strBuilder.Append(gesture.GestureEndDirection.ToString());
-            strBuilder.Append(",");
-
+            
             strBuilder.Append(gesture.GestureMaxVelocity.ToString());
             strBuilder.Append(",");
 
@@ -225,15 +219,6 @@ namespace JsonConverter.Logic
             strBuilder.Append(gesture.GestureMaxAcceleration.ToString());
             strBuilder.Append(",");
 
-            strBuilder.Append(gesture.GestureMaxDirection.ToString());
-            strBuilder.Append(",");
-
-            strBuilder.Append(gesture.GestureStartDirection.ToString());
-            strBuilder.Append(",");
-
-            strBuilder.Append(gesture.GestureEndDirection.ToString());
-            strBuilder.Append(",");
-
             strBuilder.Append(gesture.GestureTotalStrokeAreaMinXMinY.ToString());
             strBuilder.Append(",");
 
@@ -241,6 +226,12 @@ namespace JsonConverter.Logic
             strBuilder.Append(",");
 
             strBuilder.Append(gesture.MidOfFirstStrokeAngle.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureTotalArea.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureTotalAreaMinXMinY.ToString());
 
             return strBuilder.ToString();           
         }

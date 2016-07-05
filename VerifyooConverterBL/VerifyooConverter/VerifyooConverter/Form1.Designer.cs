@@ -67,6 +67,12 @@
             this.lblCurrentBaseUser = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
             this.lblCurrAuthUser = new System.Windows.Forms.Label();
+            this.lblFPLowCounter = new System.Windows.Forms.Label();
+            this.lblFNLowCounter = new System.Windows.Forms.Label();
+            this.lblFPMedCounter = new System.Windows.Forms.Label();
+            this.lblFNMedCounter = new System.Windows.Forms.Label();
+            this.lblFPHighCounter = new System.Windows.Forms.Label();
+            this.lblFNHighCounter = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblProgress
@@ -112,7 +118,7 @@
             // lblFpLow
             // 
             this.lblFpLow.AutoSize = true;
-            this.lblFpLow.Location = new System.Drawing.Point(128, 189);
+            this.lblFpLow.Location = new System.Drawing.Point(291, 186);
             this.lblFpLow.Name = "lblFpLow";
             this.lblFpLow.Size = new System.Drawing.Size(132, 17);
             this.lblFpLow.TabIndex = 4;
@@ -121,7 +127,7 @@
             // lblFpMed
             // 
             this.lblFpMed.AutoSize = true;
-            this.lblFpMed.Location = new System.Drawing.Point(128, 253);
+            this.lblFpMed.Location = new System.Drawing.Point(291, 250);
             this.lblFpMed.Name = "lblFpMed";
             this.lblFpMed.Size = new System.Drawing.Size(156, 17);
             this.lblFpMed.TabIndex = 5;
@@ -130,7 +136,7 @@
             // lblFpHigh
             // 
             this.lblFpHigh.AutoSize = true;
-            this.lblFpHigh.Location = new System.Drawing.Point(128, 320);
+            this.lblFpHigh.Location = new System.Drawing.Point(291, 317);
             this.lblFpHigh.Name = "lblFpHigh";
             this.lblFpHigh.Size = new System.Drawing.Size(136, 17);
             this.lblFpHigh.TabIndex = 6;
@@ -160,7 +166,7 @@
             // lblFnLow
             // 
             this.lblFnLow.AutoSize = true;
-            this.lblFnLow.Location = new System.Drawing.Point(128, 220);
+            this.lblFnLow.Location = new System.Drawing.Point(291, 217);
             this.lblFnLow.Name = "lblFnLow";
             this.lblFnLow.Size = new System.Drawing.Size(139, 17);
             this.lblFnLow.TabIndex = 11;
@@ -169,7 +175,7 @@
             // lblFnMed
             // 
             this.lblFnMed.AutoSize = true;
-            this.lblFnMed.Location = new System.Drawing.Point(128, 281);
+            this.lblFnMed.Location = new System.Drawing.Point(291, 278);
             this.lblFnMed.Name = "lblFnMed";
             this.lblFnMed.Size = new System.Drawing.Size(163, 17);
             this.lblFnMed.TabIndex = 12;
@@ -178,7 +184,7 @@
             // lblFnHigh
             // 
             this.lblFnHigh.AutoSize = true;
-            this.lblFnHigh.Location = new System.Drawing.Point(128, 353);
+            this.lblFnHigh.Location = new System.Drawing.Point(291, 350);
             this.lblFnHigh.Name = "lblFnHigh";
             this.lblFnHigh.Size = new System.Drawing.Size(143, 17);
             this.lblFnHigh.TabIndex = 13;
@@ -447,11 +453,71 @@
             this.lblCurrAuthUser.Text = "[User Name]";
             this.lblCurrAuthUser.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
+            // lblFPLowCounter
+            // 
+            this.lblFPLowCounter.AutoSize = true;
+            this.lblFPLowCounter.Location = new System.Drawing.Point(127, 186);
+            this.lblFPLowCounter.Name = "lblFPLowCounter";
+            this.lblFPLowCounter.Size = new System.Drawing.Size(132, 17);
+            this.lblFPLowCounter.TabIndex = 40;
+            this.lblFPLowCounter.Text = "[False Positive Low]";
+            // 
+            // lblFNLowCounter
+            // 
+            this.lblFNLowCounter.AutoSize = true;
+            this.lblFNLowCounter.Location = new System.Drawing.Point(127, 220);
+            this.lblFNLowCounter.Name = "lblFNLowCounter";
+            this.lblFNLowCounter.Size = new System.Drawing.Size(139, 17);
+            this.lblFNLowCounter.TabIndex = 41;
+            this.lblFNLowCounter.Text = "[False Negative Low]";
+            // 
+            // lblFPMedCounter
+            // 
+            this.lblFPMedCounter.AutoSize = true;
+            this.lblFPMedCounter.Location = new System.Drawing.Point(127, 253);
+            this.lblFPMedCounter.Name = "lblFPMedCounter";
+            this.lblFPMedCounter.Size = new System.Drawing.Size(156, 17);
+            this.lblFPMedCounter.TabIndex = 42;
+            this.lblFPMedCounter.Text = "[False Positive Medium]";
+            // 
+            // lblFNMedCounter
+            // 
+            this.lblFNMedCounter.AutoSize = true;
+            this.lblFNMedCounter.Location = new System.Drawing.Point(127, 281);
+            this.lblFNMedCounter.Name = "lblFNMedCounter";
+            this.lblFNMedCounter.Size = new System.Drawing.Size(163, 17);
+            this.lblFNMedCounter.TabIndex = 43;
+            this.lblFNMedCounter.Text = "[False Negative Medium]";
+            // 
+            // lblFPHighCounter
+            // 
+            this.lblFPHighCounter.AutoSize = true;
+            this.lblFPHighCounter.Location = new System.Drawing.Point(127, 320);
+            this.lblFPHighCounter.Name = "lblFPHighCounter";
+            this.lblFPHighCounter.Size = new System.Drawing.Size(136, 17);
+            this.lblFPHighCounter.TabIndex = 44;
+            this.lblFPHighCounter.Text = "[False Positive High]";
+            // 
+            // lblFNHighCounter
+            // 
+            this.lblFNHighCounter.AutoSize = true;
+            this.lblFNHighCounter.Location = new System.Drawing.Point(127, 353);
+            this.lblFNHighCounter.Name = "lblFNHighCounter";
+            this.lblFNHighCounter.Size = new System.Drawing.Size(143, 17);
+            this.lblFNHighCounter.TabIndex = 45;
+            this.lblFNHighCounter.Text = "[False Negative High]";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(515, 749);
+            this.ClientSize = new System.Drawing.Size(610, 758);
+            this.Controls.Add(this.lblFNHighCounter);
+            this.Controls.Add(this.lblFPHighCounter);
+            this.Controls.Add(this.lblFNMedCounter);
+            this.Controls.Add(this.lblFPMedCounter);
+            this.Controls.Add(this.lblFNLowCounter);
+            this.Controls.Add(this.lblFPLowCounter);
             this.Controls.Add(this.lblCurrAuthUser);
             this.Controls.Add(this.label12);
             this.Controls.Add(this.lblCurrentBaseUser);
@@ -539,6 +605,12 @@
         private System.Windows.Forms.Label lblCurrentBaseUser;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label lblCurrAuthUser;
+        private System.Windows.Forms.Label lblFPLowCounter;
+        private System.Windows.Forms.Label lblFNLowCounter;
+        private System.Windows.Forms.Label lblFPMedCounter;
+        private System.Windows.Forms.Label lblFNMedCounter;
+        private System.Windows.Forms.Label lblFPHighCounter;
+        private System.Windows.Forms.Label lblFNHighCounter;
     }
 }
 

@@ -105,7 +105,7 @@ namespace JsonConverter
                 string logfile = @"C:\temp\log.txt";
                 StreamWriter swLog = File.CreateText(logfile);
 
-                sw.WriteLine("TemplateId,GestureId,Name,ModelName,Xdpi,Ydpi,NumEvents,GestureIndex,Instruction,GestureAverageVelocity,GestureLength,GestureTotalStrokesTime,GestureTotalTimeInterval,GestureTotalStrokeArea,GestureMaxPressure,GestureMaxSurface,GestureAvgPressure,GestureAvgSurface,GestureAvgMiddlePressure,GestureAvgMiddleSurface,GestureMaxAccX,GestureMaxAccY,GestureMaxAccZ,GestureAvgAccX,GestureAvgAccY,GestureAvgAccZ,GestureAverageStartAcceleration,GestureAccumulatedLengthLinearRegIntercept,GestureAccumulatedLengthLinearRegRSqr,GestureAccumulatedLengthLinearRegSlope,GestureStartDirection,GestureEndDirection,VelocityMax,GestureVelocityPeakMaxIntervalPercentage,GestureVelocityPeakMax,GestureAccelerationPeakIntervalPercentage,GestureAccelerationPeakMax,AverageAcceleration,MaxAcceleration,GestureMaxDirection,GestureStartDirection,GestureEndDirection,GestureTotalStrokeAreaMinXMinY,MidOfFirstStrokeVelocity,MidOfFirstStrokeAngle");
+                sw.WriteLine("TemplateId,GestureId,Name,ModelName,Xdpi,Ydpi,NumEvents,GestureIndex,Instruction,GestureAverageVelocity,GestureLength,GestureTotalStrokesTime,GestureTotalTimeInterval,GestureTotalStrokeArea,GestureMaxPressure,GestureMaxSurface,GestureAvgPressure,GestureAvgSurface,GestureAvgMiddlePressure,GestureAvgMiddleSurface,GestureMaxAccX,GestureMaxAccY,GestureMaxAccZ,GestureAvgAccX,GestureAvgAccY,GestureAvgAccZ,GestureAverageStartAcceleration,GestureAccumulatedLengthLinearRegIntercept,GestureAccumulatedLengthLinearRegRSqr,GestureAccumulatedLengthLinearRegSlope,VelocityMax,GestureVelocityPeakMaxIntervalPercentage,GestureVelocityPeakMax,GestureAccelerationPeakIntervalPercentage,GestureAccelerationPeakMax,AverageAcceleration,MaxAcceleration,GestureTotalStrokeAreaMinXMinY,MidOfFirstStrokeVelocity,MidOfFirstStrokeAngle,GestureTotalArea,GestureTotalAreaMinXMinY");
 
                 StringBuilder strBuilder;
 
@@ -152,36 +152,45 @@ namespace JsonConverter
                 {
                     while (!isFinished)
                     {
-                        shapesList = listMongo.FindAll().SetLimit(limit).SetSkip(skip);
+                        try
+                        {
+                            shapesList = listMongo.FindAll().SetLimit(limit).SetSkip(skip);
 
-                        foreach (ModelShapes shapes in shapesList)
-                        {                            
-                            try
+                            foreach (ModelShapes shapes in shapesList)
                             {
-                                if(ShapesValid(shapes))
+                                try
                                 {
-                                    id = shapes._id.ToString();
-                                    TemplateExtended template = UtilsConvert.ConvertTemplate(shapes);
-
-                                    for (int idxGesture = 0; idxGesture < template.ListGestureExtended.size(); idxGesture++)
+                                    if (ShapesValid(shapes))
                                     {
-                                        strGesture = UtilsConvert.GestureToString(shapes, shapes.ExpShapeList[idxGesture], (GestureExtended)template.ListGestureExtended.get(idxGesture), idxGesture);
-                                        if(!string.IsNullOrEmpty(strGesture))
-                                        {
-                                            sw.WriteLine(strGesture);
-                                        }
-                                    }
+                                        id = shapes._id.ToString();
+                                        TemplateExtended template = UtilsConvert.ConvertTemplate(shapes);
 
-                                    sw.Flush();
-                                }                                    
+                                        for (int idxGesture = 0; idxGesture < template.ListGestureExtended.size(); idxGesture++)
+                                        {
+                                            strGesture = UtilsConvert.GestureToString(shapes, shapes.ExpShapeList[idxGesture], (GestureExtended)template.ListGestureExtended.get(idxGesture), idxGesture);
+                                            if (!string.IsNullOrEmpty(strGesture))
+                                            {
+                                                sw.WriteLine(strGesture);
+                                            }
+                                        }
+
+                                        sw.Flush();
+                                    }
+                                }
+                                catch (Exception exc)
+                                {
+                                    swLog.WriteLine(string.Format("Error: {0}, ObjId:{1}", exc.StackTrace, id));
+                                    swLog.Flush();
+                                }
+
                             }
-                            catch (Exception exc)
-                            {
-                                swLog.WriteLine(string.Format("Error: {0}, ObjId:{1}", exc.StackTrace, id));
-                                swLog.Flush();                                
-                            }
-                            
                         }
+                        catch(Exception exc)
+                        {
+                            string msg = exc.Message;
+                        }
+
+                        
                         skip++;
                         if (totalNumbRecords == skip)
                         {

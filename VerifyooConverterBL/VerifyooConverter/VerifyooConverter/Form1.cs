@@ -378,9 +378,14 @@ namespace VerifyooConverter
                                 swLog.Flush();
                             }
 
-                            this.lblFnLow.Invoke(new MethodInvoker(() => this.lblFnLow.Text = string.Format("False negative Low ({1}%) : {0}", getPercentage(fnLow, totalGesturesFn), threasholdLow.ToString())));
+                            this.lblFnLow.Invoke(new MethodInvoker(() => this.lblFnLow.Text = string.Format("False negative Low ({1}%) : {0}", getPercentage(fnLow, totalGesturesFn), threasholdLow.ToString())));                            
                             this.lblFnMed.Invoke(new MethodInvoker(() => this.lblFnMed.Text = string.Format("False negative Medium ({1}%) : {0}", getPercentage(fnMed, totalGesturesFn), threasholdMed.ToString())));
                             this.lblFnHigh.Invoke(new MethodInvoker(() => this.lblFnHigh.Text = string.Format("False negative High ({1}%) : {0}", getPercentage(fnHigh, totalGesturesFn), threasholdHigh.ToString())));
+
+                            this.lblFNLowCounter.Invoke(new MethodInvoker(() => this.lblFNLowCounter.Text = fnLow.ToString()));
+                            this.lblFNMedCounter.Invoke(new MethodInvoker(() => this.lblFNMedCounter.Text = fnMed.ToString()));
+                            this.lblFNHighCounter.Invoke(new MethodInvoker(() => this.lblFNHighCounter.Text = fnHigh.ToString()));
+
                             this.lblFNTotalGestures.Invoke(new MethodInvoker(() => this.lblFNTotalGestures.Text = string.Format("FN Gestures analyzed: {0}", totalGesturesFn.ToString())));
 
                             this.lblValidGestures.Invoke(new MethodInvoker(() => this.lblValidGestures.Text = mValid.ToString()));
@@ -507,6 +512,11 @@ namespace VerifyooConverter
                                     this.lblFpLow.Invoke(new MethodInvoker(() => this.lblFpLow.Text = string.Format("False positive Low ({1}%) : {0}", getPercentage(fpLow, totalGesturesFp), threasholdLow.ToString())));
                                     this.lblFpMed.Invoke(new MethodInvoker(() => this.lblFpMed.Text = string.Format("False positive Medium ({1}%) : {0}", getPercentage(fpMed, totalGesturesFp), threasholdMed.ToString())));
                                     this.lblFpHigh.Invoke(new MethodInvoker(() => this.lblFpHigh.Text = string.Format("False positive High ({1}%) : {0}", getPercentage(fpHigh, totalGesturesFp), threasholdHigh.ToString())));
+
+                                    this.lblFPLowCounter.Invoke(new MethodInvoker(() => this.lblFPLowCounter.Text = fpLow.ToString()));
+                                    this.lblFPMedCounter.Invoke(new MethodInvoker(() => this.lblFPMedCounter.Text = fpMed.ToString()));
+                                    this.lblFPHighCounter.Invoke(new MethodInvoker(() => this.lblFPHighCounter.Text = fpHigh.ToString()));
+
                                     this.lblFPTotalGestures.Invoke(new MethodInvoker(() => this.lblFPTotalGestures.Text = string.Format("FP Gestures analyzed: {0}", totalGesturesFp.ToString())));
 
                                     this.lblValidGestures.Invoke(new MethodInvoker(() => this.lblValidGestures.Text = mValid.ToString()));
@@ -630,11 +640,21 @@ namespace VerifyooConverter
                     this.lblFnLow.Invoke(new MethodInvoker(() => this.lblFnLow.Text = string.Format("False negative Low ({1}%) : {0}", getPercentage(fnLow, totalGesturesFn), threasholdLow.ToString())));
                     this.lblFnMed.Invoke(new MethodInvoker(() => this.lblFnMed.Text = string.Format("False negative Medium ({1}%) : {0}", getPercentage(fnMed, totalGesturesFn), threasholdMed.ToString())));
                     this.lblFnHigh.Invoke(new MethodInvoker(() => this.lblFnHigh.Text = string.Format("False negative High ({1}%) : {0}", getPercentage(fnHigh, totalGesturesFn), threasholdHigh.ToString())));
+
+                    this.lblFNLowCounter.Invoke(new MethodInvoker(() => this.lblFNLowCounter.Text = fnLow.ToString()));
+                    this.lblFNMedCounter.Invoke(new MethodInvoker(() => this.lblFNMedCounter.Text = fnMed.ToString()));
+                    this.lblFNHighCounter.Invoke(new MethodInvoker(() => this.lblFNHighCounter.Text = fnHigh.ToString()));
+
                     this.lblFNTotalGestures.Invoke(new MethodInvoker(() => this.lblFNTotalGestures.Text = string.Format("FN Gestures analyzed: {0}", totalGesturesFn.ToString())));
 
                     this.lblFpLow.Invoke(new MethodInvoker(() => this.lblFpLow.Text = string.Format("False positive Low ({1}%) : {0}", getPercentage(fpLow, totalGesturesFp), threasholdLow.ToString())));
                     this.lblFpMed.Invoke(new MethodInvoker(() => this.lblFpMed.Text = string.Format("False positive Medium ({1}%) : {0}", getPercentage(fpMed, totalGesturesFp), threasholdMed.ToString())));
                     this.lblFpHigh.Invoke(new MethodInvoker(() => this.lblFpHigh.Text = string.Format("False positive High ({1}%) : {0}", getPercentage(fpHigh, totalGesturesFp), threasholdHigh.ToString())));
+
+                    this.lblFPLowCounter.Invoke(new MethodInvoker(() => this.lblFPLowCounter.Text = fpLow.ToString()));
+                    this.lblFPMedCounter.Invoke(new MethodInvoker(() => this.lblFPMedCounter.Text = fpMed.ToString()));
+                    this.lblFPHighCounter.Invoke(new MethodInvoker(() => this.lblFPHighCounter.Text = fpHigh.ToString()));
+
                     this.lblFPTotalGestures.Invoke(new MethodInvoker(() => this.lblFPTotalGestures.Text = string.Format("FP Gestures analyzed: {0}", totalGesturesFp.ToString())));
 
                     this.lblValidGestures.Invoke(new MethodInvoker(() => this.lblValidGestures.Text = mValid.ToString()));
@@ -786,10 +806,14 @@ namespace VerifyooConverter
             //mDict.Add("CompareGestureSurface", 1);
             //mDict.Add("CompareGestureVelocityPeaks", 1);
             //mDict.Add("CompareGestureAverageStartAcceleration", 1);
-            mDict.Add("CompareGestureVelocityPeaksIntervalPercentage", 1);
-            mDict.Add("CompareGestureStartDirection", 1);
-            mDict.Add("CompareGestureEndDirection", 1);
-            mDict.Add("CompareGestureMaxDirection", 1);
+            //mDict.Add("CompareGestureVelocityPeaksIntervalPercentage", 1);
+            //mDict.Add("CompareGestureStartDirection", 1);
+            //mDict.Add("CompareGestureEndDirection", 1);
+            //mDict.Add("CompareGestureMaxDirection", 1);
+
+            //mDict.Add("CompareGestureAvgAcceleration", 1);
+            //mDict.Add("CompareGestureMaxAcceleration", 1);
+            //mDict.Add("CompareGestureMaxVelocity", 1);  
 
             //mDict.Add("CompareGestureAccumulatedLengthRSqr", 1);
             //mDict.Add("CompareGestureAccumulatedLengthSlope", 1);
@@ -844,7 +868,7 @@ namespace VerifyooConverter
         {
             double percentage = value / totalGestures;
             percentage = percentage * 100;
-            percentage = Math.Round(percentage, 4);
+            percentage = Math.Round(percentage, 8);
 
             return string.Format("{0}%", percentage.ToString());
         }
