@@ -168,6 +168,12 @@ namespace JsonConverter.Logic
             strBuilder.Append(gesture.GestureAvgMiddleSurface.ToString());
             strBuilder.Append(",");
 
+            strBuilder.Append(gesture.GestureCommonPressure.ToString());
+            strBuilder.Append(",");
+
+            strBuilder.Append(gesture.GestureCommonSurface.ToString());
+            strBuilder.Append(",");
+
             strBuilder.Append(gesture.GestureMaxAccX.ToString());
             strBuilder.Append(",");
 

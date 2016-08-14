@@ -15,7 +15,7 @@ namespace VerifyooConverter.Logic
         static double tempXdpi;
         static double tempYdpi;
 
-        public static Template ConvertTemplateNormal(ModelTemplate modelTemplate, UtilsInvalidGestures invalidGestures)
+        public static Template ConvertTemplateNormal(ModelTemplate modelTemplate, Dictionary<String, bool> invalidGestures)
         {
             Template template = new Template();
             template.Id = modelTemplate._id.ToString();
@@ -53,65 +53,47 @@ namespace VerifyooConverter.Logic
             return template;
         }
 
-        protected bool CheckInstruction(string instruction)
-        {
-            bool isValid = true;
-            if (instruction.CompareTo("LINES") == 0 || instruction.CompareTo("HEART") == 0)
-            {
-                isValid = false;
-            }
-            return isValid;
-        }
-
-
-        public static TemplateExtended ConvertTemplate(ModelTemplate modelTemplate, UtilsInvalidGestures invalidGestures)
+        public static TemplateExtended ConvertTemplate(ModelTemplate modelTemplate, Dictionary<String, bool> invalidGestures)
         {            
-            try
+            Template template = new Template();
+            template.ListGestures = new java.util.ArrayList();
+            Gesture tempGesture;
+
+            EnvVars.TemplateId = modelTemplate._id.ToString();
+
+            tempXdpi = modelTemplate.Xdpi;
+            tempYdpi = modelTemplate.Ydpi;
+
+            double startTime, endTime, tempInterval;
+
+            int tempSize;
+
+            MotionEventCompact tempEvent;
+            Stroke tempStrokeLast;
+            int tempStrokeSize;
+
+            for (int idx = 7; idx < modelTemplate.ExpShapeList.Count; idx++)
             {
-                Template template = new Template();
-                template.ListGestures = new java.util.ArrayList();
-                Gesture tempGesture;
+                tempGesture = ConvertGesture(modelTemplate.ExpShapeList[idx]);
 
-                EnvVars.TemplateId = modelTemplate._id.ToString();
-
-                tempXdpi = modelTemplate.Xdpi;
-                tempYdpi = modelTemplate.Ydpi;
-
-                double startTime, endTime, tempInterval;
-
-                int tempSize;
-
-                MotionEventCompact tempEvent;
-                Stroke tempStrokeLast;
-                int tempStrokeSize;
-
-                for (int idx = 7; idx < modelTemplate.ExpShapeList.Count; idx++)
+                startTime = ((MotionEventCompact)((Stroke)tempGesture.ListStrokes.get(0)).ListEvents.get(0)).EventTime;
+                tempSize = tempGesture.ListStrokes.size();
+                tempStrokeLast = (Stroke)tempGesture.ListStrokes.get(tempSize - 1);
+                tempStrokeSize = tempStrokeLast.ListEvents.size();
+                tempEvent = (MotionEventCompact)tempStrokeLast.ListEvents.get(tempStrokeSize - 1);
+                endTime = tempEvent.EventTime;
+                tempInterval = endTime - startTime;
+                if (!invalidGestures.ContainsKey(tempGesture.Id))
                 {
-                    tempGesture = ConvertGesture(modelTemplate.ExpShapeList[idx]);
-
-                    startTime = ((MotionEventCompact)((Stroke)tempGesture.ListStrokes.get(0)).ListEvents.get(0)).EventTime;
-                    tempSize = tempGesture.ListStrokes.size();
-                    tempStrokeLast = (Stroke)tempGesture.ListStrokes.get(tempSize - 1);
-                    tempStrokeSize = tempStrokeLast.ListEvents.size();
-                    tempEvent = (MotionEventCompact)tempStrokeLast.ListEvents.get(tempStrokeSize - 1);
-                    endTime = tempEvent.EventTime;
-                    tempInterval = endTime - startTime;
-                    if (!invalidGestures.HashInvalid.ContainsKey(tempGesture.Id))
-                    {
-                        template.ListGestures.add(tempGesture);
-                    }
+                    template.ListGestures.add(tempGesture);
                 }
+            }            
 
-                TemplateExtended templateExtended = new TemplateExtended(template);
-                templateExtended.Id = modelTemplate._id.ToString();
-                templateExtended.Name = modelTemplate.Name;
-                templateExtended.ModelName = modelTemplate.ModelName;
-                return templateExtended;
-            }
-            catch(Exception exc)
-            {
-                return null;
-            }
+            TemplateExtended templateExtended = new TemplateExtended(template);
+            templateExtended.Id = modelTemplate._id.ToString();
+            templateExtended.Name = modelTemplate.Name;
+            templateExtended.ModelName = modelTemplate.ModelName;
+            return templateExtended;
         }
 
         public static Gesture ConvertGesture(ModelGesture modelGesture)

@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NormCalculator", "NormCalculator\NormCalculator.csproj", "{1DA63D2E-5F0F-4ED1-BC53-07F7C18DCC5E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1DA63D2E-5F0F-4ED1-BC53-07F7C18DCC5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DA63D2E-5F0F-4ED1-BC53-07F7C18DCC5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DA63D2E-5F0F-4ED1-BC53-07F7C18DCC5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DA63D2E-5F0F-4ED1-BC53-07F7C18DCC5E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

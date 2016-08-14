@@ -216,7 +216,6 @@
             this.txtObjectID.Name = "txtObjectID";
             this.txtObjectID.Size = new System.Drawing.Size(165, 22);
             this.txtObjectID.TabIndex = 15;
-            this.txtObjectID.Text = "roy-STAM123";
             this.txtObjectID.TextChanged += new System.EventHandler(this.txtObjectID_TextChanged);
             // 
             // label1
