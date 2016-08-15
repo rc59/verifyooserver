@@ -263,7 +263,7 @@ namespace VerifyooConverter
 
                 mStreamWriter = File.CreateText(txtPath.Text);
                 //sw.WriteLine("Object ID,Base Gesture ID,Auth Gesture ID,Type,Score,ShapeScore,Threshold,User Name,Device Name,Instruction,P01,P02,P03,P04,P05,P06,P07,P08,P09,P10,P11,P12,P13,P14,P15,P16,P17,P18,P19");
-                mStreamWriter.WriteLine("Comparison Index,Object ID of Base Template,Email of Base Template,Comparison Type,Object ID of Compared Template,Email of Compared Template,Comparison Shape ID 1,Comparison Shape ID 2,Comparison Shape ID 3,Comparison Shape ID 4,Comparison Shape 1,Comparison Shape 2,Comparison Shape 3,Comparison Shape 4,Average Comparison Score,Comparison Score for Shape 1,Comparison Score for Shape 2,Comparison Score for Shape 3,Comparison Score for Shape 4, DtwCoords, DtwCoordsNorm, DtwEvents, DtwVelocities, DtwAccelerations, SpatialDistanceVelocities, SpatialDistanceAccelerations, SpatialDistanceRadialVelocities, SpatialDistanceRadialAccelerations, SpatialDistanceRadius, SpatialDistanceTeta, SpatialDistanceDeltaTeta, SpatialDistanceAccumNormArea, SpatialTimeVelocities, SpatialTimeAccelerations, SpatialTimeRadialVelocities, SpatialTimeRadialAccelerations, SpatialTimeRadius, SpatialTimeTeta, SpatialTimeDeltaTeta, SpatialTimeAccumNormArea");
+                mStreamWriter.WriteLine("Comparison Index,Object ID of Base Template,Email of Base Template,Comparison Type,Object ID of Compared Template,Email of Compared Template,Comparison Shape ID 1,Comparison Shape ID 2,Comparison Shape ID 3,Comparison Shape ID 4,Comparison Shape 1,Comparison Shape 2,Comparison Shape 3,Comparison Shape 4,Average Comparison Score,Comparison Score for Shape 1,Comparison Score for Shape 2,Comparison Score for Shape 3,Comparison Score for Shape 4, DtwCoords, DtwCoordsNorm, DtwEvents, DtwVelocities, DtwAccelerations, SpatialDistanceVelocities, SpatialDistanceAccelerations, SpatialDistanceRadialVelocities, SpatialDistanceRadialAccelerations, SpatialDistanceRadius, SpatialDistanceTeta, SpatialDistanceDeltaTeta, SpatialDistanceAccumNormArea, SpatialTimeVelocities, SpatialTimeAccelerations, SpatialTimeRadialVelocities, SpatialTimeRadialAccelerations, SpatialTimeRadius, SpatialTimeTeta, SpatialTimeDeltaTeta, SpatialTimeAccumNormArea, GestureSpatialScore");
                 StringBuilder strBuilder;
 
                 double fpLow = 0;
@@ -985,6 +985,8 @@ namespace VerifyooConverter
                         strBuilder.Append(gestureComparer.SpatialScoreTimeDeltaTeta);
                         strBuilder.Append(",");
                         strBuilder.Append(gestureComparer.SpatialScoreTimeAccumulatedNormArea);
+                        strBuilder.Append(",");
+                        strBuilder.Append(gestureComparer.GestureSpatialScore);
                     }
                     else
                     {
@@ -1030,6 +1032,8 @@ namespace VerifyooConverter
                         strBuilder.Append("[No Spatial Score]");
                         strBuilder.Append(",");
                         strBuilder.Append("[No Spatial Score]");
+                        strBuilder.Append(",");
+                        strBuilder.Append("[No Gesture Spatial Score]");
                     }
                     
                     mStreamWriter.WriteLine(strBuilder.ToString());
@@ -1282,6 +1286,8 @@ namespace VerifyooConverter
                         strBuilder.Append(gestureComparer.SpatialScoreTimeDeltaTeta);
                         strBuilder.Append(",");
                         strBuilder.Append(gestureComparer.SpatialScoreTimeAccumulatedNormArea);
+                        strBuilder.Append(",");
+                        strBuilder.Append(gestureComparer.GestureSpatialScore);
                     }
                     else {
                         strBuilder.Append(",");
@@ -1306,6 +1312,8 @@ namespace VerifyooConverter
                         strBuilder.Append("[No Spatial Score]");
                         strBuilder.Append(",");
                         strBuilder.Append("[No Spatial Score]");
+                        strBuilder.Append(",");
+                        strBuilder.Append("[No Gesture Spatial Score]");
                     }
 
                     mStreamWriter.WriteLine(strBuilder.ToString());
