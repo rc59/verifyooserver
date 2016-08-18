@@ -138,9 +138,9 @@ namespace VerifyooConverter.Logic
         public static MotionEventCompact ConvertMotionEvent(ModelMotionEventCompact modelMotionEvent)
         {
             MotionEventCompact tempObj = new MotionEventCompact();
-            tempObj.AccelerometerX = modelMotionEvent.AngleX;
-            tempObj.AccelerometerY = modelMotionEvent.AngleY;
-            tempObj.AccelerometerZ = modelMotionEvent.AngleZ;
+            tempObj.SetAccelerometerX(modelMotionEvent.AngleX);
+            tempObj.SetAccelerometerY(modelMotionEvent.AngleY);
+            tempObj.SetAccelerometerZ(modelMotionEvent.AngleZ);
             tempObj.EventTime = modelMotionEvent.EventTime;
             tempObj.Pressure = modelMotionEvent.Pressure;
             tempObj.TouchSurface = modelMotionEvent.TouchSurface;

@@ -73,6 +73,8 @@
             this.lblFNMedCounter = new System.Windows.Forms.Label();
             this.lblFPHighCounter = new System.Windows.Forms.Label();
             this.lblFNHighCounter = new System.Windows.Forms.Label();
+            this.lblFPTotalGesturesPercent = new System.Windows.Forms.Label();
+            this.lblFNTotalGesturesPercent = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblProgress
@@ -506,11 +508,33 @@
             this.lblFNHighCounter.TabIndex = 45;
             this.lblFNHighCounter.Text = "[False Negative High]";
             // 
+            // lblFPTotalGesturesPercent
+            // 
+            this.lblFPTotalGesturesPercent.AutoSize = true;
+            this.lblFPTotalGesturesPercent.Location = new System.Drawing.Point(213, 59);
+            this.lblFPTotalGesturesPercent.Name = "lblFPTotalGesturesPercent";
+            this.lblFPTotalGesturesPercent.Size = new System.Drawing.Size(131, 17);
+            this.lblFPTotalGesturesPercent.TabIndex = 46;
+            this.lblFPTotalGesturesPercent.Text = "[Total FP Gestures]";
+            this.lblFPTotalGesturesPercent.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // lblFNTotalGesturesPercent
+            // 
+            this.lblFNTotalGesturesPercent.AutoSize = true;
+            this.lblFNTotalGesturesPercent.Location = new System.Drawing.Point(213, 92);
+            this.lblFNTotalGesturesPercent.Name = "lblFNTotalGesturesPercent";
+            this.lblFNTotalGesturesPercent.Size = new System.Drawing.Size(132, 17);
+            this.lblFNTotalGesturesPercent.TabIndex = 47;
+            this.lblFNTotalGesturesPercent.Text = "[Total FN Gestures]";
+            this.lblFNTotalGesturesPercent.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(610, 758);
+            this.Controls.Add(this.lblFNTotalGesturesPercent);
+            this.Controls.Add(this.lblFPTotalGesturesPercent);
             this.Controls.Add(this.lblFNHighCounter);
             this.Controls.Add(this.lblFPHighCounter);
             this.Controls.Add(this.lblFNMedCounter);
@@ -610,6 +634,8 @@
         private System.Windows.Forms.Label lblFNMedCounter;
         private System.Windows.Forms.Label lblFPHighCounter;
         private System.Windows.Forms.Label lblFNHighCounter;
+        private System.Windows.Forms.Label lblFPTotalGesturesPercent;
+        private System.Windows.Forms.Label lblFNTotalGesturesPercent;
     }
 }
 

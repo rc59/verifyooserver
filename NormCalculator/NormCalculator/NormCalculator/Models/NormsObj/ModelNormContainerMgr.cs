@@ -12,16 +12,22 @@ namespace NormCalculator.Models
 {
     class ModelNormContainerMgr
     {
-        public Dictionary<String, ModelSpatialNormContainer> HashMapSpatialNormsMeans = new Dictionary<string, ModelSpatialNormContainer>();
-        public Dictionary<String, ModelSpatialNormContainer> HashMapSpatialNormsSds = new Dictionary<string, ModelSpatialNormContainer>();
+        public Dictionary<String, ModelSpatialNormContainer> HashMapSpatialNormsMeansDistance = new Dictionary<string, ModelSpatialNormContainer>();
+        public Dictionary<String, ModelSpatialNormContainer> HashMapSpatialNormsSdsDistance = new Dictionary<string, ModelSpatialNormContainer>();
+
+        public Dictionary<String, ModelSpatialNormContainer> HashMapSpatialNormsMeansTime = new Dictionary<string, ModelSpatialNormContainer>();
+        public Dictionary<String, ModelSpatialNormContainer> HashMapSpatialNormsSdsTime = new Dictionary<string, ModelSpatialNormContainer>();
 
         public Dictionary<String, ModelNumericNormContainer> HashMapNumericNormsMeans = new Dictionary<string, ModelNumericNormContainer>();
         public Dictionary<String, ModelNumericNormContainer> HashMapNumericNormsSds = new Dictionary<string, ModelNumericNormContainer>();
 
         public ModelNormContainerMgr()
         {
-            HashMapSpatialNormsMeans = new Dictionary<string, ModelSpatialNormContainer>();
-            HashMapSpatialNormsSds = new Dictionary<string, ModelSpatialNormContainer>();
+            HashMapSpatialNormsMeansDistance = new Dictionary<string, ModelSpatialNormContainer>();
+            HashMapSpatialNormsSdsDistance = new Dictionary<string, ModelSpatialNormContainer>();
+
+            HashMapSpatialNormsMeansTime = new Dictionary<string, ModelSpatialNormContainer>();
+            HashMapSpatialNormsSdsTime = new Dictionary<string, ModelSpatialNormContainer>();
 
             HashMapNumericNormsMeans = new Dictionary<string, ModelNumericNormContainer>();
             HashMapNumericNormsSds = new Dictionary<string, ModelNumericNormContainer>();
@@ -29,13 +35,18 @@ namespace NormCalculator.Models
 
         public ModelNormContainerMgr(NormContainerMgr normContainerMgr)
         {
-            SpatialNormContainer tempSpatialNormContainerMeans;
-            SpatialNormContainer tempSpatialNormContainerSds;
+            SpatialNormContainer tempSpatialNormContainerMeansDistance;
+            SpatialNormContainer tempSpatialNormContainerSdsDistance;
+
+            SpatialNormContainer tempSpatialNormContainerMeansTime;
+            SpatialNormContainer tempSpatialNormContainerSdsTime;
 
             NumericNormContainer tempNumericNormContainerMeans;
             NumericNormContainer tempNumericNormContainerSds;
 
-            object[] keySetSpatialNorms = normContainerMgr.HashMapSpatialNormsMeans.keySet().toArray();
+            object[] keySetSpatialNormsDistance = normContainerMgr.HashMapSpatialNormsMeansDistance.keySet().toArray();
+            object[] keySetSpatialNormsTime = normContainerMgr.HashMapSpatialNormsMeansTime.keySet().toArray();
+
             object[] keySetNumericNorms = normContainerMgr.HashMapNumericNormsMeans.keySet().toArray();
 
             object[] keySetTempListUtilsAccumulators;
@@ -47,24 +58,33 @@ namespace NormCalculator.Models
             ModelNumericNormContainer tempModelNumericNormContainerMeans;
             ModelNumericNormContainer tempModelNumericNormContainerSds;
 
-            ModelSpatialNormContainer tempModelSpatialNormContainerMeans;
-            ModelSpatialNormContainer tempModelSpatialNormContainerSds;
+            ModelSpatialNormContainer tempModelSpatialNormContainerMeansDistance;
+            ModelSpatialNormContainer tempModelSpatialNormContainerSdsDistance;
+
+            ModelSpatialNormContainer tempModelSpatialNormContainerMeansTime;
+            ModelSpatialNormContainer tempModelSpatialNormContainerSdsTime;
 
             ModelAccumulatorsContainer tempModelAccumulatorContainer;
 
             string tempKey, tempKeyInternal;
 
-            for (int idx = 0; idx < keySetSpatialNorms.Length; idx++) {
-                tempKey = (string)keySetSpatialNorms[idx];
-                tempSpatialNormContainerMeans = (SpatialNormContainer) normContainerMgr.HashMapSpatialNormsMeans.get(tempKey);
-                tempSpatialNormContainerSds = (SpatialNormContainer) normContainerMgr.HashMapSpatialNormsSds.get(tempKey);
+            for (int idx = 0; idx < keySetSpatialNormsDistance.Length; idx++) {
+                tempKey = (string)keySetSpatialNormsDistance[idx];
 
-                keySetTempListUtilsAccumulators = tempSpatialNormContainerMeans.HashNorms.keySet().toArray();
-                tempModelSpatialNormContainerMeans = new ModelSpatialNormContainer();                
+                tempSpatialNormContainerMeansDistance = (SpatialNormContainer) normContainerMgr.HashMapSpatialNormsMeansDistance.get(tempKey);
+                tempSpatialNormContainerSdsDistance = (SpatialNormContainer) normContainerMgr.HashMapSpatialNormsSdsDistance.get(tempKey);
+
+                tempSpatialNormContainerMeansTime = (SpatialNormContainer)normContainerMgr.HashMapSpatialNormsMeansTime.get(tempKey);
+                tempSpatialNormContainerSdsTime = (SpatialNormContainer)normContainerMgr.HashMapSpatialNormsSdsTime.get(tempKey);
+
+                keySetTempListUtilsAccumulators = tempSpatialNormContainerMeansDistance.HashNorms.keySet().toArray();
+                tempModelSpatialNormContainerMeansDistance = new ModelSpatialNormContainer();
+
+                /****************************************** SPATIAL DISTANCE ******************************************/
 
                 for (int idxAccumulatorContainer = 0; idxAccumulatorContainer < keySetTempListUtilsAccumulators.Length; idxAccumulatorContainer++) {
                     tempKeyInternal = (string)keySetTempListUtilsAccumulators[idxAccumulatorContainer];
-                    tempAccumulatorContainer = (AccumulatorsContainer)tempSpatialNormContainerMeans.HashNorms.get(tempKeyInternal);
+                    tempAccumulatorContainer = (AccumulatorsContainer)tempSpatialNormContainerMeansDistance.HashNorms.get(tempKeyInternal);
 
                     tempModelAccumulatorContainer = new ModelAccumulatorsContainer();
                     tempModelAccumulatorContainer.ListUtilsAccumulator = new List<ModelUtilsAccum>();
@@ -73,16 +93,16 @@ namespace NormCalculator.Models
                         tempModelAccumulatorContainer.ListUtilsAccumulator.Add(new ModelUtilsAccum((UtilsAccumulator)tempAccumulatorContainer.ListUtilsAccumulator.get(idxUtilAccum)));
                     }
 
-                    tempModelSpatialNormContainerMeans.HashNorms.Add(tempKeyInternal, tempModelAccumulatorContainer);
+                    tempModelSpatialNormContainerMeansDistance.HashNorms.Add(tempKeyInternal, tempModelAccumulatorContainer);
                 }
 
-                keySetTempListUtilsAccumulators = tempSpatialNormContainerSds.HashNorms.keySet().toArray();
-                tempModelSpatialNormContainerSds = new ModelSpatialNormContainer();
+                keySetTempListUtilsAccumulators = tempSpatialNormContainerSdsDistance.HashNorms.keySet().toArray();
+                tempModelSpatialNormContainerSdsDistance = new ModelSpatialNormContainer();
 
                 for (int idxAccumulatorContainer = 0; idxAccumulatorContainer < keySetTempListUtilsAccumulators.Length; idxAccumulatorContainer++)
                 {
                     tempKeyInternal = (string)keySetTempListUtilsAccumulators[idxAccumulatorContainer];
-                    tempAccumulatorContainer = (AccumulatorsContainer)tempSpatialNormContainerSds.HashNorms.get(tempKeyInternal);
+                    tempAccumulatorContainer = (AccumulatorsContainer)tempSpatialNormContainerSdsDistance.HashNorms.get(tempKeyInternal);
 
                     tempModelAccumulatorContainer = new ModelAccumulatorsContainer();
                     tempModelAccumulatorContainer.ListUtilsAccumulator = new List<ModelUtilsAccum>();
@@ -91,11 +111,52 @@ namespace NormCalculator.Models
                         tempModelAccumulatorContainer.ListUtilsAccumulator.Add(new ModelUtilsAccum((UtilsAccumulator)tempAccumulatorContainer.ListUtilsAccumulator.get(idxUtilAccum)));
                     }
 
-                    tempModelSpatialNormContainerSds.HashNorms.Add(tempKeyInternal, tempModelAccumulatorContainer);
+                    tempModelSpatialNormContainerSdsDistance.HashNorms.Add(tempKeyInternal, tempModelAccumulatorContainer);
                 }
 
-                HashMapSpatialNormsMeans.Add(tempKey, tempModelSpatialNormContainerMeans);
-                HashMapSpatialNormsSds.Add(tempKey, tempModelSpatialNormContainerSds);
+                /****************************************** SPATIAL TIME ******************************************/
+
+                keySetTempListUtilsAccumulators = tempSpatialNormContainerMeansTime.HashNorms.keySet().toArray();
+                tempModelSpatialNormContainerMeansTime = new ModelSpatialNormContainer();
+
+                for (int idxAccumulatorContainer = 0; idxAccumulatorContainer < keySetTempListUtilsAccumulators.Length; idxAccumulatorContainer++)
+                {
+                    tempKeyInternal = (string)keySetTempListUtilsAccumulators[idxAccumulatorContainer];
+                    tempAccumulatorContainer = (AccumulatorsContainer)tempSpatialNormContainerMeansTime.HashNorms.get(tempKeyInternal);
+
+                    tempModelAccumulatorContainer = new ModelAccumulatorsContainer();
+                    tempModelAccumulatorContainer.ListUtilsAccumulator = new List<ModelUtilsAccum>();
+                    for (int idxUtilAccum = 0; idxUtilAccum < tempAccumulatorContainer.ListUtilsAccumulator.size(); idxUtilAccum++)
+                    {
+                        tempModelAccumulatorContainer.ListUtilsAccumulator.Add(new ModelUtilsAccum((UtilsAccumulator)tempAccumulatorContainer.ListUtilsAccumulator.get(idxUtilAccum)));
+                    }
+
+                    tempModelSpatialNormContainerMeansTime.HashNorms.Add(tempKeyInternal, tempModelAccumulatorContainer);
+                }
+
+                keySetTempListUtilsAccumulators = tempSpatialNormContainerSdsTime.HashNorms.keySet().toArray();
+                tempModelSpatialNormContainerSdsTime = new ModelSpatialNormContainer();
+
+                for (int idxAccumulatorContainer = 0; idxAccumulatorContainer < keySetTempListUtilsAccumulators.Length; idxAccumulatorContainer++)
+                {
+                    tempKeyInternal = (string)keySetTempListUtilsAccumulators[idxAccumulatorContainer];
+                    tempAccumulatorContainer = (AccumulatorsContainer)tempSpatialNormContainerSdsTime.HashNorms.get(tempKeyInternal);
+
+                    tempModelAccumulatorContainer = new ModelAccumulatorsContainer();
+                    tempModelAccumulatorContainer.ListUtilsAccumulator = new List<ModelUtilsAccum>();
+                    for (int idxUtilAccum = 0; idxUtilAccum < tempAccumulatorContainer.ListUtilsAccumulator.size(); idxUtilAccum++)
+                    {
+                        tempModelAccumulatorContainer.ListUtilsAccumulator.Add(new ModelUtilsAccum((UtilsAccumulator)tempAccumulatorContainer.ListUtilsAccumulator.get(idxUtilAccum)));
+                    }
+
+                    tempModelSpatialNormContainerSdsTime.HashNorms.Add(tempKeyInternal, tempModelAccumulatorContainer);
+                }
+
+                HashMapSpatialNormsMeansDistance.Add(tempKey, tempModelSpatialNormContainerMeansDistance);
+                HashMapSpatialNormsSdsDistance.Add(tempKey, tempModelSpatialNormContainerSdsDistance);
+
+                HashMapSpatialNormsMeansTime.Add(tempKey, tempModelSpatialNormContainerMeansTime);
+                HashMapSpatialNormsSdsTime.Add(tempKey, tempModelSpatialNormContainerSdsTime);
             }
 
             for (int idx = 0; idx < keySetNumericNorms.Length; idx++)
@@ -134,8 +195,11 @@ namespace NormCalculator.Models
         {
             NormContainerMgr resultNormContainerMgr = new NormContainerMgr();
 
-            ModelSpatialNormContainer tempModelSpatialNormContainerMeans;
-            ModelSpatialNormContainer tempModelSpatialNormContainerSds;
+            ModelSpatialNormContainer tempModelSpatialNormContainerMeansDistance;
+            ModelSpatialNormContainer tempModelSpatialNormContainerSdsDistance;
+
+            ModelSpatialNormContainer tempModelSpatialNormContainerMeansTime;
+            ModelSpatialNormContainer tempModelSpatialNormContainerSdsTime;
 
             ModelNumericNormContainer tempModelNumericNormContainerMeans;
             ModelNumericNormContainer tempModelNumericNormContainerSds;
@@ -149,15 +213,17 @@ namespace NormCalculator.Models
 
             AccumulatorsContainer tempAccumulatorsContainer;
 
-            foreach (string key in HashMapSpatialNormsMeans.Keys)
+            /****************************************** SPATIAL DISTANCE ******************************************/
+
+            foreach (string key in HashMapSpatialNormsMeansDistance.Keys)
             {
-                tempModelSpatialNormContainerMeans = HashMapSpatialNormsMeans[key];
+                tempModelSpatialNormContainerMeansDistance = HashMapSpatialNormsMeansDistance[key];
                 
                 tempSpatialNormContainer = new SpatialNormContainer();
                 tempSpatialNormContainer.HashNorms = new HashMap();
-                foreach (string keyInternal in tempModelSpatialNormContainerMeans.HashNorms.Keys)
+                foreach (string keyInternal in tempModelSpatialNormContainerMeansDistance.HashNorms.Keys)
                 {
-                    tempModelAccumulatorsContainer = tempModelSpatialNormContainerMeans.HashNorms[keyInternal];
+                    tempModelAccumulatorsContainer = tempModelSpatialNormContainerMeansDistance.HashNorms[keyInternal];
 
                     tempAccumulatorsContainer = new AccumulatorsContainer();
                     tempAccumulatorsContainer.ListUtilsAccumulator = new ArrayList();
@@ -175,18 +241,18 @@ namespace NormCalculator.Models
                     tempSpatialNormContainer.HashNorms.put(keyInternal, tempAccumulatorsContainer);
                 }
 
-                resultNormContainerMgr.HashMapSpatialNormsMeans.put(key, tempSpatialNormContainer);
+                resultNormContainerMgr.HashMapSpatialNormsMeansDistance.put(key, tempSpatialNormContainer);
             }
 
-            foreach (string key in HashMapSpatialNormsSds.Keys)
+            foreach (string key in HashMapSpatialNormsSdsDistance.Keys)
             {
-                tempModelSpatialNormContainerSds = HashMapSpatialNormsSds[key];
+                tempModelSpatialNormContainerSdsDistance = HashMapSpatialNormsSdsDistance[key];
 
                 tempSpatialNormContainer = new SpatialNormContainer();
                 tempSpatialNormContainer.HashNorms = new HashMap();
-                foreach (string keyInternal in tempModelSpatialNormContainerSds.HashNorms.Keys)
+                foreach (string keyInternal in tempModelSpatialNormContainerSdsDistance.HashNorms.Keys)
                 {
-                    tempModelAccumulatorsContainer = tempModelSpatialNormContainerSds.HashNorms[keyInternal];
+                    tempModelAccumulatorsContainer = tempModelSpatialNormContainerSdsDistance.HashNorms[keyInternal];
 
                     tempAccumulatorsContainer = new AccumulatorsContainer();
                     tempAccumulatorsContainer.ListUtilsAccumulator = new ArrayList();
@@ -204,8 +270,70 @@ namespace NormCalculator.Models
                     tempSpatialNormContainer.HashNorms.put(keyInternal, tempAccumulatorsContainer);
                 }
 
-                resultNormContainerMgr.HashMapSpatialNormsSds.put(key, tempSpatialNormContainer);
+                resultNormContainerMgr.HashMapSpatialNormsSdsDistance.put(key, tempSpatialNormContainer);
             }
+
+            /****************************************** SPATIAL TIME ******************************************/
+
+            foreach (string key in HashMapSpatialNormsMeansDistance.Keys)
+            {
+                tempModelSpatialNormContainerMeansTime = HashMapSpatialNormsMeansDistance[key];
+                
+                tempSpatialNormContainer = new SpatialNormContainer();
+                tempSpatialNormContainer.HashNorms = new HashMap();
+                foreach (string keyInternal in tempModelSpatialNormContainerMeansTime.HashNorms.Keys)
+                {
+                    tempModelAccumulatorsContainer = tempModelSpatialNormContainerMeansTime.HashNorms[keyInternal];
+
+                    tempAccumulatorsContainer = new AccumulatorsContainer();
+                    tempAccumulatorsContainer.ListUtilsAccumulator = new ArrayList();
+                    for (int idxUtilAccum = 0; idxUtilAccum < tempModelAccumulatorsContainer.ListUtilsAccumulator.Count; idxUtilAccum++)
+                    {
+                        tempModelUtilsAccumulator = tempModelAccumulatorsContainer.ListUtilsAccumulator[idxUtilAccum];
+                        tempUtilsAccumulator = new UtilsAccumulator();
+                        tempUtilsAccumulator.Mu = tempModelUtilsAccumulator.Mu;
+                        tempUtilsAccumulator.N = tempModelUtilsAccumulator.N;
+                        tempUtilsAccumulator.Sum = tempModelUtilsAccumulator.Sum;
+
+                        tempAccumulatorsContainer.ListUtilsAccumulator.add(tempUtilsAccumulator);
+                    }
+
+                    tempSpatialNormContainer.HashNorms.put(keyInternal, tempAccumulatorsContainer);
+                }
+
+                resultNormContainerMgr.HashMapSpatialNormsMeansTime.put(key, tempSpatialNormContainer);
+            }
+
+            foreach (string key in HashMapSpatialNormsSdsDistance.Keys)
+            {
+                tempModelSpatialNormContainerSdsTime = HashMapSpatialNormsSdsDistance[key];
+
+                tempSpatialNormContainer = new SpatialNormContainer();
+                tempSpatialNormContainer.HashNorms = new HashMap();
+                foreach (string keyInternal in tempModelSpatialNormContainerSdsTime.HashNorms.Keys)
+                {
+                    tempModelAccumulatorsContainer = tempModelSpatialNormContainerSdsTime.HashNorms[keyInternal];
+
+                    tempAccumulatorsContainer = new AccumulatorsContainer();
+                    tempAccumulatorsContainer.ListUtilsAccumulator = new ArrayList();
+                    for (int idxUtilAccum = 0; idxUtilAccum < tempModelAccumulatorsContainer.ListUtilsAccumulator.Count; idxUtilAccum++)
+                    {
+                        tempModelUtilsAccumulator = tempModelAccumulatorsContainer.ListUtilsAccumulator[idxUtilAccum];
+                        tempUtilsAccumulator = new UtilsAccumulator();
+                        tempUtilsAccumulator.Mu = tempModelUtilsAccumulator.Mu;
+                        tempUtilsAccumulator.N = tempModelUtilsAccumulator.N;
+                        tempUtilsAccumulator.Sum = tempModelUtilsAccumulator.Sum;
+
+                        tempAccumulatorsContainer.ListUtilsAccumulator.add(tempUtilsAccumulator);
+                    }
+
+                    tempSpatialNormContainer.HashNorms.put(keyInternal, tempAccumulatorsContainer);
+                }
+
+                resultNormContainerMgr.HashMapSpatialNormsSdsTime.put(key, tempSpatialNormContainer);
+            }
+
+            /****************************************** NUMERIC ******************************************/
 
             foreach (string key in HashMapNumericNormsMeans.Keys)
             {
