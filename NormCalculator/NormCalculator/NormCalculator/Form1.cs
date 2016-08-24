@@ -82,6 +82,9 @@ namespace NormCalculator
 
         /************************************* NORMAL PARAMETERS *************************************/
 
+        NumericNormContainer mNormContainerGestureDelayTimeMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerGestureDelayTimeStd = new NumericNormContainer();
+
         NumericNormContainer mNormContainerGestureNumEventsMean = new NumericNormContainer();
         NumericNormContainer mNormContainerGestureNumEventsStd = new NumericNormContainer();
 
@@ -149,6 +152,16 @@ namespace NormCalculator
             Task task = Task.Run((Action)Start);            
         }
 
+        private double SafeAddValue(double value)
+        {
+            if(Double.IsNaN(value))
+            {
+                return value = 0;
+            }
+
+            return value;
+        }
+
         private void Start()
         {
             IEnumerable<ModelTemplate> modelTemplates;           
@@ -171,6 +184,8 @@ namespace NormCalculator
 
             NumericNormContainer tempNormContainerGestureLength;
             NumericNormContainer tempNormContainerGestureNumEvents;
+
+            NumericNormContainer tempNormContainerGestureDelayTime;
 
             SpatialNormContainer tempNormContainerVelocitiesDistance;
             SpatialNormContainer tempNormContainerRadialVelocitiesDistance;
@@ -233,6 +248,8 @@ namespace NormCalculator
                         tempNormContainerGestureLength = new NumericNormContainer();
                         tempNormContainerGestureNumEvents = new NumericNormContainer();
 
+                        tempNormContainerGestureDelayTime = new NumericNormContainer();
+
                         tempNormContainerVelocitiesDistance = new SpatialNormContainer();
                         tempNormContainerRadialVelocitiesDistance = new SpatialNormContainer();
                         tempNormContainerAccelerationDistance = new SpatialNormContainer();
@@ -282,30 +299,35 @@ namespace NormCalculator
                                 tempInstruction = mListInstructions[idxInstr];
                                 if (tempInstruction.CompareTo("ALETTER") == 0 || tempGesture.Instruction.CompareTo("RLETTER") == 0)
                                 {
-                                    tempNormContainerGestureLength.AddValue(tempGesture.GestureLengthMM, tempInstruction);
+                                    tempNormContainerGestureLength.AddValue(SafeAddValue(tempGesture.GestureLengthMM), tempInstruction);
                                     tempNormContainerGestureNumEvents.AddValue(tempGesture.ListGestureEventsExtended.size(), tempInstruction);
 
-                                    tempNormContainerGestureTotalTimeInterval.AddValue(tempGesture.GestureTotalTimeInterval, tempInstruction);
-                                    tempNormContainerStrokeTotalTimeInterval.AddValue(tempGesture.GestureTotalStrokeTimeInterval, tempInstruction);
+                                    if(idxGesture > 0)
+                                    {
+                                        tempNormContainerGestureDelayTime.AddValue(SafeAddValue(tempGesture.GestureDelay), tempInstruction);
+                                    }
 
-                                    tempNormContainerGestureTotalArea.AddValue(tempGesture.GestureTotalArea, tempInstruction);
-                                    tempNormContainerGestureTotalAreaMinXMinY.AddValue(tempGesture.GestureTotalAreaMinXMinY, tempInstruction);
+                                    tempNormContainerGestureTotalTimeInterval.AddValue(SafeAddValue(tempGesture.GestureTotalTimeInterval), tempInstruction);
+                                    tempNormContainerStrokeTotalTimeInterval.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeTimeInterval), tempInstruction);
 
-                                    tempNormContainerGestureStrokesTotalArea.AddValue(tempGesture.GestureTotalStrokeArea, tempInstruction);
-                                    tempNormContainerGestureStrokesTotalAreaMinXMinY.AddValue(tempGesture.GestureTotalStrokeAreaMinXMinY, tempInstruction);
+                                    tempNormContainerGestureTotalArea.AddValue(SafeAddValue(tempGesture.GestureTotalArea), tempInstruction);
+                                    tempNormContainerGestureTotalAreaMinXMinY.AddValue(SafeAddValue(tempGesture.GestureTotalAreaMinXMinY), tempInstruction);
 
-                                    tempNormContainerGestureMiddlePressure.AddValue(tempGesture.GestureAvgMiddlePressure, tempInstruction);
-                                    tempNormContainerGestureMiddleSurface.AddValue(tempGesture.GestureAvgMiddleSurface, tempInstruction);
+                                    tempNormContainerGestureStrokesTotalArea.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeArea), tempInstruction);
+                                    tempNormContainerGestureStrokesTotalAreaMinXMinY.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeAreaMinXMinY), tempInstruction);
 
-                                    tempNormContainerGestureAverageVelocity.AddValue(tempGesture.GestureAverageVelocity, tempInstruction);
-                                    tempNormContainerGestureMaxVelocity.AddValue(tempGesture.GestureMaxVelocity, tempInstruction);
-                                    tempNormContainerMidFirstStrokeVelocity.AddValue(tempGesture.MidOfFirstStrokeVelocity, tempInstruction);
+                                    tempNormContainerGestureMiddlePressure.AddValue(SafeAddValue(tempGesture.GestureAvgMiddlePressure), tempInstruction);
+                                    tempNormContainerGestureMiddleSurface.AddValue(SafeAddValue(tempGesture.GestureAvgMiddleSurface), tempInstruction);
 
-                                    tempNormContainerGestureAvgAcceleration.AddValue(tempGesture.GestureAverageAcceleration, tempInstruction);
-                                    tempNormContainerGestureMaxAcceleration.AddValue(tempGesture.GestureMaxAcceleration, tempInstruction);
-                                    tempNormContainerGestureAvgStartAcceleration.AddValue(tempGesture.GestureAverageStartAcceleration, tempInstruction);
+                                    tempNormContainerGestureAverageVelocity.AddValue(SafeAddValue(tempGesture.GestureAverageVelocity), tempInstruction);
+                                    tempNormContainerGestureMaxVelocity.AddValue(SafeAddValue(tempGesture.GestureMaxVelocity), tempInstruction);
+                                    tempNormContainerMidFirstStrokeVelocity.AddValue(SafeAddValue(tempGesture.MidOfFirstStrokeVelocity), tempInstruction);
 
-                                    tempNormContainerGestureAccumulatedLengthSlope.AddValue(tempGesture.GestureAccumulatedLengthLinearRegSlope, tempInstruction);
+                                    tempNormContainerGestureAvgAcceleration.AddValue(SafeAddValue(tempGesture.GestureAverageAcceleration), tempInstruction);
+                                    tempNormContainerGestureMaxAcceleration.AddValue(SafeAddValue(tempGesture.GestureMaxAcceleration), tempInstruction);
+                                    tempNormContainerGestureAvgStartAcceleration.AddValue(SafeAddValue(tempGesture.GestureAverageStartAcceleration), tempInstruction);
+
+                                    tempNormContainerGestureAccumulatedLengthSlope.AddValue(SafeAddValue(tempGesture.GestureAccumulatedLengthLinearRegSlope), tempInstruction);
 
                                     for (int idxStroke = 0; idxStroke < tempGesture.ListStrokesExtended.size(); idxStroke++)
                                     {
@@ -317,45 +339,28 @@ namespace NormCalculator
                                             tempEventTime = (MotionEventExtended)tempStroke.ListEventsSpatialByTimeExtended.get(idxEvent);
 
                                             isInitialized = true;
-                                            tempNormContainerVelocitiesDistance.AddValue(tempEventDistance.Velocity, tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerRadialVelocitiesDistance.AddValue(tempEventDistance.RadialVelocity, tempInstruction, idxStroke, idxEvent);
 
                                             /********************************************* DISTANCE *********************************************/
 
-                                            tempNormContainerRadialAccelerationDistance.AddValue(tempEventDistance.RadialAcceleration, tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerRadiusDistance.AddValue(tempEventDistance.Radius, tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerTetaDistance.AddValue(tempEventDistance.Teta, tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerDeltaTetaDistance.AddValue(tempEventDistance.DeltaTeta, tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerAccumulatedNormalizedAreaDistance.AddValue(tempEventDistance.AccumulatedNormalizedArea, tempInstruction, idxStroke, idxEvent);
-
-                                            if (!Double.IsNaN(tempEventDistance.Acceleration))
-                                            {
-                                                tempNormContainerAccelerationDistance.AddValue(tempEventDistance.Acceleration, tempInstruction, idxStroke, idxEvent);
-                                            }
-                                            else
-                                            {
-                                                tempNormContainerAccelerationDistance.AddValue(0, tempInstruction, idxStroke, idxEvent);
-                                            }
+                                            tempNormContainerVelocitiesDistance.AddValue(SafeAddValue(tempEventDistance.Velocity), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerRadialVelocitiesDistance.AddValue(SafeAddValue(tempEventDistance.RadialVelocity), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerRadialAccelerationDistance.AddValue(SafeAddValue(tempEventDistance.RadialAcceleration), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerRadiusDistance.AddValue(SafeAddValue(tempEventDistance.Radius), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerTetaDistance.AddValue(SafeAddValue(tempEventDistance.Teta), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerDeltaTetaDistance.AddValue(SafeAddValue(tempEventDistance.DeltaTeta), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerAccumulatedNormalizedAreaDistance.AddValue(SafeAddValue(tempEventDistance.AccumulatedNormalizedArea), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerAccelerationDistance.AddValue(SafeAddValue(tempEventDistance.Acceleration), tempInstruction, idxStroke, idxEvent);
 
                                             /********************************************* TIME *********************************************/
 
-                                            tempNormContainerVelocitiesTime.AddValue(tempEventTime.Velocity, tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerRadialVelocitiesTime.AddValue(tempEventTime.RadialVelocity, tempInstruction, idxStroke, idxEvent);
-
-                                            tempNormContainerRadialAccelerationTime.AddValue(tempEventTime.RadialAcceleration, tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerRadiusTime.AddValue(tempEventTime.Radius, tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerTetaTime.AddValue(tempEventTime.Teta, tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerDeltaTetaTime.AddValue(tempEventTime.DeltaTeta, tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerAccumulatedNormalizedAreaTime.AddValue(tempEventTime.AccumulatedNormalizedArea, tempInstruction, idxStroke, idxEvent);
-
-                                            if (!Double.IsNaN(tempEventTime.Acceleration))
-                                            {
-                                                tempNormContainerAccelerationTime.AddValue(tempEventTime.Acceleration, tempInstruction, idxStroke, idxEvent);
-                                            }
-                                            else
-                                            {
-                                                tempNormContainerAccelerationTime.AddValue(0, tempInstruction, idxStroke, idxEvent);
-                                            }
+                                            tempNormContainerVelocitiesTime.AddValue(SafeAddValue(tempEventTime.Velocity), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerRadialVelocitiesTime.AddValue(SafeAddValue(tempEventTime.RadialVelocity), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerRadialAccelerationTime.AddValue(SafeAddValue(tempEventTime.RadialAcceleration), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerRadiusTime.AddValue(SafeAddValue(tempEventTime.Radius), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerTetaTime.AddValue(SafeAddValue(tempEventTime.Teta), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerDeltaTetaTime.AddValue(SafeAddValue(tempEventTime.DeltaTeta), tempInstruction, idxStroke, idxEvent);
+                                            tempNormContainerAccumulatedNormalizedAreaTime.AddValue(SafeAddValue(tempEventTime.AccumulatedNormalizedArea), tempInstruction, idxStroke, idxEvent);                                            
+                                            tempNormContainerAccelerationTime.AddValue(SafeAddValue(tempEventTime.Acceleration), tempInstruction, idxStroke, idxEvent);                                            
                                         }
 
                                         mStrokesCount++;
@@ -401,6 +406,8 @@ namespace NormCalculator
 
                                 AddValueToNormContainer(tempInstruction, tempNormContainerGestureLength, mNormContainerGestureLengthMean, mNormContainerGestureLengthStd);
                                 AddValueToNormContainer(tempInstruction, tempNormContainerGestureNumEvents, mNormContainerGestureNumEventsMean, mNormContainerGestureNumEventsStd);
+
+                                AddValueToNormContainer(tempInstruction, tempNormContainerGestureDelayTime, mNormContainerGestureDelayTimeMean, mNormContainerGestureDelayTimeStd);
 
                                 AddValueToNormContainer(tempInstruction, tempNormContainerGestureTotalTimeInterval, mNormContainerGestureTotalTimeIntervalMean, mNormContainerGestureTotalTimeIntervalStd);
                                 AddValueToNormContainer(tempInstruction, tempNormContainerStrokeTotalTimeInterval, mNormContainerStrokeTotalTimeIntervalMean, mNormContainerStrokeTotalTimeIntervalStd);
@@ -479,8 +486,8 @@ namespace NormCalculator
                     tempMean = normContainerInput.GetMean(instruction, idxCurrentStroke, idxSpatial);
                     tempStd = normContainerInput.GetStd(instruction, idxCurrentStroke, idxSpatial);
 
-                    normContainerOutputMean.AddValue(tempMean, instruction, idxCurrentStroke, idxSpatial);
-                    normContainerOutputSd.AddValue(tempStd, instruction, idxCurrentStroke, idxSpatial);
+                    normContainerOutputMean.AddValue(SafeAddValue(tempMean), instruction, idxCurrentStroke, idxSpatial);
+                    normContainerOutputSd.AddValue(SafeAddValue(tempStd), instruction, idxCurrentStroke, idxSpatial);
 
                     idxCurrentStroke++;
                 }
@@ -548,6 +555,9 @@ namespace NormCalculator
             normContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSpatial.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaStdTime);
 
             /******************************************** NORMAL PARAMETERS ********************************************/
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_DELAY_TIME, mNormContainerGestureDelayTimeMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_DELAY_TIME, mNormContainerGestureDelayTimeStd);
 
             normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_LENGTH, mNormContainerGestureLengthMean);
             normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_LENGTH, mNormContainerGestureLengthStd);
