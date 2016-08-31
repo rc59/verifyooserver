@@ -80,7 +80,7 @@ namespace NormCalculator
         SpatialNormContainer mNormContainerSpatialAccumulatedNormalizedAreaMeanTime = new SpatialNormContainer();
         SpatialNormContainer mNormContainerSpatialAccumulatedNormalizedAreaStdTime = new SpatialNormContainer();
 
-        /************************************* NORMAL PARAMETERS *************************************/
+        /************************************* NORMAL GESTURE PARAMETERS *************************************/
 
         NumericNormContainer mNormContainerGestureDelayTimeMean = new NumericNormContainer();
         NumericNormContainer mNormContainerGestureDelayTimeStd = new NumericNormContainer();
@@ -136,6 +136,47 @@ namespace NormCalculator
         NumericNormContainer mNormContainerGestureAccumulatedLengthSlopeMean = new NumericNormContainer();
         NumericNormContainer mNormContainerGestureAccumulatedLengthSlopeStd = new NumericNormContainer();
 
+        /************************************* NORMAL STROKE PARAMETERS *************************************/
+
+        NumericNormContainer mNormContainerStrokeTransitionTimeMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeTransitionTimeStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeLengthMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeLengthStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeNumEventsMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeNumEventsStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeTimeIntervalMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeTimeIntervalStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeTotalAreaMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeTotalAreaStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeAreaMinXMinYMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeAreaMinXMinYStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeVelocityAvgMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeVelocityAvgStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeVelocityMaxMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeVelocityMaxStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeVelocityMidMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeVelocityMidStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeAccelerationAvgMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeAccelerationAvgStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeAccelerationMaxMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeAccelerationMaxStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeMiddlePressureMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMiddlePressureStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeMiddleSurfaceMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMiddleSurfaceStd = new NumericNormContainer();
+
         int mStrokesCount;
         int mCurrentTemplateNum;
 
@@ -180,12 +221,9 @@ namespace NormCalculator
             MotionEventExtended tempEventDistance;
             MotionEventExtended tempEventTime;
             UtilsAccumulator tempAccumulator;            
-            string msg;
+            string msg;            
 
-            NumericNormContainer tempNormContainerGestureLength;
-            NumericNormContainer tempNormContainerGestureNumEvents;
-
-            NumericNormContainer tempNormContainerGestureDelayTime;
+            /*********************************** SPATIAL PARAMS ***********************************/
 
             SpatialNormContainer tempNormContainerVelocitiesDistance;
             SpatialNormContainer tempNormContainerRadialVelocitiesDistance;
@@ -204,6 +242,13 @@ namespace NormCalculator
             SpatialNormContainer tempNormContainerTetaTime;
             SpatialNormContainer tempNormContainerDeltaTetaTime;
             SpatialNormContainer tempNormContainerAccumulatedNormalizedAreaTime;
+
+            /*********************************** GESTURE PARAMS ***********************************/
+
+            NumericNormContainer tempNormContainerGestureLength;
+            NumericNormContainer tempNormContainerGestureNumEvents;
+
+            NumericNormContainer tempNormContainerGestureDelayTime;
 
             NumericNormContainer tempNormContainerGestureTotalTimeInterval;
             NumericNormContainer tempNormContainerStrokeTotalTimeInterval;
@@ -226,7 +271,28 @@ namespace NormCalculator
             NumericNormContainer tempNormContainerGestureAvgStartAcceleration;
 
             NumericNormContainer tempNormContainerGestureAccumulatedLengthSlope;
-            
+
+            /*********************************** STROKE PARAMS ***********************************/
+
+            NumericNormContainer tempNormContainerStrokeTransitionTime;
+            NumericNormContainer tempNormContainerStrokeLength;
+            NumericNormContainer tempNormContainerStrokeNumEvents;
+            NumericNormContainer tempNormContainerStrokeTimeInterval;
+
+            NumericNormContainer tempNormContainerStrokeTotalArea;
+            NumericNormContainer tempNormContainerStrokeTotalAreaMinXMinY;
+
+            NumericNormContainer tempNormContainerStrokeVelocityAvg;
+            NumericNormContainer tempNormContainerStrokeVelocityMax;
+            NumericNormContainer tempNormContainerStrokeVelocityMid;
+
+            NumericNormContainer tempNormContainerStrokeAccelerationAvg;
+            NumericNormContainer tempNormContainerStrokeAccelerationMax;
+
+            NumericNormContainer tempNormContainerStrokeMiddlePressure;
+            NumericNormContainer tempNormContainerStrokeMiddleSurface;
+
+
             bool isInitialized = false;
             string tempInstruction;
 
@@ -290,6 +356,24 @@ namespace NormCalculator
 
                         tempNormContainerGestureAccumulatedLengthSlope = new NumericNormContainer();
 
+                        tempNormContainerStrokeTransitionTime = new NumericNormContainer();
+                        tempNormContainerStrokeLength = new NumericNormContainer();
+                        tempNormContainerStrokeNumEvents = new NumericNormContainer();
+                        tempNormContainerStrokeTimeInterval = new NumericNormContainer();
+
+                        tempNormContainerStrokeTotalArea = new NumericNormContainer();
+                        tempNormContainerStrokeTotalAreaMinXMinY = new NumericNormContainer();
+
+                        tempNormContainerStrokeVelocityAvg = new NumericNormContainer();
+                        tempNormContainerStrokeVelocityMax = new NumericNormContainer();
+                        tempNormContainerStrokeVelocityMid = new NumericNormContainer();
+
+                        tempNormContainerStrokeAccelerationAvg = new NumericNormContainer();
+                        tempNormContainerStrokeAccelerationMax = new NumericNormContainer();
+
+                        tempNormContainerStrokeMiddlePressure = new NumericNormContainer();
+                        tempNormContainerStrokeMiddleSurface = new NumericNormContainer();
+
                         for (int idxGesture = 0; idxGesture < tempTemplate.ListGestureExtended.size(); idxGesture++)
                         {                              
                             tempGesture = (GestureExtended)tempTemplate.ListGestureExtended.get(idxGesture);
@@ -332,6 +416,24 @@ namespace NormCalculator
                                     for (int idxStroke = 0; idxStroke < tempGesture.ListStrokesExtended.size(); idxStroke++)
                                     {
                                         tempStroke = (StrokeExtended)tempGesture.ListStrokesExtended.get(idxStroke);
+
+                                        tempNormContainerStrokeTransitionTime.AddValue(SafeAddValue(tempStroke.StrokeTransitionTime), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeLength.AddValue(SafeAddValue(tempStroke.StrokePropertiesObj.LengthMM), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeNumEvents.AddValue(SafeAddValue(tempStroke.ListEventsExtended.size()), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeTimeInterval.AddValue(SafeAddValue(tempStroke.StrokeTimeInterval), tempInstruction, idxStroke);
+
+                                        tempNormContainerStrokeTotalArea.AddValue(SafeAddValue(tempStroke.ShapeDataObj.ShapeArea), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeTotalAreaMinXMinY.AddValue(SafeAddValue(tempStroke.ShapeDataObj.ShapeAreaMinXMinY), tempInstruction, idxStroke);
+
+                                        tempNormContainerStrokeVelocityAvg.AddValue(SafeAddValue(tempStroke.StrokeAverageVelocity), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeVelocityMax.AddValue(SafeAddValue(tempStroke.StrokeMaxVelocity), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeVelocityMid.AddValue(SafeAddValue(tempStroke.StrokeMidVelocity), tempInstruction, idxStroke);
+
+                                        tempNormContainerStrokeAccelerationAvg.AddValue(SafeAddValue(tempStroke.StrokeAverageAcceleration), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeAccelerationMax.AddValue(SafeAddValue(tempStroke.StrokeMaxAcceleration), tempInstruction, idxStroke);
+
+                                        tempNormContainerStrokeMiddlePressure.AddValue(SafeAddValue(tempStroke.MiddlePressure), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeMiddleSurface.AddValue(SafeAddValue(tempStroke.MiddleSurface), tempInstruction, idxStroke);
 
                                         for (int idxEvent = 0; idxEvent < UtilsConsts.SAMPLE_SIZE; idxEvent++)
                                         {
@@ -433,6 +535,24 @@ namespace NormCalculator
                                 AddValueToNormContainer(tempInstruction, tempNormContainerGestureAvgStartAcceleration, mNormContainerGestureAvgStartAccelerationMean, mNormContainerGestureAvgStartAccelerationStd);
 
                                 AddValueToNormContainer(tempInstruction, tempNormContainerGestureAccumulatedLengthSlope, mNormContainerGestureAccumulatedLengthSlopeMean, mNormContainerGestureAccumulatedLengthSlopeStd);
+
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeTransitionTime, mNormContainerStrokeTransitionTimeMean, mNormContainerStrokeTransitionTimeStd);
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeLength, mNormContainerStrokeLengthMean, mNormContainerStrokeLengthStd);
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeNumEvents, mNormContainerStrokeNumEventsMean, mNormContainerStrokeNumEventsStd);
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeTimeInterval, mNormContainerStrokeTimeIntervalMean, mNormContainerStrokeTimeIntervalStd);
+
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeTotalArea, mNormContainerStrokeTotalAreaMean, mNormContainerStrokeTotalAreaStd);
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeTotalAreaMinXMinY, mNormContainerStrokeAreaMinXMinYMean, mNormContainerStrokeAreaMinXMinYStd);
+
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeVelocityAvg, mNormContainerStrokeVelocityAvgMean, mNormContainerStrokeVelocityAvgStd);
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeVelocityMax, mNormContainerStrokeVelocityMaxMean, mNormContainerStrokeVelocityMaxStd);
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeVelocityMid, mNormContainerStrokeVelocityMidMean, mNormContainerStrokeVelocityMidStd);
+
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeAccelerationAvg, mNormContainerStrokeAccelerationAvgMean, mNormContainerStrokeAccelerationAvgStd);
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeAccelerationMax, mNormContainerStrokeAccelerationMaxMean, mNormContainerStrokeAccelerationMaxStd);
+
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMiddlePressure, mNormContainerStrokeMiddlePressureMean, mNormContainerStrokeMiddlePressureStd);
+                                AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMiddleSurface, mNormContainerStrokeMiddleSurfaceMean, mNormContainerStrokeMiddleSurfaceStd);
                             }
                         }
                                                                    
@@ -467,6 +587,38 @@ namespace NormCalculator
             normContainerOutputSd.AddValue(tempStd, instruction);
         }
 
+        private void AddValueToStrokesNormContainer(string instruction, NumericNormContainer normContainerInput, NumericNormContainer normContainerOutputMean, NumericNormContainer normContainerOutputSd)
+        {
+            double tempMean, tempStd;
+            int idxCurrentStroke = 0;
+            bool isContinue = true;
+
+            while (isContinue)
+            {
+                if (normContainerInput.HashNorms.containsKey(string.Format("{0}-{1}", instruction, idxCurrentStroke.ToString())))
+                {
+                    tempMean = normContainerInput.GetMean(instruction, idxCurrentStroke);
+                    tempStd = normContainerInput.GetStd(instruction, idxCurrentStroke);
+
+                    if (Double.IsNaN(tempStd))
+                    {
+                        tempStd = tempMean / 4;
+                    }
+                    
+                    normContainerOutputMean.AddValue(SafeAddValue(tempMean), instruction, idxCurrentStroke);
+                    normContainerOutputSd.AddValue(SafeAddValue(tempStd), instruction, idxCurrentStroke);
+
+                    idxCurrentStroke++;
+                }
+                else
+                {
+                    isContinue = false;
+                }
+            }
+
+            
+        }
+
         private void AddValueToNormContainer(string instruction, int idxSpatial, SpatialNormContainer normContainerInput, SpatialNormContainer normContainerOutputMean, SpatialNormContainer normContainerOutputSd)
         {
             double tempMean, tempStd;
@@ -476,13 +628,7 @@ namespace NormCalculator
 
             while(isContinue)
             {
-                if(idxCurrentStroke > 10)
-                {
-                    isContinue = false;
-                }
-
-                try
-                {
+                if (normContainerInput.HashNorms.containsKey(string.Format("{0}-{1}", instruction, idxCurrentStroke.ToString()))) {
                     tempMean = normContainerInput.GetMean(instruction, idxCurrentStroke, idxSpatial);
                     tempStd = normContainerInput.GetStd(instruction, idxCurrentStroke, idxSpatial);
 
@@ -491,7 +637,7 @@ namespace NormCalculator
 
                     idxCurrentStroke++;
                 }
-                catch (Exception exc)
+                else
                 {
                     isContinue = false;
                 }
@@ -554,7 +700,7 @@ namespace NormCalculator
             normContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSpatial.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaMeanTime);
             normContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSpatial.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaStdTime);
 
-            /******************************************** NORMAL PARAMETERS ********************************************/
+            /******************************************** NORMAL GESTURE PARAMETERS ********************************************/
 
             normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_DELAY_TIME, mNormContainerGestureDelayTimeMean);
             normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_DELAY_TIME, mNormContainerGestureDelayTimeStd);
@@ -609,6 +755,47 @@ namespace NormCalculator
 
             normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_ACCUMULATED_LENGTH_SLOPE, mNormContainerGestureAccumulatedLengthSlopeMean);
             normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_ACCUMULATED_LENGTH_SLOPE, mNormContainerGestureAccumulatedLengthSlopeStd);
+
+            /******************************************** NORMAL STROKE PARAMETERS ********************************************/
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TRANSITION_TIME, mNormContainerStrokeTransitionTimeMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TRANSITION_TIME, mNormContainerStrokeTransitionTimeStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_LENGTH, mNormContainerStrokeLengthMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_LENGTH, mNormContainerStrokeLengthStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_NUM_EVENTS, mNormContainerStrokeNumEventsMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_NUM_EVENTS, mNormContainerStrokeNumEventsStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TIME_INTERVAL, mNormContainerStrokeTimeIntervalMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TIME_INTERVAL, mNormContainerStrokeTimeIntervalStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA, mNormContainerStrokeTotalAreaMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA, mNormContainerStrokeTotalAreaStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA_MINX_MINY, mNormContainerStrokeAreaMinXMinYMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA_MINX_MINY, mNormContainerStrokeAreaMinXMinYStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_AVERAGE_VELOCITY, mNormContainerStrokeVelocityAvgMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_AVERAGE_VELOCITY, mNormContainerStrokeVelocityAvgStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_VELOCITY, mNormContainerStrokeVelocityMaxMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_VELOCITY, mNormContainerStrokeVelocityMaxStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MID_VELOCITY, mNormContainerStrokeVelocityMidMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MID_VELOCITY, mNormContainerStrokeVelocityMidStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_AVERAGE_ACCELERATION, mNormContainerStrokeAccelerationAvgMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_AVERAGE_ACCELERATION, mNormContainerStrokeAccelerationAvgStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_ACCELERATION, mNormContainerStrokeAccelerationMaxMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_ACCELERATION, mNormContainerStrokeAccelerationMaxStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MIDDLE_PRESSURE, mNormContainerStrokeMiddlePressureMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MIDDLE_PRESSURE, mNormContainerStrokeMiddlePressureStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MIDDLE_SURFACE, mNormContainerStrokeMiddleSurfaceMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MIDDLE_SURFACE, mNormContainerStrokeMiddleSurfaceStd);
 
             /********************************************************************************************************************************/
 

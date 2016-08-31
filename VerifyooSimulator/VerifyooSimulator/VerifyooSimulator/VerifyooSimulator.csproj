@@ -183,6 +183,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Logic\ConstsNormsStr.cs" />
     <Compile Include="Logic\UtilsTemplateConverter.cs" />
     <Compile Include="Models\ModelGesture.cs" />
     <Compile Include="Models\ModelMotionEventCompact.cs" />
