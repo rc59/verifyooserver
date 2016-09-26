@@ -25,6 +25,60 @@ namespace VerifyooSimulator.Logic
             return isValid;
         }
 
+        public static TemplateExtended ConvertTemplateNew(ModelTemplate modelTemplate)
+        {
+            
+            try
+            {
+                Template template = new Template();
+                template.ListGestures = new java.util.ArrayList();
+
+                Template templateTestSamples = new Template();
+                templateTestSamples.ListGestures = new java.util.ArrayList();
+
+                Gesture tempGesture;
+
+                //EnvVars.TemplateId = modelTemplate._id.ToString();
+
+                tempXdpi = modelTemplate.Xdpi;
+                tempYdpi = modelTemplate.Ydpi;
+
+                double startTime, endTime, tempInterval;
+
+                int tempSize;
+
+                MotionEventCompact tempEvent;
+                Stroke tempStrokeLast;
+                int tempStrokeSize;
+
+                for (int idx = 0; idx < modelTemplate.ExpShapeList.Count; idx++)
+                {                    
+                    tempGesture = ConvertGesture(modelTemplate.ExpShapeList[idx]);
+
+                    startTime = ((MotionEventCompact)((Stroke)tempGesture.ListStrokes.get(0)).ListEvents.get(0)).EventTime;
+                    tempSize = tempGesture.ListStrokes.size();
+                    tempStrokeLast = (Stroke)tempGesture.ListStrokes.get(tempSize - 1);
+                    tempStrokeSize = tempStrokeLast.ListEvents.size();
+                    tempEvent = (MotionEventCompact)tempStrokeLast.ListEvents.get(tempStrokeSize - 1);
+                    endTime = tempEvent.EventTime;
+                    tempInterval = endTime - startTime;
+
+                    template.ListGestures.add(tempGesture);
+                }
+
+                TemplateExtended templateExtended = new TemplateExtended(template);
+                TemplateExtended templateExtendedTestSamples = new TemplateExtended(templateTestSamples);                
+
+                templateExtended.Id = modelTemplate._id.ToString();
+                templateExtended.Name = modelTemplate.Name;
+                templateExtended.ModelName = modelTemplate.ModelName;
+                return templateExtended;
+            }
+            catch (Exception exc)
+            {
+                return null;
+            }
+        }
 
         public static TemplateExtended ConvertTemplate(ModelTemplate modelTemplate, out List<GestureExtended> testSamples)
         {
@@ -141,6 +195,11 @@ namespace VerifyooSimulator.Logic
             tempObj.SetAccelerometerX(modelMotionEvent.AngleX);
             tempObj.SetAccelerometerY(modelMotionEvent.AngleY);
             tempObj.SetAccelerometerZ(modelMotionEvent.AngleZ);
+
+            tempObj.SetGyroX(modelMotionEvent.GyroX);
+            tempObj.SetGyroY(modelMotionEvent.GyroY);
+            tempObj.SetGyroZ(modelMotionEvent.GyroZ);
+
             tempObj.EventTime = modelMotionEvent.EventTime;
             tempObj.Pressure = modelMotionEvent.Pressure;
             tempObj.TouchSurface = modelMotionEvent.TouchSurface;

@@ -13,16 +13,14 @@ namespace NormCalculator.Utils
             List<string> listInstructions = new List<string>();
             listInstructions.Add("RLETTER");
             listInstructions.Add("ALETTER");
-
-            //listInstructions.Add("BLETTER");
-            //listInstructions.Add("DLETTER");
-            //listInstructions.Add("ELETTER");
-            //listInstructions.Add("FLETTER");
-            //listInstructions.Add("KLETTER");
-            //listInstructions.Add("MLETTER");
-            //listInstructions.Add("PLETTER");            
-            //listInstructions.Add("SLETTER");
-            
+            listInstructions.Add("BLETTER");
+            listInstructions.Add("DLETTER");
+            listInstructions.Add("ELETTER");
+            listInstructions.Add("FLETTER");
+            listInstructions.Add("KLETTER");
+            listInstructions.Add("MLETTER");
+            listInstructions.Add("PLETTER");
+            listInstructions.Add("SLETTER");
 
             return listInstructions;                       
         } 

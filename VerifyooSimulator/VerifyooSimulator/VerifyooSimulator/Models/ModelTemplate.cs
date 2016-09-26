@@ -16,6 +16,14 @@ namespace VerifyooSimulator.Models
 
         public string GcmToken { get; set; }
 
+        public string State { get; set; }
+
+        public string Company { get; set; }
+
+        public string AnalysisString { get; set; }
+
+        public double Score { get; set; }
+
         public bool IsSource { get; set; }
 
         public double ScreenHeight { get; set; }

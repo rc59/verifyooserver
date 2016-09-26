@@ -53,6 +53,46 @@ namespace VerifyooConverter.Logic
             return template;
         }
 
+        public static TemplateExtended ConvertTemplateNew(ModelTemplate modelTemplate)
+        {
+            Template template = new Template();
+            template.ListGestures = new java.util.ArrayList();
+            Gesture tempGesture;
+
+            EnvVars.TemplateId = modelTemplate._id.ToString();
+
+            tempXdpi = modelTemplate.Xdpi;
+            tempYdpi = modelTemplate.Ydpi;
+
+            double startTime, endTime, tempInterval;
+
+            int tempSize;
+
+            MotionEventCompact tempEvent;
+            Stroke tempStrokeLast;
+            int tempStrokeSize;
+
+            for (int idx = 0; idx < modelTemplate.ExpShapeList.Count; idx++)
+            {
+                tempGesture = ConvertGesture(modelTemplate.ExpShapeList[idx]);
+
+                startTime = ((MotionEventCompact)((Stroke)tempGesture.ListStrokes.get(0)).ListEvents.get(0)).EventTime;
+                tempSize = tempGesture.ListStrokes.size();
+                tempStrokeLast = (Stroke)tempGesture.ListStrokes.get(tempSize - 1);
+                tempStrokeSize = tempStrokeLast.ListEvents.size();
+                tempEvent = (MotionEventCompact)tempStrokeLast.ListEvents.get(tempStrokeSize - 1);
+                endTime = tempEvent.EventTime;
+                tempInterval = endTime - startTime;
+                template.ListGestures.add(tempGesture);
+            }
+
+            TemplateExtended templateExtended = new TemplateExtended(template);
+            templateExtended.Id = modelTemplate._id.ToString();
+            templateExtended.Name = modelTemplate.Name;
+            templateExtended.ModelName = modelTemplate.ModelName;
+            return templateExtended;
+        }
+
         public static TemplateExtended ConvertTemplate(ModelTemplate modelTemplate, Dictionary<String, bool> invalidGestures)
         {            
             Template template = new Template();

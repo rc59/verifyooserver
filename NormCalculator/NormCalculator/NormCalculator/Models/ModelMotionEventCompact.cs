@@ -35,6 +35,11 @@ namespace JsonConverter.Models
         public double AngleX;
         
         public double AngleY;
+        public double GyroZ;
+
+        public double GyroX;
+
+        public double GyroY;
 
         public bool IsHistory;
 

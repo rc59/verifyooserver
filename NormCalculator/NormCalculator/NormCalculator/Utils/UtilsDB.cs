@@ -26,7 +26,7 @@ namespace VerifyooConverter.Logic
         public static MongoCollection<ModelTemplate> GetCollShapes()
         {
             MongoDatabase dataBase = GetDbInstance();
-            MongoCollection<ModelTemplate> templates = dataBase.GetCollection<ModelTemplate>("templates");
+            MongoCollection<ModelTemplate> templates = dataBase.GetCollection<ModelTemplate>("templatedemos");
 
             return templates;
         }

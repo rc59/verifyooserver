@@ -1,5 +1,6 @@
 ﻿using Data.Comparison.Interfaces;
 using Data.UserProfile.Extended;
+using Data.UserProfile.Raw;
 using java.util;
 using Logic.Comparison;
 using Logic.Comparison.Stats.Norms;
@@ -38,8 +39,22 @@ namespace VerifyooSimulator
 
         int mIdxComparison;
 
+        const string EVENT_TYPE_RAW = "Raw";
+        const string EVENT_TYPE_SPATIAL = "Spatial";
+        const string EVENT_TYPE_TEMPORAL = "Temporal";
+
+        const string SIMULATOR_TYPE_NAIVE_HACK = "NaiveHack";
         const string SIMULATOR_TYPE_HACK = "Hack";
         const string SIMULATOR_TYPE_AUTH = "Auth";
+        const string SIMULATOR_TYPE_DUPLICATE = "DuplicateDB";
+        const string SIMULATOR_TYPE_EXPORT = "Export to CSV";
+
+        StreamWriter mStreamWriterCsvTemplates = null;
+        StreamWriter mStreamWriterCsvGestures = null;
+        StreamWriter mStreamWriterCsvStrokes = null;
+        StreamWriter mStreamWriterCsvMotionEventsRaw = null;
+        StreamWriter mStreamWriterCsvMotionEventsSpatial = null;
+        StreamWriter mStreamWriterCsvMotionEventsTemporal = null;
 
         StreamWriter mStreamWriterGestures = null;
         StreamWriter mStreamWriterStrokes = null;
@@ -49,6 +64,7 @@ namespace VerifyooSimulator
         private bool mIsFinished;
 
         string mSimulationType;
+        private int NUM_DECIMALS = 8;
 
         public Form1()
         {
@@ -84,7 +100,7 @@ namespace VerifyooSimulator
                     mThreashold95++;
                 }
             }
-            if (mSimulationType.CompareTo(SIMULATOR_TYPE_HACK) == 0)
+            if (mSimulationType.CompareTo(SIMULATOR_TYPE_HACK) == 0 || mSimulationType.CompareTo(SIMULATOR_TYPE_NAIVE_HACK) == 0)
             {
                 if (score > 0.7)
                 {
@@ -201,7 +217,6 @@ namespace VerifyooSimulator
                         for (int idxTestGesture = 0; idxTestGesture < gesturesTestSample.Count; idxTestGesture++)
                         {
                             CompareGesturesToStrings(tempTemplate, tempTemplate, gesturesTestSample[idxTestGesture]);
-
                             mIdxComparison++;
                         }
 
@@ -221,6 +236,8 @@ namespace VerifyooSimulator
                         mStreamWriterGestures.Close();
                         mStreamWriterStrokes.Close();
                         mStreamWriterLog.Close();
+
+                        EnableButtons();
 
                         this.lblEndTime.Invoke(new MethodInvoker(() => this.lblEndTime.Text = DateTime.Now.ToLongTimeString()));
                         UpdateProgress(totalNumbRecords, currentRecord);
@@ -326,6 +343,8 @@ namespace VerifyooSimulator
                         mStreamWriterStrokes.Close();
                         mStreamWriterLog.Close();
 
+                        EnableButtons();
+
                         this.lblEndTime.Invoke(new MethodInvoker(() => this.lblEndTime.Text = DateTime.Now.ToLongTimeString()));
                         UpdateProgress(totalNumbRecords, currentRecord);
                     }
@@ -350,7 +369,13 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "Instruction");
             AppendWithComma(stringBuilder, "TotalScore");
 
-            for(int idx = 0; idx < GESTURE_NUM_PARAMS; idx++)
+            AppendWithComma(stringBuilder, "AvgZScore");
+            AppendWithComma(stringBuilder, "MostUniqueParam");
+
+            AppendWithComma(stringBuilder, "PcaScore");
+            AppendWithComma(stringBuilder, "DtwScore");
+
+            for (int idx = 0; idx < GESTURE_NUM_PARAMS; idx++)
             {
                 AddStatParamHeader(stringBuilder, string.Format("Param{0}", (idx + 1).ToString()));
             }
@@ -366,6 +391,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "BaseMean"));
             AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "PopMean"));
             AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Weight"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "TemplateZscore"));
             AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Zscore"));
             AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "PopStd"));
             AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "InternalStd"));
@@ -438,12 +464,25 @@ namespace VerifyooSimulator
 
             AppendWithComma(stringBuilder, "TotalSpatialTemporalScore");
 
+            AppendWithComma(stringBuilder, "AccMovDiffX");
+            AppendWithComma(stringBuilder, "AccMovDiffY");
+            AppendWithComma(stringBuilder, "AccMovDiffZ");
+            AppendWithComma(stringBuilder, "AccMovDiffTotal");
+
+            AppendWithComma(stringBuilder, "PcaScore");
+
             for (int idx = 0; idx < STROKE_NUM_PARAMS; idx++)
             {
                 AddStatParamHeader(stringBuilder, string.Format("Param{0}", (idx + 1).ToString()));
             }
 
             streamWriter.WriteLine(stringBuilder.ToString());
+        }
+
+        private StreamWriter InitStreamWriterCSV(string level)
+        {
+            StreamWriter streamWriter = File.CreateText(@"C:\Temp\Exported-" + level + ".csv");
+            return streamWriter;
         }
 
         private StreamWriter InitStreamWriterResultGestures()
@@ -548,12 +587,85 @@ namespace VerifyooSimulator
             }
         }
 
+        private double CompareGesturesToStrings(TemplateExtended tempTemplate, GestureExtended gestureTest, TemplateExtended tempTemplateHack)
+        {
+            GestureExtended gestureTraining = null;
+
+            GestureComparer gestureComparer = new GestureComparer(true);
+            string instruction = gestureTest.Instruction;
+
+            for (int idxTrainingGesture = 0; idxTrainingGesture < tempTemplate.ListGestureExtended.size(); idxTrainingGesture++)
+            {
+                if (((GestureExtended)tempTemplate.ListGestureExtended.get(idxTrainingGesture)).Instruction.CompareTo(instruction) == 0)
+                {
+                    gestureTraining = (GestureExtended)tempTemplate.ListGestureExtended.get(idxTrainingGesture);
+                    break;
+                }
+            }
+
+            if (gestureTraining != null)
+            {
+                try
+                {
+                    double tempScore = 0;
+                    try
+                    {
+                        gestureComparer.CompareGestures(gestureTraining, gestureTest);
+                        tempScore = gestureComparer.GetScore();
+                    }
+                    catch (Exception exc)
+                    {
+                        string msg = exc.Message;
+                    }
+
+                    mTotalNumComparisons++;
+
+                    UpdateThreasholds(tempScore);
+
+                    List<string> listResultStrings = new List<string>();
+
+                    try
+                    {
+                        listResultStrings.Add(CreateGestureResultStrings(gestureComparer, tempTemplate, gestureTest, tempTemplateHack));
+                    }
+                    catch (Exception exc)
+                    {
+                        string msg = exc.Message;
+                    }
+
+
+                    WriteStringsToFile(listResultStrings, mStreamWriterGestures);
+
+                    listResultStrings = CreateStrokeResultStrings(gestureComparer, tempTemplate, gestureTest, string.Empty, string.Empty);
+                    WriteStringsToFile(listResultStrings, mStreamWriterStrokes);
+
+                    return tempScore;
+                }
+                catch (Exception exc)
+                {
+                    string msg = exc.Message;
+                    return -1;
+                }
+            }
+            else {
+                return -1;
+            }
+        }
+
         private string CreateGestureResultStrings(GestureComparer gestureComparer, TemplateExtended templateStored, GestureExtended gestureAuth, TemplateExtended templateStoredHack)
         {
-            List<ICompareResult> listGestureParams = ConvertParamsList(gestureComparer.GetResultsSummary().ListCompareResults);            
-            
-            string resultString = CreateGestureLine(mIdxComparison.ToString(), templateStored.Name, templateStored.Id.ToString(), templateStoredHack.Name, templateStoredHack.Id.ToString(), gestureAuth.Id.ToString(), mSimulationType, gestureAuth.Instruction, gestureComparer.GetScore().ToString(), listGestureParams);            
-            
+            List<ICompareResult> listGestureParams = ConvertParamsList(gestureComparer.GetResultsSummary().ListCompareResults);
+
+            string resultString;
+            if (templateStoredHack != null) {
+                resultString = CreateGestureLine(mIdxComparison.ToString(), templateStored.Name, templateStored.Id.ToString(), templateStoredHack.Name, templateStoredHack.Id.ToString(), gestureAuth.Id.ToString(), mSimulationType, gestureAuth.Instruction, gestureComparer.GetScore().ToString(), listGestureParams, gestureAuth.GetGestureAvgZScore(), gestureAuth.GetMostUniqueParameter(), gestureComparer.PcaScore, gestureComparer.DtwScore);
+            }
+            else
+            {
+                resultString = CreateGestureLine(mIdxComparison.ToString(), templateStored.Name, templateStored.Id.ToString(), String.Empty, String.Empty, gestureAuth.Id.ToString(), mSimulationType, gestureAuth.Instruction, gestureComparer.GetScore().ToString(), listGestureParams, gestureAuth.GetGestureAvgZScore(), gestureAuth.GetMostUniqueParameter(), gestureComparer.PcaScore, gestureComparer.DtwScore);
+            }
+
+
             return resultString;
         }
 
@@ -565,12 +677,12 @@ namespace VerifyooSimulator
                 listGestureParams.Add((ICompareResult)listInput.get(idx));
             }
 
-            listGestureParams = listGestureParams.OrderBy(o => o.GetName()).ToList();
+            listGestureParams = listGestureParams.OrderByDescending(o => Math.Abs(o.GetTemplateZScore())).ToList();
 
             return listGestureParams;
         }
 
-        private string CreateGestureLine(string idxComparison, string userName, string templateStoredId, string userNameHack, string templateStoredHackId, string gestureAuthId, string comparisonType, string instruction, string totalScore, List<ICompareResult> listParams)
+        private string CreateGestureLine(string idxComparison, string userName, string templateStoredId, string userNameHack, string templateStoredHackId, string gestureAuthId, string comparisonType, string instruction, string totalScore, List<ICompareResult> listParams, double avgZScore, double mostUniqueParam, double pcaScore, double dtwScore)
         {
             StringBuilder stringBuilder = new StringBuilder();
             AppendWithComma(stringBuilder, idxComparison);
@@ -583,22 +695,29 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, instruction);
             AppendWithComma(stringBuilder, totalScore);
 
+            AppendWithComma(stringBuilder, avgZScore.ToString());
+
+            AppendWithComma(stringBuilder, mostUniqueParam.ToString());
+
+            AppendWithComma(stringBuilder, pcaScore.ToString());
+            AppendWithComma(stringBuilder, dtwScore.ToString());
+
             for (int idx = 0; idx < GESTURE_NUM_PARAMS; idx++)
             {
                 if(idx < listParams.Count)
                 {
-                    AppendGestureParam(stringBuilder, listParams[idx]);
+                    AppendStatParam(stringBuilder, listParams[idx]);
                 }
                 else
                 {
-                    AppendGestureParam(stringBuilder, null);
+                    AppendStatParam(stringBuilder, null);
                 }
             }
 
             return stringBuilder.ToString();
         }
 
-        private void AppendGestureParam(StringBuilder stringBuilder, ICompareResult gestureParam)
+        private void AppendStatParam(StringBuilder stringBuilder, ICompareResult gestureParam)
         {
             if (gestureParam != null)
             {
@@ -608,12 +727,14 @@ namespace VerifyooSimulator
                 AppendWithComma(stringBuilder, gestureParam.GetMean().ToString());
                 AppendWithComma(stringBuilder, gestureParam.GetPopMean().ToString());
                 AppendWithComma(stringBuilder, gestureParam.GetWeight().ToString());
+                AppendWithComma(stringBuilder, gestureParam.GetTemplateZScore().ToString());
                 AppendWithComma(stringBuilder, gestureParam.GetZScore().ToString());
                 AppendWithComma(stringBuilder, gestureParam.GetSD().ToString());
                 AppendWithComma(stringBuilder, gestureParam.GetInternalSD().ToString());
                 AppendWithComma(stringBuilder, gestureParam.GetInternalSdUserOnly().ToString());
             }
             else {
+                AppendWithComma(stringBuilder, string.Empty);
                 AppendWithComma(stringBuilder, string.Empty);
                 AppendWithComma(stringBuilder, string.Empty);
                 AppendWithComma(stringBuilder, string.Empty);
@@ -639,14 +760,14 @@ namespace VerifyooSimulator
                 listStrokeParams = ConvertParamsList(((StrokeComparer)gestureComparer.GetStrokeComparers().get(idxStrokeComparer)).GetResultsSummary().ListCompareResults);
 
                 tempStrokeComparer = (StrokeComparer)gestureComparer.GetStrokeComparers().get(idxStrokeComparer);
-                line = CreateStrokeLine(mIdxComparison.ToString(), idxStrokeComparer.ToString(), templateStored.Name, templateStored.Id.ToString(), usernameHack, templateStoredHackId, gestureAuth.Id.ToString(), ((StrokeExtended)gestureAuth.ListStrokesExtended.get(idxStrokeComparer)).Id.ToString(), mSimulationType, gestureAuth.Instruction, Math.Round(tempStrokeComparer.GetScore(), 5).ToString(), Math.Round(tempStrokeComparer.GetMinCosineDistance(), 5).ToString(), tempStrokeComparer.DtwAccelerations, tempStrokeComparer.DtwCoordinates, tempStrokeComparer.DtwEvents, tempStrokeComparer.DtwNormalizedCoordinates, tempStrokeComparer.DtwNormalizedCoordinatesSpatialDistance, tempStrokeComparer.DtwSpatialAcceleration, tempStrokeComparer.DtwTemporalAcceleration, tempStrokeComparer.DtwSpatialAccumNormArea, tempStrokeComparer.DtwTemporalAccumNormArea, tempStrokeComparer.DtwSpatialDeltaTeta, tempStrokeComparer.DtwTemporalDeltaTeta, tempStrokeComparer.DtwSpatialRadialAcceleration, tempStrokeComparer.DtwTemporalRadialAcceleration, tempStrokeComparer.DtwSpatialRadialVelocity, tempStrokeComparer.DtwTemporalRadialVelocity, tempStrokeComparer.DtwSpatialRadius, tempStrokeComparer.DtwTemporalRadius, tempStrokeComparer.DtwSpatialTeta, tempStrokeComparer.DtwTemporalTeta, tempStrokeComparer.DtwSpatialVelocity, tempStrokeComparer.DtwTemporalVelocity, tempStrokeComparer.DtwVelocities, tempStrokeComparer.SpatialScoreVelocity, tempStrokeComparer.SpatialScoreAcceleration, tempStrokeComparer.SpatialScoreRadialVelocity, tempStrokeComparer.SpatialScoreRadialAcceleration, tempStrokeComparer.SpatialScoreRadius, tempStrokeComparer.SpatialScoreTeta, tempStrokeComparer.SpatialScoreDeltaTeta, tempStrokeComparer.SpatialScoreAccumulatedNormArea, tempStrokeComparer.TemporalScoreVelocity, tempStrokeComparer.TemporalScoreAcceleration, tempStrokeComparer.TemporalScoreRadialVelocity, tempStrokeComparer.TemporalScoreRadialAcceleration, tempStrokeComparer.TemporalScoreRadius, tempStrokeComparer.TemporalScoreTeta, tempStrokeComparer.TemporalScoreDeltaTeta, tempStrokeComparer.TemporalScoreAccumulatedNormArea, tempStrokeComparer.StrokeSpatialScore, tempStrokeComparer.StrokeDistanceTotalScore, tempStrokeComparer.StrokeDistanceTotalScoreStartToStart, tempStrokeComparer.StrokeDistanceTotalScoreStartToEnd, tempStrokeComparer.StrokeDistanceTotalScoreEndToStart, tempStrokeComparer.StrokeDistanceTotalScoreEndToEnd, listStrokeParams);
+                line = CreateStrokeLine(mIdxComparison.ToString(), idxStrokeComparer.ToString(), templateStored.Name, templateStored.Id.ToString(), usernameHack, templateStoredHackId, gestureAuth.Id.ToString(), ((StrokeExtended)gestureAuth.ListStrokesExtended.get(idxStrokeComparer)).Id.ToString(), mSimulationType, gestureAuth.Instruction, Math.Round(tempStrokeComparer.GetScore(), 5).ToString(), Math.Round(tempStrokeComparer.GetMinCosineDistance(), 5).ToString(), tempStrokeComparer.DtwAccelerations, tempStrokeComparer.DtwCoordinates, tempStrokeComparer.DtwEvents, tempStrokeComparer.DtwNormalizedCoordinates, tempStrokeComparer.DtwNormalizedCoordinatesSpatialDistance, tempStrokeComparer.DtwSpatialAcceleration, tempStrokeComparer.DtwTemporalAcceleration, tempStrokeComparer.DtwSpatialAccumNormArea, tempStrokeComparer.DtwTemporalAccumNormArea, tempStrokeComparer.DtwSpatialDeltaTeta, tempStrokeComparer.DtwTemporalDeltaTeta, tempStrokeComparer.DtwSpatialRadialAcceleration, tempStrokeComparer.DtwTemporalRadialAcceleration, tempStrokeComparer.DtwSpatialRadialVelocity, tempStrokeComparer.DtwTemporalRadialVelocity, tempStrokeComparer.DtwSpatialRadius, tempStrokeComparer.DtwTemporalRadius, tempStrokeComparer.DtwSpatialTeta, tempStrokeComparer.DtwTemporalTeta, tempStrokeComparer.DtwSpatialVelocity, tempStrokeComparer.DtwTemporalVelocity, tempStrokeComparer.DtwVelocities, tempStrokeComparer.SpatialScoreVelocity, tempStrokeComparer.SpatialScoreAcceleration, tempStrokeComparer.SpatialScoreRadialVelocity, tempStrokeComparer.SpatialScoreRadialAcceleration, tempStrokeComparer.SpatialScoreRadius, tempStrokeComparer.SpatialScoreTeta, tempStrokeComparer.SpatialScoreDeltaTeta, tempStrokeComparer.SpatialScoreAccumulatedNormArea, tempStrokeComparer.TemporalScoreVelocity, tempStrokeComparer.TemporalScoreAcceleration, tempStrokeComparer.TemporalScoreRadialVelocity, tempStrokeComparer.TemporalScoreRadialAcceleration, tempStrokeComparer.TemporalScoreRadius, tempStrokeComparer.TemporalScoreTeta, tempStrokeComparer.TemporalScoreDeltaTeta, tempStrokeComparer.TemporalScoreAccumulatedNormArea, tempStrokeComparer.StrokeSpatialScore, tempStrokeComparer.StrokeDistanceTotalScore, tempStrokeComparer.StrokeDistanceTotalScoreStartToStart, tempStrokeComparer.StrokeDistanceTotalScoreStartToEnd, tempStrokeComparer.StrokeDistanceTotalScoreEndToStart, tempStrokeComparer.StrokeDistanceTotalScoreEndToEnd, listStrokeParams, tempStrokeComparer.AccDiffX, tempStrokeComparer.AccDiffY, tempStrokeComparer.AccDiffZ, tempStrokeComparer.AccDiffTotal, tempStrokeComparer.PcaScore);
                 listResultString.Add(line);
             }
 
             return listResultString;
         }
 
-        private string CreateStrokeLine(string idxComparison, string idxStroke, string userName, string templateStoredId, string userNameHack, string templateStoredHackId, string gestureAuthId, string strokeAuthId, string comparisonType, string instruction, string totalScore, string strokeCosineDistance, double DtwAccelerations, double DtwCoordinates, double DtwEvents, double DtwNormalizedCoordinates, double DtwNormalizedCoordinatesSpatialDistance, double DtwSpatialAccelerationDistance, double DtwSpatialAccelerationTime, double DtwSpatialAccumNormAreaDistance, double DtwSpatialAccumNormAreaTime, double DtwSpatialDeltaTetaDistance, double DtwSpatialDeltaTetaTime, double DtwSpatialRadialAccelerationDistance, double DtwSpatialRadialAccelerationTime, double DtwSpatialRadialVelocityDistance, double DtwSpatialRadialVelocityTime, double DtwSpatialRadiusDistance, double DtwSpatialRadiusTime, double DtwSpatialTetaDistance, double DtwSpatialTetaTime, double DtwSpatialVelocityDistance, double DtwSpatialVelocityTime, double DtwVelocities, double SpatialScoreDistanceVelocity, double SpatialScoreDistanceAcceleration, double SpatialScoreDistanceRadialVelocity, double SpatialScoreDistanceRadialAcceleration, double SpatialScoreDistanceRadius, double SpatialScoreDistanceTeta, double SpatialScoreDistanceDeltaTeta, double SpatialScoreDistanceAccumulatedNormArea, double SpatialScoreTimeVelocity, double SpatialScoreTimeAcceleration, double SpatialScoreTimeRadialVelocity, double SpatialScoreTimeRadialAcceleration, double SpatialScoreTimeRadius, double SpatialScoreTimeTeta, double SpatialScoreTimeDeltaTeta, double SpatialScoreTimeAccumulatedNormArea, double totalSpatialTemporalScore, double StrokeDistanceTotalScore, double StrokeDistanceTotalScoreStartToStart, double StrokeDistanceTotalScoreStartToEnd, double StrokeDistanceTotalScoreEndToStart, double StrokeDistanceTotalScoreEndToEnd, List<ICompareResult> listParams)
+        private string CreateStrokeLine(string idxComparison, string idxStroke, string userName, string templateStoredId, string userNameHack, string templateStoredHackId, string gestureAuthId, string strokeAuthId, string comparisonType, string instruction, string totalScore, string strokeCosineDistance, double DtwAccelerations, double DtwCoordinates, double DtwEvents, double DtwNormalizedCoordinates, double DtwNormalizedCoordinatesSpatialDistance, double DtwSpatialAccelerationDistance, double DtwSpatialAccelerationTime, double DtwSpatialAccumNormAreaDistance, double DtwSpatialAccumNormAreaTime, double DtwSpatialDeltaTetaDistance, double DtwSpatialDeltaTetaTime, double DtwSpatialRadialAccelerationDistance, double DtwSpatialRadialAccelerationTime, double DtwSpatialRadialVelocityDistance, double DtwSpatialRadialVelocityTime, double DtwSpatialRadiusDistance, double DtwSpatialRadiusTime, double DtwSpatialTetaDistance, double DtwSpatialTetaTime, double DtwSpatialVelocityDistance, double DtwSpatialVelocityTime, double DtwVelocities, double SpatialScoreDistanceVelocity, double SpatialScoreDistanceAcceleration, double SpatialScoreDistanceRadialVelocity, double SpatialScoreDistanceRadialAcceleration, double SpatialScoreDistanceRadius, double SpatialScoreDistanceTeta, double SpatialScoreDistanceDeltaTeta, double SpatialScoreDistanceAccumulatedNormArea, double SpatialScoreTimeVelocity, double SpatialScoreTimeAcceleration, double SpatialScoreTimeRadialVelocity, double SpatialScoreTimeRadialAcceleration, double SpatialScoreTimeRadius, double SpatialScoreTimeTeta, double SpatialScoreTimeDeltaTeta, double SpatialScoreTimeAccumulatedNormArea, double totalSpatialTemporalScore, double StrokeDistanceTotalScore, double StrokeDistanceTotalScoreStartToStart, double StrokeDistanceTotalScoreStartToEnd, double StrokeDistanceTotalScoreEndToStart, double StrokeDistanceTotalScoreEndToEnd, List<ICompareResult> listParams, double accMovDiffX, double accMovDiffY, double accMovDiffZ, double accMovDiffTotal, double pcaScore)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -712,14 +833,21 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(SpatialScoreTimeAccumulatedNormArea, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(totalSpatialTemporalScore, 5).ToString());
 
+            AppendWithComma(stringBuilder, Math.Round(accMovDiffX, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(accMovDiffY, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(accMovDiffZ, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(accMovDiffTotal, 5).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(pcaScore, 5).ToString());
+
             for (int idx = 0; idx < STROKE_NUM_PARAMS; idx++)
             {
                 if (idx < listParams.Count) {
-                    AppendGestureParam(stringBuilder, listParams[idx]);
+                    AppendStatParam(stringBuilder, listParams[idx]);
                 }
                 else
                 {
-                    AppendGestureParam(stringBuilder, null);
+                    AppendStatParam(stringBuilder, null);
                 }
             }
 
@@ -730,6 +858,878 @@ namespace VerifyooSimulator
         {
             stringBuilder.Append(input);
             stringBuilder.Append(",");
+        }
+
+        protected void RunFullSimulation()
+        {            
+            Init();
+            IEnumerable<ModelTemplate> modelTemplates;
+
+            mListMongo = UtilsNewDB.GetTemplates();
+            int totalNumbRecords = (int)mListMongo.Count();
+            mIsFinished = false;
+
+            mIdxComparison = 1;
+            int limit = 50;
+            int skip = 0;
+
+            UserContainerMgr userContainerMgr = new UserContainerMgr();
+
+            try
+            {                
+                while (!mIsFinished)
+                {
+                    modelTemplates = mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
+
+                    foreach (ModelTemplate template in modelTemplates)
+                    {
+                        switch(template.State)
+                        {
+                            case "Register":
+                                userContainerMgr.AddTemplateRegister(template);
+                                break;
+                            case "Authenticate":
+                                userContainerMgr.AddTemplateAuth(template);
+                                break;
+                            case "Hack":
+                                userContainerMgr.AddTemplateHack(template);
+                                break;
+                        }
+                    }                    
+
+                    skip += limit;
+
+                    if (totalNumbRecords <= skip)
+                    {
+                        mIsFinished = true;                        
+                    }
+                }
+
+                if (mSimulationType.CompareTo(SIMULATOR_TYPE_NAIVE_HACK) != 0)
+                {
+                    RunFullComparisons(userContainerMgr);
+                }
+                else
+                {
+                    RunFullComparisonsNaiveHack(userContainerMgr);
+                }
+
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(string.Format("Error: {0}", exc.Message));
+            }
+        }      
+
+        private void CleanCommonGestures(TemplateExtended baseTemplate)
+        {
+            int numToRemove = 2;
+            Dictionary<String, bool> dictRemovedGestures;
+
+            string tempInstruction;
+            List<GestureExtended> listGestures = new List<GestureExtended>();
+
+            for (int idxGesture = 0; idxGesture < baseTemplate.ListGestureExtended.size(); idxGesture++)
+            {
+                listGestures.Add((GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture));
+            }
+
+            listGestures = listGestures.OrderBy(o => o.GetGestureAvgZScore()).ToList();
+            dictRemovedGestures = new Dictionary<string, bool>();
+
+            for (int idxRemove = 0; idxRemove < numToRemove; idxRemove++)
+            {
+                tempInstruction = listGestures[0].Instruction;
+                for (int idx = listGestures.Count - 1; idx >= 0; idx--)
+                {
+                    if (listGestures[idx].Instruction.CompareTo(tempInstruction) == 0)
+                    {
+                        listGestures.RemoveAt(idx);
+                    }
+                }
+                for (int idx = baseTemplate.ListGestureExtended.size() - 1; idx >= 0; idx--)
+                {
+                    if (((GestureExtended)baseTemplate.ListGestureExtended.get(idx)).Instruction.CompareTo(tempInstruction) == 0)
+                    {
+                        baseTemplate.ListGestureExtended.remove(idx);
+                    }
+                }
+            }
+        }
+
+        private void CleanCommonGestures1(TemplateExtended baseTemplate)
+        {
+            List<GestureExtended> listGestures = new List<GestureExtended>();
+            for (int idxGesture = baseTemplate.ListGestureExtended.size() - 1; idxGesture >= 0; idxGesture--)
+            {
+                if (((GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture)).GetMostUniqueParameter() < 1.5)
+                {
+                    baseTemplate.ListGestureExtended.remove(idxGesture);
+                }
+            }
+        }
+
+        private void RunFullComparisonsNaiveHack(UserContainerMgr userContainerMgr)
+        {
+            try
+            {
+                mStreamWriterGestures = InitStreamWriterResultGestures();
+                mStreamWriterStrokes = InitStreamWriterResultStrokes();
+                mStreamWriterLog = InitStreamWriterLog();
+
+                InitGestureHeader(mStreamWriterGestures);
+                InitStrokesHeader(mStreamWriterStrokes);
+
+                int totalNumbRecords = userContainerMgr.GetUserContainers().Values.Count;
+                totalNumbRecords = totalNumbRecords * totalNumbRecords;
+                int currentRecord = 0;
+
+                UpdateProgress(totalNumbRecords, currentRecord);
+                String numComparisons;
+
+                foreach (UserContainer userContainerBase in userContainerMgr.GetUserContainers().Values)
+                {
+                    try
+                    {
+                        TemplateExtended baseTemplate = UtilsTemplateConverter.ConvertTemplateNew(userContainerBase.TemplateRegistration);
+                        CleanCommonGestures(baseTemplate);
+
+                        double tempScore;
+                        List<double> listTempScores;
+                        TemplateExtended tempTemplateAuth;
+
+                        List<ModelTemplate> listTempModelTemplates;
+
+                        foreach (UserContainer userContainerAuth in userContainerMgr.GetUserContainers().Values)
+                        {
+                            listTempModelTemplates = userContainerAuth.ListTemplatesAuthentication;
+
+                            if (userContainerAuth.Name.CompareTo(userContainerBase.Name) != 0)
+                            {
+                                for (int idxAuth = 0; idxAuth < listTempModelTemplates.Count; idxAuth++)
+                                {
+                                    tempTemplateAuth = UtilsTemplateConverter.ConvertTemplateNew(listTempModelTemplates[idxAuth]);
+                                    listTempScores = new List<double>();
+                                    for (int idxGesture = 0; idxGesture < tempTemplateAuth.ListGestureExtended.size(); idxGesture++)
+                                    {
+                                        tempScore = CompareGesturesToStrings(baseTemplate, (GestureExtended)tempTemplateAuth.ListGestureExtended.get(idxGesture), tempTemplateAuth);
+                                        if (tempScore != -1)
+                                        {
+                                            mIdxComparison++;
+                                            listTempScores.Add(tempScore);
+
+                                            numComparisons = String.Format("Comparisons: {0}", mIdxComparison.ToString());
+                                            this.lblComparisons.Invoke(new MethodInvoker(() => this.lblComparisons.Text = numComparisons));
+                                        }
+                                    }
+                                }
+                            }
+
+                            currentRecord++;
+                            UpdateProgress(totalNumbRecords, currentRecord);
+                        }                        
+                    }
+                    catch (Exception exc)
+                    {
+                        string msg = exc.Message;
+                    }
+
+                    mStreamWriterGestures.Flush();
+                    mStreamWriterStrokes.Flush();
+                    mStreamWriterLog.Flush();
+                }
+
+                mStreamWriterGestures.Close();
+                mStreamWriterStrokes.Close();
+                mStreamWriterLog.Close();
+
+                EnableButtons();
+
+                this.lblEndTime.Invoke(new MethodInvoker(() => this.lblEndTime.Text = DateTime.Now.ToLongTimeString()));
+                UpdateProgress(totalNumbRecords, currentRecord);
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(string.Format("Error: {0}", exc.Message));
+            }
+        }
+
+        private void RunFullComparisons(UserContainerMgr userContainerMgr)
+        {
+            try
+            {
+                mStreamWriterGestures = InitStreamWriterResultGestures();
+                mStreamWriterStrokes = InitStreamWriterResultStrokes();
+                mStreamWriterLog = InitStreamWriterLog();
+
+                InitGestureHeader(mStreamWriterGestures);
+                InitStrokesHeader(mStreamWriterStrokes);
+
+                int totalNumbRecords = userContainerMgr.GetUserContainers().Values.Count;
+                int currentRecord = 0;
+
+                UpdateProgress(totalNumbRecords, currentRecord);
+
+                foreach (UserContainer userContainer in userContainerMgr.GetUserContainers().Values)
+                {
+                    try
+                    {
+                        TemplateExtended baseTemplate = UtilsTemplateConverter.ConvertTemplateNew(userContainer.TemplateRegistration);
+                        CleanCommonGestures(baseTemplate);
+
+                        double tempScore;
+                        List<double> listTempScores;
+                        TemplateExtended tempTemplateAuth;
+
+                        List<ModelTemplate> listTempModelTemplates;
+
+                        if (mSimulationType.CompareTo(SIMULATOR_TYPE_AUTH) == 0)
+                        {
+                            listTempModelTemplates = userContainer.ListTemplatesAuthentication;
+                        }
+                        else
+                        {
+                            listTempModelTemplates = userContainer.ListTemplatesHack;
+                        }
+
+                        for (int idxAuth = 0; idxAuth < listTempModelTemplates.Count; idxAuth++)
+                        {   
+                            tempTemplateAuth = UtilsTemplateConverter.ConvertTemplateNew(listTempModelTemplates[idxAuth]);
+                            listTempScores = new List<double>();
+                            for (int idxGesture = 0; idxGesture < tempTemplateAuth.ListGestureExtended.size(); idxGesture++)
+                            {
+                                if(currentRecord == 13)
+                                {
+                                    tempScore = -1;
+                                }
+                                else
+                                {
+                                    tempScore = CompareGesturesToStrings(baseTemplate, (GestureExtended)tempTemplateAuth.ListGestureExtended.get(idxGesture), tempTemplateAuth);
+                                }
+                                
+                                if (tempScore != -1) {
+                                    mIdxComparison++;
+                                    listTempScores.Add(tempScore);
+                                }
+                            }
+                        }
+
+                        currentRecord++;
+                        UpdateProgress(totalNumbRecords, currentRecord);
+                    }
+                    catch (Exception exc)
+                    {
+                        string msg = exc.Message;
+                    }
+
+                    mStreamWriterGestures.Flush();
+                    mStreamWriterStrokes.Flush();
+                    mStreamWriterLog.Flush();
+                }
+
+                mStreamWriterGestures.Close();
+                mStreamWriterStrokes.Close();
+                mStreamWriterLog.Close();
+
+                EnableButtons();
+
+                this.lblEndTime.Invoke(new MethodInvoker(() => this.lblEndTime.Text = DateTime.Now.ToLongTimeString()));               
+                UpdateProgress(totalNumbRecords, currentRecord);
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(string.Format("Error: {0}", exc.Message));
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            mTotalNumComparisons = 1;
+            lblStartTime.Text = DateTime.Now.ToLongTimeString();
+            mSimulationType = SIMULATOR_TYPE_HACK;
+            lblType.Text = SIMULATOR_TYPE_HACK;
+            Task task = Task.Run((Action)RunFullSimulation);
+            DisableButtons();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            mTotalNumComparisons = 1;
+            lblStartTime.Text = DateTime.Now.ToLongTimeString();
+            mSimulationType = SIMULATOR_TYPE_AUTH;
+            lblType.Text = SIMULATOR_TYPE_AUTH;
+            Task task = Task.Run((Action)RunFullSimulation);
+            DisableButtons();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            mTotalNumComparisons = 1;
+            lblStartTime.Text = DateTime.Now.ToLongTimeString();
+            mSimulationType = SIMULATOR_TYPE_DUPLICATE;
+            lblType.Text = SIMULATOR_TYPE_DUPLICATE;
+            Task task = Task.Run((Action)DuplicateDB);
+            DisableButtons();
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            mTotalNumComparisons = 1;
+            lblStartTime.Text = DateTime.Now.ToLongTimeString();
+            mSimulationType = SIMULATOR_TYPE_NAIVE_HACK;
+            lblType.Text = SIMULATOR_TYPE_NAIVE_HACK;
+            Task task = Task.Run((Action)RunFullSimulation);
+            DisableButtons();
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            DisableButtons();
+
+            mTotalNumComparisons = 1;
+            lblStartTime.Text = DateTime.Now.ToLongTimeString();
+            mSimulationType = SIMULATOR_TYPE_EXPORT;
+            lblType.Text = SIMULATOR_TYPE_EXPORT;
+            Task task = Task.Run((Action)ExportToCSV);
+        }
+
+        private void ExportToCSV()
+        {
+            Init();
+            IEnumerable<ModelTemplate> modelTemplates;
+
+            TemplateExtended tempTemplate = null;
+
+            List<GestureExtended> gesturesTestSample;
+
+            mListMongo = UtilsNewDB.GetTemplates();
+            mIsFinished = false;
+
+            mIdxComparison = 1;
+            int currentRecord = 0;
+            int totalNumbRecords = (int)mListMongo.Count();
+            int limit = 50;
+            int skip = 0;
+
+            try
+            {
+                InitCsvStreams();
+
+                InitCSVHeaderTemplates(mStreamWriterCsvTemplates);
+                InitCSVHeaderGestures(mStreamWriterCsvGestures);
+                InitCSVHeaderStrokes(mStreamWriterCsvStrokes);
+                InitCSVHeaderEvents(mStreamWriterCsvMotionEventsRaw);
+                InitCSVHeaderEvents(mStreamWriterCsvMotionEventsSpatial);
+                InitCSVHeaderEvents(mStreamWriterCsvMotionEventsTemporal);
+
+                UpdateProgress(totalNumbRecords, currentRecord);
+                while (!mIsFinished)
+                {
+                    modelTemplates = mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
+
+                    foreach (ModelTemplate template in modelTemplates)
+                    {
+                        tempTemplate = UtilsTemplateConverter.ConvertTemplateNew(template);
+
+                        ExportTemplateToCSV(tempTemplate, currentRecord, template);
+
+                        currentRecord++;
+                        UpdateProgress(totalNumbRecords, currentRecord);
+                    }
+
+                    FlushCsvStreams();
+
+                    skip += limit;
+
+                    if (totalNumbRecords <= skip)
+                    {
+                        mIsFinished = true;
+
+                        CloseCsvStreams();
+                        EnableButtons();
+
+                        this.lblEndTime.Invoke(new MethodInvoker(() => this.lblEndTime.Text = DateTime.Now.ToLongTimeString()));
+                        UpdateProgress(totalNumbRecords, currentRecord);
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(string.Format("Error: {0}", exc.Message));
+            }
+        }
+
+        private void CloseCsvStreams()
+        {
+            mStreamWriterCsvTemplates.Close();
+            mStreamWriterCsvGestures.Close();
+            mStreamWriterCsvStrokes.Close();
+            mStreamWriterCsvMotionEventsRaw.Close();
+            mStreamWriterCsvMotionEventsSpatial.Close();
+            mStreamWriterCsvMotionEventsTemporal.Close();
+            mStreamWriterLog.Close();            
+        }
+
+        private void FlushCsvStreams()
+        {
+            mStreamWriterCsvTemplates.Flush();
+            mStreamWriterCsvGestures.Flush();
+            mStreamWriterCsvStrokes.Flush();
+            mStreamWriterCsvMotionEventsRaw.Flush();
+            mStreamWriterCsvMotionEventsSpatial.Flush();
+            mStreamWriterCsvMotionEventsTemporal.Flush();
+            mStreamWriterLog.Flush();
+        }
+
+        private void InitCsvStreams()
+        {
+            mStreamWriterCsvTemplates = InitStreamWriterCSV("Templates");
+            mStreamWriterCsvGestures = InitStreamWriterCSV("Gestures");
+            mStreamWriterCsvStrokes = InitStreamWriterCSV("Strokes");
+            mStreamWriterCsvMotionEventsRaw = InitStreamWriterCSV("EventsRaw");
+            mStreamWriterCsvMotionEventsTemporal = InitStreamWriterCSV("EventsTemporal");
+            mStreamWriterCsvMotionEventsSpatial = InitStreamWriterCSV("EventsSpatial");
+            mStreamWriterLog = InitStreamWriterLog();
+        }
+ 
+        private void InitCSVHeaderEvents(StreamWriter streamWriter)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            AppendWithComma(stringBuilder, "Name");
+
+            AppendWithComma(stringBuilder, "Template Index");
+            AppendWithComma(stringBuilder, "Gesture Index");
+            AppendWithComma(stringBuilder, "Stroke Index");
+            AppendWithComma(stringBuilder, "Event Index");
+
+            AppendWithComma(stringBuilder, "Template ID");
+            AppendWithComma(stringBuilder, "Gesture ID");
+            AppendWithComma(stringBuilder, "Stroke ID");
+            AppendWithComma(stringBuilder, "Event ID");
+
+            AppendWithComma(stringBuilder, "EventTime");
+            AppendWithComma(stringBuilder, "GestureTime");
+
+            AppendWithComma(stringBuilder, "Xpixel");
+            AppendWithComma(stringBuilder, "Ypixel");
+
+            AppendWithComma(stringBuilder, "Xmm");
+            AppendWithComma(stringBuilder, "Ymm");
+
+            AppendWithComma(stringBuilder, "Xnormalized");
+            AppendWithComma(stringBuilder, "Ynormalized");
+
+            AppendWithComma(stringBuilder, "Velocity");
+            AppendWithComma(stringBuilder, "VelocityX");
+            AppendWithComma(stringBuilder, "VelocityY");
+
+            AppendWithComma(stringBuilder, "Acceleration");
+
+            AppendWithComma(stringBuilder, "AccelerometerX");
+            AppendWithComma(stringBuilder, "AccelerometerY");
+            AppendWithComma(stringBuilder, "AccelerometerZ");
+
+            AppendWithComma(stringBuilder, "GyroX");
+            AppendWithComma(stringBuilder, "GyroY");
+            AppendWithComma(stringBuilder, "GyroZ");
+
+            AppendWithComma(stringBuilder, "Angle");
+            AppendWithComma(stringBuilder, "AngleDiff");
+
+            AppendWithComma(stringBuilder, "IsEndOfStroke");
+            AppendWithComma(stringBuilder, "IsStartOfStroke");
+
+            AppendWithComma(stringBuilder, "Pressure");
+            AppendWithComma(stringBuilder, "TouchSurface");
+
+            AppendWithComma(stringBuilder, "RadialVelocity");
+            AppendWithComma(stringBuilder, "RadialAcceleration");
+
+            AppendWithComma(stringBuilder, "Radius");
+
+            AppendWithComma(stringBuilder, "Teta");
+            AppendWithComma(stringBuilder, "DeltaTeta");
+
+            AppendWithComma(stringBuilder, "AccumulatedNormalizedArea");
+
+            streamWriter.WriteLine(stringBuilder.ToString());
+        }
+
+        private void InitCSVHeaderStrokes(StreamWriter streamWriter)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            AppendWithComma(stringBuilder, "Name");
+
+            AppendWithComma(stringBuilder, "Template Index");
+            AppendWithComma(stringBuilder, "Gesture Index");
+            AppendWithComma(stringBuilder, "Stroke Index");
+
+            AppendWithComma(stringBuilder, "Template ID");
+            AppendWithComma(stringBuilder, "Gesture ID");
+            AppendWithComma(stringBuilder, "Stroke ID");
+
+            AppendWithComma(stringBuilder, "Length Pixel");
+
+            AppendWithComma(stringBuilder, "IsPoint");
+
+            AppendWithComma(stringBuilder, "PointMaxXMM");
+            AppendWithComma(stringBuilder, "PointMaxYMM");
+            AppendWithComma(stringBuilder, "PointMinXMM");
+            AppendWithComma(stringBuilder, "PointMinYMM");
+
+            AppendWithComma(stringBuilder, "StrokeCenterXpixel");
+            AppendWithComma(stringBuilder, "StrokeCenterYpixel");
+
+            AppendWithComma(stringBuilder, "StrokeDistanceStartToStart");
+            AppendWithComma(stringBuilder, "StrokeDistanceStartToEnd");
+            AppendWithComma(stringBuilder, "StrokeDistanceEndToStart");
+            AppendWithComma(stringBuilder, "StrokeDistanceEndToEnd");
+
+            AppendWithComma(stringBuilder, "StrokeTransitionTime");
+
+            AppendWithComma(stringBuilder, "Num Events");
+
+            AppendWithComma(stringBuilder, "Length MM");
+
+            AppendWithComma(stringBuilder, "ShapeArea");
+            AppendWithComma(stringBuilder, "ShapeAreaMinXMinY");
+
+            AppendWithComma(stringBuilder, "StrokeAverageAcceleration");
+            AppendWithComma(stringBuilder, "StrokeMaxAcceleration");
+
+            AppendWithComma(stringBuilder, "StrokeAverageVelocity");
+            AppendWithComma(stringBuilder, "StrokeMaxVelocity");
+            AppendWithComma(stringBuilder, "StrokeMidVelocity");
+
+            AppendWithComma(stringBuilder, "MiddlePressure");
+            AppendWithComma(stringBuilder, "MiddleSurface");
+
+            AppendWithComma(stringBuilder, "StrokeTimeInterval");
+
+            streamWriter.WriteLine(stringBuilder.ToString());
+        }
+
+        private void InitCSVHeaderGestures(StreamWriter streamWriter)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            AppendWithComma(stringBuilder, "Name");
+
+            AppendWithComma(stringBuilder, "Template Index");
+            AppendWithComma(stringBuilder, "Gesture Index");
+
+            AppendWithComma(stringBuilder, "Template ID");
+            AppendWithComma(stringBuilder, "Gesture ID");
+
+            AppendWithComma(stringBuilder, "Instruction");
+            AppendWithComma(stringBuilder, "Num Strokes");
+
+            streamWriter.WriteLine(stringBuilder.ToString());
+        }
+
+        private void InitCSVHeaderTemplates(StreamWriter streamWriter)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            AppendWithComma(stringBuilder, "Name");
+
+            AppendWithComma(stringBuilder, "Template Index");
+
+            AppendWithComma(stringBuilder, "Template ID");
+
+            AppendWithComma(stringBuilder, "State");
+            AppendWithComma(stringBuilder, "Num Gestures");
+
+            AppendWithComma(stringBuilder, "Xdpi");
+            AppendWithComma(stringBuilder, "Ydpi");
+
+            streamWriter.WriteLine(stringBuilder.ToString());
+        }
+
+        private void ExportTemplateToCSV(TemplateExtended tempTemplate, int templateIdx, ModelTemplate templateRaw)
+        {
+            WriteTemplate(tempTemplate, templateIdx, templateRaw.State, templateRaw.Xdpi, templateRaw.Ydpi);
+        }
+
+        private void WriteTemplate(TemplateExtended inputTemplate, int idxTemplate, string recordType, double xdpi, double ydpi)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            AppendWithComma(stringBuilder, inputTemplate.Name);
+
+            AppendWithComma(stringBuilder, idxTemplate.ToString());
+
+            AppendWithComma(stringBuilder, inputTemplate.Id.ToString());
+            
+            AppendWithComma(stringBuilder, recordType);
+            AppendWithComma(stringBuilder, inputTemplate.ListGestureExtended.size().ToString());
+
+            AppendWithComma(stringBuilder, xdpi.ToString());
+            AppendWithComma(stringBuilder, ydpi.ToString());
+
+            mStreamWriterCsvTemplates.WriteLine(stringBuilder.ToString());
+
+            GestureExtended tempGesture;
+            for(int idxGesture = 0; idxGesture < inputTemplate.ListGestureExtended.size(); idxGesture++)
+            {
+                tempGesture = (GestureExtended) inputTemplate.ListGestureExtended.get(idxGesture);
+                WriteGesture(inputTemplate, tempGesture, idxTemplate, idxGesture);
+            }
+        }
+
+        private void WriteGesture(TemplateExtended inputTemplate, GestureExtended inputGesture, int idxTemplate, int idxGesture)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            AppendWithComma(stringBuilder, inputTemplate.Name);
+
+            AppendWithComma(stringBuilder, idxTemplate.ToString());
+            AppendWithComma(stringBuilder, idxGesture.ToString());
+
+            AppendWithComma(stringBuilder, inputTemplate.Id.ToString());
+            AppendWithComma(stringBuilder, inputGesture.Id.ToString());
+            
+            AppendWithComma(stringBuilder, inputGesture.Instruction);
+            AppendWithComma(stringBuilder, inputGesture.ListStrokesExtended.size().ToString());
+
+            mStreamWriterCsvGestures.WriteLine(stringBuilder.ToString());
+
+            StrokeExtended tempStroke;
+            double gestureStartTime = GetGestureStartTime(inputGesture); 
+            for (int idxStroke = 0; idxStroke < inputGesture.ListStrokesExtended.size(); idxStroke++)
+            {
+                tempStroke = (StrokeExtended)inputGesture.ListStrokesExtended.get(idxStroke);
+                WriteStroke(inputTemplate, inputGesture, tempStroke, idxTemplate, idxGesture, idxStroke, ((Stroke)inputGesture.ListStrokes.get(idxStroke)).Length, gestureStartTime);
+            }
+        }
+
+        private double GetGestureStartTime(GestureExtended inputGesture)
+        {
+            return ((MotionEventExtended)((StrokeExtended)inputGesture.ListStrokesExtended.get(0)).ListEventsExtended.get(0)).EventTime;
+        }
+
+        private void WriteStroke(TemplateExtended inputTemplate, GestureExtended inputGesture, StrokeExtended inputStroke, int idxTemplate, int idxGesture, int idxStroke, double length, double gestureStartTime)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            AppendWithComma(stringBuilder, inputTemplate.Name);
+
+            AppendWithComma(stringBuilder, idxTemplate.ToString());
+            AppendWithComma(stringBuilder, idxGesture.ToString());
+            AppendWithComma(stringBuilder, idxStroke.ToString());
+
+            AppendWithComma(stringBuilder, inputTemplate.Id.ToString());
+            AppendWithComma(stringBuilder, inputGesture.Id.ToString());
+            AppendWithComma(stringBuilder, inputStroke.Id.ToString());
+
+            AppendWithComma(stringBuilder, length.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.IsPoint.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.PointMaxXMM.ToString());
+            AppendWithComma(stringBuilder, inputStroke.PointMaxYMM.ToString());
+            AppendWithComma(stringBuilder, inputStroke.PointMinXMM.ToString());
+            AppendWithComma(stringBuilder, inputStroke.PointMinYMM.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.StrokeCenterXpixel.ToString());
+            AppendWithComma(stringBuilder, inputStroke.StrokeCenterYpixel.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.StrokeDistanceStartToStart.ToString());
+            AppendWithComma(stringBuilder, inputStroke.StrokeDistanceStartToEnd.ToString());
+            AppendWithComma(stringBuilder, inputStroke.StrokeDistanceEndToStart.ToString());
+            AppendWithComma(stringBuilder, inputStroke.StrokeDistanceEndToEnd.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.StrokeTransitionTime.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.ListEventsExtended.size().ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.StrokePropertiesObj.LengthMM.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.ShapeDataObj.ShapeArea.ToString());
+            AppendWithComma(stringBuilder, inputStroke.ShapeDataObj.ShapeAreaMinXMinY.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.StrokeAverageAcceleration.ToString());
+            AppendWithComma(stringBuilder, inputStroke.StrokeMaxAcceleration.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.StrokeAverageVelocity.ToString());
+            AppendWithComma(stringBuilder, inputStroke.StrokeMaxVelocity.ToString());
+            AppendWithComma(stringBuilder, inputStroke.StrokeMidVelocity.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.MiddlePressure.ToString());
+            AppendWithComma(stringBuilder, inputStroke.MiddleSurface.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.StrokeTimeInterval.ToString());
+            
+            mStreamWriterCsvStrokes.WriteLine(stringBuilder.ToString());
+
+            MotionEventExtended tempEvent;
+            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsExtended.size(); idxEvent++)
+            {
+                tempEvent = (MotionEventExtended)inputStroke.ListEventsExtended.get(idxEvent);
+                WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_RAW, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime);
+            }
+
+            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsSpatialExtended.size(); idxEvent++)
+            {
+                tempEvent = (MotionEventExtended)inputStroke.ListEventsSpatialExtended.get(idxEvent);
+                WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_SPATIAL, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime);
+            }
+
+            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsTemporalExtended.size(); idxEvent++)
+            {
+                tempEvent = (MotionEventExtended)inputStroke.ListEventsTemporalExtended.get(idxEvent);
+                WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_TEMPORAL, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime);
+            }
+        }
+
+        private void WriteEvent(TemplateExtended inputTemplate, GestureExtended inputGesture, StrokeExtended inputStroke, MotionEventExtended inputEvent, string eventType, int idxTemplate, int idxGesture, int idxStroke, int idxEvent, double gestureStartTime)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            AppendWithComma(stringBuilder, inputTemplate.Name);
+
+            AppendWithComma(stringBuilder, idxTemplate.ToString());
+            AppendWithComma(stringBuilder, idxGesture.ToString());
+            AppendWithComma(stringBuilder, idxStroke.ToString());
+            AppendWithComma(stringBuilder, idxEvent.ToString());
+
+            AppendWithComma(stringBuilder, inputTemplate.Id.ToString());
+            AppendWithComma(stringBuilder, inputGesture.Id.ToString());
+            AppendWithComma(stringBuilder, inputStroke.Id.ToString());
+            AppendWithComma(stringBuilder, inputEvent.Id.ToString());
+
+            AppendWithComma(stringBuilder, inputEvent.EventTime.ToString());
+            AppendWithComma(stringBuilder, (inputEvent.EventTime - gestureStartTime).ToString());
+
+            AppendWithComma(stringBuilder, inputEvent.XpixelRaw.ToString());
+            AppendWithComma(stringBuilder, inputEvent.YpixelRaw.ToString());
+
+            AppendWithComma(stringBuilder, inputEvent.Xmm.ToString());
+            AppendWithComma(stringBuilder, inputEvent.Ymm.ToString());
+
+            AppendWithComma(stringBuilder, inputEvent.Xnormalized.ToString());
+            AppendWithComma(stringBuilder, inputEvent.Ynormalized.ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.Velocity, NUM_DECIMALS).ToString());
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.VelocityX, NUM_DECIMALS).ToString());
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.VelocityY, NUM_DECIMALS).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.Acceleration, NUM_DECIMALS).ToString());
+
+            AppendWithComma(stringBuilder, inputEvent.AccelerometerX().ToString());
+            AppendWithComma(stringBuilder, inputEvent.AccelerometerY().ToString());
+            AppendWithComma(stringBuilder, inputEvent.AccelerometerZ().ToString());
+
+            AppendWithComma(stringBuilder, inputEvent.GyroX().ToString());
+            AppendWithComma(stringBuilder, inputEvent.GyroY().ToString());
+            AppendWithComma(stringBuilder, inputEvent.GyroZ().ToString());
+
+            AppendWithComma(stringBuilder, inputEvent.Angle.ToString());
+            AppendWithComma(stringBuilder, inputEvent.AngleDiff.ToString());
+
+            AppendWithComma(stringBuilder, inputEvent.IsEndOfStroke.ToString());
+            AppendWithComma(stringBuilder, inputEvent.IsStartOfStroke.ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.Pressure, NUM_DECIMALS).ToString());
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.TouchSurface, NUM_DECIMALS).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.RadialVelocity, NUM_DECIMALS).ToString());
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.RadialAcceleration, NUM_DECIMALS).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.Radius, NUM_DECIMALS).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.Teta, NUM_DECIMALS).ToString());
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.DeltaTeta, NUM_DECIMALS).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(inputEvent.AccumulatedNormalizedArea, NUM_DECIMALS).ToString());
+
+            switch (eventType) {
+                case EVENT_TYPE_RAW:
+                    mStreamWriterCsvMotionEventsRaw.WriteLine(stringBuilder.ToString());
+                    break;
+                case EVENT_TYPE_SPATIAL:
+                    mStreamWriterCsvMotionEventsSpatial.WriteLine(stringBuilder.ToString());
+                    break;
+                case EVENT_TYPE_TEMPORAL:
+                    mStreamWriterCsvMotionEventsTemporal.WriteLine(stringBuilder.ToString());
+                    break;
+            }           
+        }        
+
+        private void DisableButtons()
+        {
+            SetButtonStatus(false);
+        }
+
+        private void EnableButtons()
+        {
+            this.button1.Invoke(new MethodInvoker(() => this.button1.Enabled = true));
+            this.button2.Invoke(new MethodInvoker(() => this.button2.Enabled = true));
+            this.button3.Invoke(new MethodInvoker(() => this.button3.Enabled = true));
+            this.button4.Invoke(new MethodInvoker(() => this.button4.Enabled = true));
+            this.button5.Invoke(new MethodInvoker(() => this.button5.Enabled = true));
+            this.button6.Invoke(new MethodInvoker(() => this.button6.Enabled = true));
+        }
+
+        private void SetButtonStatus(bool isEnabled) {
+            btnGo.Enabled = isEnabled;
+            button1.Enabled = isEnabled;
+            button2.Enabled = isEnabled;
+            button3.Enabled = isEnabled;
+            button4.Enabled = isEnabled;
+            button5.Enabled = isEnabled;
+            button6.Enabled = isEnabled;
+        }
+
+
+        public void DuplicateDB()
+        {
+            MongoCollection<ModelTemplate> mongoLocal = UtilsNewDB.GetTemplates();
+            MongoCollection<ModelTemplate> mongoCloud = UtilsNewDB.GetTemplatesCloud();
+            IEnumerable<ModelTemplate> modelTemplates;
+
+            bool isFinished = false;
+            double totalNumbRecords = mongoCloud.Count();
+            double currentRecord = 0;
+            int limit = 50;
+            int skip = 0;
+
+            try
+            {
+                while (!isFinished)
+                {
+                    modelTemplates = mongoCloud.FindAll().SetLimit(limit).SetSkip(skip);
+
+                    foreach (ModelTemplate template in modelTemplates)
+                    {
+                        currentRecord++;
+                        UpdateProgress(totalNumbRecords, currentRecord);
+
+                        if (template.DeviceId.CompareTo("062bba750ae4e2b3") == 0)
+                        {
+                            template.Name = template.Name.ToLower();
+
+                            if (template.Name.CompareTo("shir_mor88@walla.com") != 0 &&
+                                template.Name.CompareTo("michalsh96@gmail.com") != 0)
+                            {
+                                template.GcmToken = String.Empty;
+                                template.Version = String.Empty;
+                                template.UserCountry = String.Empty;
+                                template.AppLocale = String.Empty;
+                                mongoLocal.Insert(template);
+                            }
+                        }
+                    }
+                    skip += limit;
+
+                    if (totalNumbRecords <= skip)
+                    {
+                        isFinished = true;
+                    }
+                }
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(string.Format("Error: {0}", exc.Message));
+            }
         }
     }
 }

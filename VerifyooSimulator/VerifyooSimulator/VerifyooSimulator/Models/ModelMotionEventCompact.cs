@@ -36,6 +36,12 @@ namespace VerifyooSimulator.Models
         
         public double AngleY;
 
+        public double GyroZ;
+
+        public double GyroX;
+
+        public double GyroY;
+
         public bool IsHistory;
 
         public string toString(ModelMotionEventCompact prevEvent)

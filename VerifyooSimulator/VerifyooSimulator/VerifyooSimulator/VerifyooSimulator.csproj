@@ -177,6 +177,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DAL\UtilsDB.cs" />
+    <Compile Include="DAL\UtilsNewDB.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -184,6 +185,8 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Logic\ConstsNormsStr.cs" />
+    <Compile Include="Logic\UserContainer.cs" />
+    <Compile Include="Logic\UserContainerMgr.cs" />
     <Compile Include="Logic\UtilsTemplateConverter.cs" />
     <Compile Include="Models\ModelGesture.cs" />
     <Compile Include="Models\ModelMotionEventCompact.cs" />
