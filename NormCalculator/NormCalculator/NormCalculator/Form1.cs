@@ -384,7 +384,7 @@ namespace NormCalculator
                                 for (int idxInstr = 0; idxInstr < mListInstructions.Count; idxInstr++)
                                 {
                                     tempInstruction = mListInstructions[idxInstr];
-                                    //tempInstruction = "RLETTER";
+                                    tempInstruction = "RLETTER";
                                     tempNormContainerGestureLength.AddValue(SafeAddValue(tempGesture.GestureLengthMM), tempInstruction);
                                     tempNormContainerGestureNumEvents.AddValue(tempGesture.ListGestureEventsExtended.size(), tempInstruction);
 
@@ -482,7 +482,7 @@ namespace NormCalculator
                                 for (int idxInstruction = 0; idxInstruction < mListInstructions.Count; idxInstruction++)
                                 {
                                     tempInstruction = mListInstructions[idxInstruction];
-                                    //tempInstruction = "RLETTER";
+                                    tempInstruction = "RLETTER";
                                     for (int idxSpatial = 0; idxSpatial < ConstsGeneral.SPATIAL_SAMPLING_SIZE; idxSpatial++)
                                     {
                                         /********************************************* DISTANCE *********************************************/

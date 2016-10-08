@@ -43,9 +43,9 @@ namespace VerifyooSimulator
         const string EVENT_TYPE_SPATIAL = "Spatial";
         const string EVENT_TYPE_TEMPORAL = "Temporal";
 
-        const string SIMULATOR_TYPE_NAIVE_HACK = "NaiveHack";
+        const string SIMULATOR_TYPE_NAIVE_HACK = "FAR";
         const string SIMULATOR_TYPE_HACK = "Hack";
-        const string SIMULATOR_TYPE_AUTH = "Auth";
+        const string SIMULATOR_TYPE_AUTH = "FRR";
         const string SIMULATOR_TYPE_DUPLICATE = "DuplicateDB";
         const string SIMULATOR_TYPE_EXPORT = "Export to CSV";
 
@@ -73,9 +73,9 @@ namespace VerifyooSimulator
 
         private void UpdateThreasholds(double score)
         {
-            if(mSimulationType.CompareTo(SIMULATOR_TYPE_AUTH) == 0)
+            if (mSimulationType.CompareTo(SIMULATOR_TYPE_AUTH) == 0)
             {
-                if(score < 0.7)
+                if (score < 0.7)
                 {
                     mThreashold70++;
                 }
@@ -128,7 +128,17 @@ namespace VerifyooSimulator
                 }
             }
 
-            double percentage = mThreashold70 / mTotalNumComparisons;        
+            switch (mSimulationType)
+            {
+                case SIMULATOR_TYPE_AUTH:
+                    this.lblFrr.Invoke(new MethodInvoker(() => this.lblFrr.Text = GetPercentageStringFrr(mThreashold75)));
+                    break;
+                case SIMULATOR_TYPE_NAIVE_HACK:
+                    this.lblFar.Invoke(new MethodInvoker(() => this.lblFar.Text = GetPercentageStringFar(mThreashold75)));
+                    break;
+            }
+
+            double percentage = mThreashold70 / mTotalNumComparisons;
             this.lblThreashold70.Invoke(new MethodInvoker(() => this.lblThreashold70.Text = GetPercentageString(mThreashold70)));
 
             percentage = mThreashold75 / mTotalNumComparisons;
@@ -149,9 +159,52 @@ namespace VerifyooSimulator
 
         }
 
-        private string GetPercentageString(double value)
+        private double GetFAR(double score)
         {
+            if (score == 1 || score == 0)
+            {
+                return score;
+            }
+            double far = score * score * score * score + ((1 - score) * score * score * score) * 4 * 3;
+            return far;
+        }
+
+        private double GetFRR(double score)
+        {
+            if (score == 1 || score == 0)
+            {
+                return score;
+            } 
+            double temp1 = Math.Pow((1 - score), 3) * score * 4;
+            double temp2 = Math.Pow((1 - score), 4);
+
+            double temp3 = temp1 + temp2;
+            double frr = temp3 * (1 + (1 - temp3) + (1 - temp3) * (1 - temp3));
+            frr = 1 - frr;
+            return frr;
+        }
+
+        private string GetPercentageString(double value)
+        {           
             double percentage = value / mTotalNumComparisons * 100;
+            string percentageString = string.Format("{0}%", Math.Round(percentage, 4));
+            return percentageString;
+        }
+
+        private string GetPercentageStringFar(double value)
+        {
+            double percentage = value / mTotalNumComparisons;
+            percentage = GetFAR(percentage) * 100;
+
+            string percentageString = string.Format("{0}%", Math.Round(percentage, 4));
+            return percentageString;
+        }
+
+        private string GetPercentageStringFrr(double value)
+        {
+            double percentage = value / mTotalNumComparisons;
+            percentage = GetFRR(percentage) * 100;
+
             string percentageString = string.Format("{0}%", Math.Round(percentage, 4));
             return percentageString;
         }
@@ -471,6 +524,26 @@ namespace VerifyooSimulator
 
             AppendWithComma(stringBuilder, "PcaScore");
 
+            AppendWithComma(stringBuilder, "RadialVelocityDiff");
+            AppendWithComma(stringBuilder, "RadialAccelerationDiff");
+
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity0");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity1");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity2");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity3");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity4");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity5");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity6");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity7");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity8");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity9");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity10");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity11");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity12");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity13");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity14");
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity15");
+
             for (int idx = 0; idx < STROKE_NUM_PARAMS; idx++)
             {
                 AddStatParamHeader(stringBuilder, string.Format("Param{0}", (idx + 1).ToString()));
@@ -755,19 +828,29 @@ namespace VerifyooSimulator
 
             List<ICompareResult> listStrokeParams;
             StrokeComparer tempStrokeComparer;
+
+            double finalScore;
+
             for (int idxStrokeComparer = 0; idxStrokeComparer < gestureComparer.GetStrokeComparers().size(); idxStrokeComparer++)
             {
                 listStrokeParams = ConvertParamsList(((StrokeComparer)gestureComparer.GetStrokeComparers().get(idxStrokeComparer)).GetResultsSummary().ListCompareResults);
 
                 tempStrokeComparer = (StrokeComparer)gestureComparer.GetStrokeComparers().get(idxStrokeComparer);
-                line = CreateStrokeLine(mIdxComparison.ToString(), idxStrokeComparer.ToString(), templateStored.Name, templateStored.Id.ToString(), usernameHack, templateStoredHackId, gestureAuth.Id.ToString(), ((StrokeExtended)gestureAuth.ListStrokesExtended.get(idxStrokeComparer)).Id.ToString(), mSimulationType, gestureAuth.Instruction, Math.Round(tempStrokeComparer.GetScore(), 5).ToString(), Math.Round(tempStrokeComparer.GetMinCosineDistance(), 5).ToString(), tempStrokeComparer.DtwAccelerations, tempStrokeComparer.DtwCoordinates, tempStrokeComparer.DtwEvents, tempStrokeComparer.DtwNormalizedCoordinates, tempStrokeComparer.DtwNormalizedCoordinatesSpatialDistance, tempStrokeComparer.DtwSpatialAcceleration, tempStrokeComparer.DtwTemporalAcceleration, tempStrokeComparer.DtwSpatialAccumNormArea, tempStrokeComparer.DtwTemporalAccumNormArea, tempStrokeComparer.DtwSpatialDeltaTeta, tempStrokeComparer.DtwTemporalDeltaTeta, tempStrokeComparer.DtwSpatialRadialAcceleration, tempStrokeComparer.DtwTemporalRadialAcceleration, tempStrokeComparer.DtwSpatialRadialVelocity, tempStrokeComparer.DtwTemporalRadialVelocity, tempStrokeComparer.DtwSpatialRadius, tempStrokeComparer.DtwTemporalRadius, tempStrokeComparer.DtwSpatialTeta, tempStrokeComparer.DtwTemporalTeta, tempStrokeComparer.DtwSpatialVelocity, tempStrokeComparer.DtwTemporalVelocity, tempStrokeComparer.DtwVelocities, tempStrokeComparer.SpatialScoreVelocity, tempStrokeComparer.SpatialScoreAcceleration, tempStrokeComparer.SpatialScoreRadialVelocity, tempStrokeComparer.SpatialScoreRadialAcceleration, tempStrokeComparer.SpatialScoreRadius, tempStrokeComparer.SpatialScoreTeta, tempStrokeComparer.SpatialScoreDeltaTeta, tempStrokeComparer.SpatialScoreAccumulatedNormArea, tempStrokeComparer.TemporalScoreVelocity, tempStrokeComparer.TemporalScoreAcceleration, tempStrokeComparer.TemporalScoreRadialVelocity, tempStrokeComparer.TemporalScoreRadialAcceleration, tempStrokeComparer.TemporalScoreRadius, tempStrokeComparer.TemporalScoreTeta, tempStrokeComparer.TemporalScoreDeltaTeta, tempStrokeComparer.TemporalScoreAccumulatedNormArea, tempStrokeComparer.StrokeSpatialScore, tempStrokeComparer.StrokeDistanceTotalScore, tempStrokeComparer.StrokeDistanceTotalScoreStartToStart, tempStrokeComparer.StrokeDistanceTotalScoreStartToEnd, tempStrokeComparer.StrokeDistanceTotalScoreEndToStart, tempStrokeComparer.StrokeDistanceTotalScoreEndToEnd, listStrokeParams, tempStrokeComparer.AccDiffX, tempStrokeComparer.AccDiffY, tempStrokeComparer.AccDiffZ, tempStrokeComparer.AccDiffTotal, tempStrokeComparer.PcaScore);
+
+                finalScore = tempStrokeComparer.GetScore();
+                if(Double.IsNaN(finalScore))
+                {
+                    finalScore = 0;
+                }
+ 
+                line = CreateStrokeLine(mIdxComparison.ToString(), idxStrokeComparer.ToString(), templateStored.Name, templateStored.Id.ToString(), usernameHack, templateStoredHackId, gestureAuth.Id.ToString(), ((StrokeExtended)gestureAuth.ListStrokesExtended.get(idxStrokeComparer)).Id.ToString(), mSimulationType, gestureAuth.Instruction, Math.Round(tempStrokeComparer.GetScore(), 5).ToString(), Math.Round(tempStrokeComparer.GetMinCosineDistance(), 5).ToString(), tempStrokeComparer.DtwAccelerations, tempStrokeComparer.DtwCoordinates, tempStrokeComparer.DtwEvents, tempStrokeComparer.DtwNormalizedCoordinates, tempStrokeComparer.DtwNormalizedCoordinatesSpatialDistance, tempStrokeComparer.DtwSpatialAcceleration, tempStrokeComparer.DtwTemporalAcceleration, tempStrokeComparer.DtwSpatialAccumNormArea, tempStrokeComparer.DtwTemporalAccumNormArea, tempStrokeComparer.DtwSpatialDeltaTeta, tempStrokeComparer.DtwTemporalDeltaTeta, tempStrokeComparer.DtwSpatialRadialAcceleration, tempStrokeComparer.DtwTemporalRadialAcceleration, tempStrokeComparer.DtwSpatialRadialVelocity, tempStrokeComparer.DtwTemporalRadialVelocity, tempStrokeComparer.DtwSpatialRadius, tempStrokeComparer.DtwTemporalRadius, tempStrokeComparer.DtwSpatialTeta, tempStrokeComparer.DtwTemporalTeta, tempStrokeComparer.DtwSpatialVelocity, tempStrokeComparer.DtwTemporalVelocity, tempStrokeComparer.DtwVelocities, tempStrokeComparer.SpatialScoreVelocity, tempStrokeComparer.SpatialScoreAcceleration, tempStrokeComparer.SpatialScoreRadialVelocity, tempStrokeComparer.SpatialScoreRadialAcceleration, tempStrokeComparer.SpatialScoreRadius, tempStrokeComparer.SpatialScoreTeta, tempStrokeComparer.SpatialScoreDeltaTeta, tempStrokeComparer.SpatialScoreAccumulatedNormArea, tempStrokeComparer.TemporalScoreVelocity, tempStrokeComparer.TemporalScoreAcceleration, tempStrokeComparer.TemporalScoreRadialVelocity, tempStrokeComparer.TemporalScoreRadialAcceleration, tempStrokeComparer.TemporalScoreRadius, tempStrokeComparer.TemporalScoreTeta, tempStrokeComparer.TemporalScoreDeltaTeta, tempStrokeComparer.TemporalScoreAccumulatedNormArea, tempStrokeComparer.StrokeSpatialScore, tempStrokeComparer.StrokeDistanceTotalScore, tempStrokeComparer.StrokeDistanceTotalScoreStartToStart, tempStrokeComparer.StrokeDistanceTotalScoreStartToEnd, tempStrokeComparer.StrokeDistanceTotalScoreEndToStart, tempStrokeComparer.StrokeDistanceTotalScoreEndToEnd, listStrokeParams, tempStrokeComparer.AccDiffX, tempStrokeComparer.AccDiffY, tempStrokeComparer.AccDiffZ, tempStrokeComparer.AccDiffTotal, tempStrokeComparer.PcaScore, tempStrokeComparer);
                 listResultString.Add(line);
             }
 
             return listResultString;
         }
 
-        private string CreateStrokeLine(string idxComparison, string idxStroke, string userName, string templateStoredId, string userNameHack, string templateStoredHackId, string gestureAuthId, string strokeAuthId, string comparisonType, string instruction, string totalScore, string strokeCosineDistance, double DtwAccelerations, double DtwCoordinates, double DtwEvents, double DtwNormalizedCoordinates, double DtwNormalizedCoordinatesSpatialDistance, double DtwSpatialAccelerationDistance, double DtwSpatialAccelerationTime, double DtwSpatialAccumNormAreaDistance, double DtwSpatialAccumNormAreaTime, double DtwSpatialDeltaTetaDistance, double DtwSpatialDeltaTetaTime, double DtwSpatialRadialAccelerationDistance, double DtwSpatialRadialAccelerationTime, double DtwSpatialRadialVelocityDistance, double DtwSpatialRadialVelocityTime, double DtwSpatialRadiusDistance, double DtwSpatialRadiusTime, double DtwSpatialTetaDistance, double DtwSpatialTetaTime, double DtwSpatialVelocityDistance, double DtwSpatialVelocityTime, double DtwVelocities, double SpatialScoreDistanceVelocity, double SpatialScoreDistanceAcceleration, double SpatialScoreDistanceRadialVelocity, double SpatialScoreDistanceRadialAcceleration, double SpatialScoreDistanceRadius, double SpatialScoreDistanceTeta, double SpatialScoreDistanceDeltaTeta, double SpatialScoreDistanceAccumulatedNormArea, double SpatialScoreTimeVelocity, double SpatialScoreTimeAcceleration, double SpatialScoreTimeRadialVelocity, double SpatialScoreTimeRadialAcceleration, double SpatialScoreTimeRadius, double SpatialScoreTimeTeta, double SpatialScoreTimeDeltaTeta, double SpatialScoreTimeAccumulatedNormArea, double totalSpatialTemporalScore, double StrokeDistanceTotalScore, double StrokeDistanceTotalScoreStartToStart, double StrokeDistanceTotalScoreStartToEnd, double StrokeDistanceTotalScoreEndToStart, double StrokeDistanceTotalScoreEndToEnd, List<ICompareResult> listParams, double accMovDiffX, double accMovDiffY, double accMovDiffZ, double accMovDiffTotal, double pcaScore)
+        private string CreateStrokeLine(string idxComparison, string idxStroke, string userName, string templateStoredId, string userNameHack, string templateStoredHackId, string gestureAuthId, string strokeAuthId, string comparisonType, string instruction, string totalScore, string strokeCosineDistance, double DtwAccelerations, double DtwCoordinates, double DtwEvents, double DtwNormalizedCoordinates, double DtwNormalizedCoordinatesSpatialDistance, double DtwSpatialAccelerationDistance, double DtwSpatialAccelerationTime, double DtwSpatialAccumNormAreaDistance, double DtwSpatialAccumNormAreaTime, double DtwSpatialDeltaTetaDistance, double DtwSpatialDeltaTetaTime, double DtwSpatialRadialAccelerationDistance, double DtwSpatialRadialAccelerationTime, double DtwSpatialRadialVelocityDistance, double DtwSpatialRadialVelocityTime, double DtwSpatialRadiusDistance, double DtwSpatialRadiusTime, double DtwSpatialTetaDistance, double DtwSpatialTetaTime, double DtwSpatialVelocityDistance, double DtwSpatialVelocityTime, double DtwVelocities, double SpatialScoreDistanceVelocity, double SpatialScoreDistanceAcceleration, double SpatialScoreDistanceRadialVelocity, double SpatialScoreDistanceRadialAcceleration, double SpatialScoreDistanceRadius, double SpatialScoreDistanceTeta, double SpatialScoreDistanceDeltaTeta, double SpatialScoreDistanceAccumulatedNormArea, double SpatialScoreTimeVelocity, double SpatialScoreTimeAcceleration, double SpatialScoreTimeRadialVelocity, double SpatialScoreTimeRadialAcceleration, double SpatialScoreTimeRadius, double SpatialScoreTimeTeta, double SpatialScoreTimeDeltaTeta, double SpatialScoreTimeAccumulatedNormArea, double totalSpatialTemporalScore, double StrokeDistanceTotalScore, double StrokeDistanceTotalScoreStartToStart, double StrokeDistanceTotalScoreStartToEnd, double StrokeDistanceTotalScoreEndToStart, double StrokeDistanceTotalScoreEndToEnd, List<ICompareResult> listParams, double accMovDiffX, double accMovDiffY, double accMovDiffZ, double accMovDiffTotal, double pcaScore, StrokeComparer tempStrokeComparer)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -839,6 +922,26 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(accMovDiffTotal, 5).ToString());
 
             AppendWithComma(stringBuilder, Math.Round(pcaScore, 5).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.RadialVelocityDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.RadialAccelerationDiff, 5).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity0, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity1, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity2, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity3, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity4, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity5, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity6, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity7, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity8, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity9, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity10, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity11, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity12, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity13, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity14, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity15, 5).ToString());
 
             for (int idx = 0; idx < STROKE_NUM_PARAMS; idx++)
             {
@@ -923,38 +1026,48 @@ namespace VerifyooSimulator
 
         private void CleanCommonGestures(TemplateExtended baseTemplate)
         {
-            int numToRemove = 2;
-            Dictionary<String, bool> dictRemovedGestures;
-
-            string tempInstruction;
-            List<GestureExtended> listGestures = new List<GestureExtended>();
-
-            for (int idxGesture = 0; idxGesture < baseTemplate.ListGestureExtended.size(); idxGesture++)
+            for (int idxGesture = baseTemplate.ListGestureExtended.size() - 1; idxGesture >= 0; idxGesture--)
             {
-                listGestures.Add((GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture));
-            }
-
-            listGestures = listGestures.OrderBy(o => o.GetGestureAvgZScore()).ToList();
-            dictRemovedGestures = new Dictionary<string, bool>();
-
-            for (int idxRemove = 0; idxRemove < numToRemove; idxRemove++)
-            {
-                tempInstruction = listGestures[0].Instruction;
-                for (int idx = listGestures.Count - 1; idx >= 0; idx--)
+                if (((GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture)).Instruction.CompareTo("SLETTER") == 0 ||
+                    ((GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture)).Instruction.CompareTo("MLETTER") == 0 ||
+                    ((GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture)).Instruction.CompareTo("ALETTER") == 0)
                 {
-                    if (listGestures[idx].Instruction.CompareTo(tempInstruction) == 0)
-                    {
-                        listGestures.RemoveAt(idx);
-                    }
-                }
-                for (int idx = baseTemplate.ListGestureExtended.size() - 1; idx >= 0; idx--)
-                {
-                    if (((GestureExtended)baseTemplate.ListGestureExtended.get(idx)).Instruction.CompareTo(tempInstruction) == 0)
-                    {
-                        baseTemplate.ListGestureExtended.remove(idx);
-                    }
+                    baseTemplate.ListGestureExtended.remove(idxGesture);
                 }
             }
+
+            //int numToRemove = 2;
+            //Dictionary<String, bool> dictRemovedGestures;
+
+            //string tempInstruction;
+            //List<GestureExtended> listGestures = new List<GestureExtended>();
+
+            //for (int idxGesture = 0; idxGesture < baseTemplate.ListGestureExtended.size(); idxGesture++)
+            //{
+            //    listGestures.Add((GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture));
+            //}
+
+            //listGestures = listGestures.OrderBy(o => o.GetGestureAvgZScore()).ToList();
+            //dictRemovedGestures = new Dictionary<string, bool>();
+
+            //for (int idxRemove = 0; idxRemove < numToRemove; idxRemove++)
+            //{
+            //    tempInstruction = listGestures[0].Instruction;
+            //    for (int idx = listGestures.Count - 1; idx >= 0; idx--)
+            //    {
+            //        if (listGestures[idx].Instruction.CompareTo(tempInstruction) == 0)
+            //        {
+            //            listGestures.RemoveAt(idx);
+            //        }
+            //    }
+            //    for (int idx = baseTemplate.ListGestureExtended.size() - 1; idx >= 0; idx--)
+            //    {
+            //        if (((GestureExtended)baseTemplate.ListGestureExtended.get(idx)).Instruction.CompareTo(tempInstruction) == 0)
+            //        {
+            //            baseTemplate.ListGestureExtended.remove(idx);
+            //        }
+            //    }
+            //}
         }
 
         private void CleanCommonGestures1(TemplateExtended baseTemplate)
@@ -1098,15 +1211,7 @@ namespace VerifyooSimulator
                             listTempScores = new List<double>();
                             for (int idxGesture = 0; idxGesture < tempTemplateAuth.ListGestureExtended.size(); idxGesture++)
                             {
-                                if(currentRecord == 13)
-                                {
-                                    tempScore = -1;
-                                }
-                                else
-                                {
-                                    tempScore = CompareGesturesToStrings(baseTemplate, (GestureExtended)tempTemplateAuth.ListGestureExtended.get(idxGesture), tempTemplateAuth);
-                                }
-                                
+                                tempScore = CompareGesturesToStrings(baseTemplate, (GestureExtended)tempTemplateAuth.ListGestureExtended.get(idxGesture), tempTemplateAuth);
                                 if (tempScore != -1) {
                                     mIdxComparison++;
                                     listTempScores.Add(tempScore);
@@ -1296,6 +1401,8 @@ namespace VerifyooSimulator
         {
             StringBuilder stringBuilder = new StringBuilder();
             AppendWithComma(stringBuilder, "Name");
+            AppendWithComma(stringBuilder, "Instruction");
+            AppendWithComma(stringBuilder, "State");
 
             AppendWithComma(stringBuilder, "Template Index");
             AppendWithComma(stringBuilder, "Gesture Index");
@@ -1352,6 +1459,8 @@ namespace VerifyooSimulator
 
             AppendWithComma(stringBuilder, "AccumulatedNormalizedArea");
 
+            //AppendWithComma(stringBuilder, "IsHistory");
+
             streamWriter.WriteLine(stringBuilder.ToString());
         }
 
@@ -1359,6 +1468,8 @@ namespace VerifyooSimulator
         {
             StringBuilder stringBuilder = new StringBuilder();
             AppendWithComma(stringBuilder, "Name");
+            AppendWithComma(stringBuilder, "Instruction");
+            AppendWithComma(stringBuilder, "State");
 
             AppendWithComma(stringBuilder, "Template Index");
             AppendWithComma(stringBuilder, "Gesture Index");
@@ -1413,6 +1524,7 @@ namespace VerifyooSimulator
         {
             StringBuilder stringBuilder = new StringBuilder();
             AppendWithComma(stringBuilder, "Name");
+            AppendWithComma(stringBuilder, "State");
 
             AppendWithComma(stringBuilder, "Template Index");
             AppendWithComma(stringBuilder, "Gesture Index");
@@ -1471,11 +1583,11 @@ namespace VerifyooSimulator
             for(int idxGesture = 0; idxGesture < inputTemplate.ListGestureExtended.size(); idxGesture++)
             {
                 tempGesture = (GestureExtended) inputTemplate.ListGestureExtended.get(idxGesture);
-                WriteGesture(inputTemplate, tempGesture, idxTemplate, idxGesture);
+                WriteGesture(inputTemplate, tempGesture, idxTemplate, idxGesture, recordType);
             }
         }
 
-        private void WriteGesture(TemplateExtended inputTemplate, GestureExtended inputGesture, int idxTemplate, int idxGesture)
+        private void WriteGesture(TemplateExtended inputTemplate, GestureExtended inputGesture, int idxTemplate, int idxGesture, string recordType)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -1497,7 +1609,7 @@ namespace VerifyooSimulator
             for (int idxStroke = 0; idxStroke < inputGesture.ListStrokesExtended.size(); idxStroke++)
             {
                 tempStroke = (StrokeExtended)inputGesture.ListStrokesExtended.get(idxStroke);
-                WriteStroke(inputTemplate, inputGesture, tempStroke, idxTemplate, idxGesture, idxStroke, ((Stroke)inputGesture.ListStrokes.get(idxStroke)).Length, gestureStartTime);
+                WriteStroke(inputTemplate, inputGesture, tempStroke, idxTemplate, idxGesture, idxStroke, ((Stroke)inputGesture.ListStrokes.get(idxStroke)).Length, gestureStartTime, recordType);
             }
         }
 
@@ -1506,11 +1618,13 @@ namespace VerifyooSimulator
             return ((MotionEventExtended)((StrokeExtended)inputGesture.ListStrokesExtended.get(0)).ListEventsExtended.get(0)).EventTime;
         }
 
-        private void WriteStroke(TemplateExtended inputTemplate, GestureExtended inputGesture, StrokeExtended inputStroke, int idxTemplate, int idxGesture, int idxStroke, double length, double gestureStartTime)
+        private void WriteStroke(TemplateExtended inputTemplate, GestureExtended inputGesture, StrokeExtended inputStroke, int idxTemplate, int idxGesture, int idxStroke, double length, double gestureStartTime, string recordType)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
             AppendWithComma(stringBuilder, inputTemplate.Name);
+            AppendWithComma(stringBuilder, inputGesture.Instruction);
+            AppendWithComma(stringBuilder, recordType);
 
             AppendWithComma(stringBuilder, idxTemplate.ToString());
             AppendWithComma(stringBuilder, idxGesture.ToString());
@@ -1561,30 +1675,32 @@ namespace VerifyooSimulator
             mStreamWriterCsvStrokes.WriteLine(stringBuilder.ToString());
 
             MotionEventExtended tempEvent;
-            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsExtended.size(); idxEvent++)
+            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsExtended.size() - 1; idxEvent++)
             {
                 tempEvent = (MotionEventExtended)inputStroke.ListEventsExtended.get(idxEvent);
-                WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_RAW, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime);
+                WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_RAW, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime, recordType);
             }
 
-            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsSpatialExtended.size(); idxEvent++)
+            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsSpatialExtended.size() - 1; idxEvent++)
             {
                 tempEvent = (MotionEventExtended)inputStroke.ListEventsSpatialExtended.get(idxEvent);
-                WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_SPATIAL, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime);
+                WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_SPATIAL, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime, recordType);
             }
 
-            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsTemporalExtended.size(); idxEvent++)
+            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsTemporalExtended.size() - 1; idxEvent++)
             {
                 tempEvent = (MotionEventExtended)inputStroke.ListEventsTemporalExtended.get(idxEvent);
-                WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_TEMPORAL, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime);
+                WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_TEMPORAL, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime, recordType);
             }
         }
 
-        private void WriteEvent(TemplateExtended inputTemplate, GestureExtended inputGesture, StrokeExtended inputStroke, MotionEventExtended inputEvent, string eventType, int idxTemplate, int idxGesture, int idxStroke, int idxEvent, double gestureStartTime)
+        private void WriteEvent(TemplateExtended inputTemplate, GestureExtended inputGesture, StrokeExtended inputStroke, MotionEventExtended inputEvent, string eventType, int idxTemplate, int idxGesture, int idxStroke, int idxEvent, double gestureStartTime, string recordType)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
             AppendWithComma(stringBuilder, inputTemplate.Name);
+            AppendWithComma(stringBuilder, inputGesture.Instruction);
+            AppendWithComma(stringBuilder, recordType);
 
             AppendWithComma(stringBuilder, idxTemplate.ToString());
             AppendWithComma(stringBuilder, idxGesture.ToString());
@@ -1640,6 +1756,8 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(inputEvent.DeltaTeta, NUM_DECIMALS).ToString());
 
             AppendWithComma(stringBuilder, Math.Round(inputEvent.AccumulatedNormalizedArea, NUM_DECIMALS).ToString());
+
+            //AppendWithComma(stringBuilder, inputEvent.IsHistory.ToString());
 
             switch (eventType) {
                 case EVENT_TYPE_RAW:
@@ -1708,13 +1826,16 @@ namespace VerifyooSimulator
                             template.Name = template.Name.ToLower();
 
                             if (template.Name.CompareTo("shir_mor88@walla.com") != 0 &&
+                                template.Name.CompareTo("yinon_m") != 0 &&
                                 template.Name.CompareTo("michalsh96@gmail.com") != 0)
                             {
-                                template.GcmToken = String.Empty;
-                                template.Version = String.Empty;
-                                template.UserCountry = String.Empty;
-                                template.AppLocale = String.Empty;
-                                mongoLocal.Insert(template);
+                                if (template.ExpShapeList.Count > 0 && IsValid(template)) {
+                                    template.GcmToken = String.Empty;
+                                    template.Version = String.Empty;
+                                    template.UserCountry = String.Empty;
+                                    template.AppLocale = String.Empty;
+                                    mongoLocal.Insert(template);
+                                }                                
                             }
                         }
                     }
@@ -1729,6 +1850,28 @@ namespace VerifyooSimulator
             catch (Exception exc)
             {
                 MessageBox.Show(string.Format("Error: {0}", exc.Message));
+            }
+        }
+
+        private bool IsValid(ModelTemplate template)
+        {
+            if(template.ExpShapeList[0].Strokes[0].ListEvents.Count >= 3)
+            {
+                bool isValid = true;
+
+                ModelMotionEventCompact event1 = template.ExpShapeList[0].Strokes[0].ListEvents[0];
+                ModelMotionEventCompact event2 = template.ExpShapeList[0].Strokes[0].ListEvents[1];
+                ModelMotionEventCompact event3 = template.ExpShapeList[0].Strokes[0].ListEvents[2];
+
+                if(event1.EventTime == event2.EventTime || event1.EventTime == event3.EventTime || event2.EventTime == event3.EventTime)
+                {
+                    isValid = false;
+                }
+                return isValid;
+            }
+            else
+            {
+                return true;
             }
         }
     }

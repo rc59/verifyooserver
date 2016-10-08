@@ -206,6 +206,8 @@ namespace VerifyooSimulator.Logic
             tempObj.Xpixel = modelMotionEvent.X;
             tempObj.Ypixel = modelMotionEvent.Y;
 
+            tempObj.IsHistory = modelMotionEvent.IsHistory;
+
             tempObj.Id = modelMotionEvent._id.ToString();
             return tempObj;
         }
