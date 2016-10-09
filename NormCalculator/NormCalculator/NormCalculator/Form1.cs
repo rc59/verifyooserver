@@ -82,6 +82,15 @@ namespace NormCalculator
 
         /************************************* NORMAL GESTURE PARAMETERS *************************************/
 
+        NumericNormContainer mNormContainerGestureTotalTimeIntervalMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerGestureTotalTimeIntervalStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerGestureTotalAreaMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerGestureTotalAreaStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerGestureTotalAreaMinXMinYMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerGestureTotalAreaMinXMinYStd = new NumericNormContainer();
+
         NumericNormContainer mNormContainerGestureDelayTimeMean = new NumericNormContainer();
         NumericNormContainer mNormContainerGestureDelayTimeStd = new NumericNormContainer();
 
@@ -90,25 +99,16 @@ namespace NormCalculator
 
         NumericNormContainer mNormContainerGestureLengthMean = new NumericNormContainer();
         NumericNormContainer mNormContainerGestureLengthStd = new NumericNormContainer();
-        
-        NumericNormContainer mNormContainerGestureTotalTimeIntervalMean = new NumericNormContainer();
-        NumericNormContainer mNormContainerGestureTotalTimeIntervalStd = new NumericNormContainer();
 
         NumericNormContainer mNormContainerStrokeTotalTimeIntervalMean = new NumericNormContainer();
         NumericNormContainer mNormContainerStrokeTotalTimeIntervalStd = new NumericNormContainer();
-
-        NumericNormContainer mNormContainerGestureTotalAreaMean = new NumericNormContainer();
-        NumericNormContainer mNormContainerGestureTotalAreaStd = new NumericNormContainer();
-
-        NumericNormContainer mNormContainerGestureTotalAreaMinXMinYMean = new NumericNormContainer();
-        NumericNormContainer mNormContainerGestureTotalAreaMinXMinYStd = new NumericNormContainer();
 
         NumericNormContainer mNormContainerGestureStrokesTotalAreaMean = new NumericNormContainer();
         NumericNormContainer mNormContainerGestureStrokesTotalAreaStd = new NumericNormContainer();
 
         NumericNormContainer mNormContainerGestureStrokesTotalAreaMinXMinYMean = new NumericNormContainer();
         NumericNormContainer mNormContainerGestureStrokesTotalAreaMinXMinYStd = new NumericNormContainer();
-        
+
         NumericNormContainer mNormContainerGestureMiddlePressureMean = new NumericNormContainer();
         NumericNormContainer mNormContainerGestureMiddlePressureStd = new NumericNormContainer();
 
@@ -176,6 +176,12 @@ namespace NormCalculator
 
         NumericNormContainer mNormContainerStrokeMiddleSurfaceMean = new NumericNormContainer();
         NumericNormContainer mNormContainerStrokeMiddleSurfaceStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeMaxRadialVelocityMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMaxRadialVelocityStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeMaxRadialAccelerationMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMaxRadialAccelerationStd = new NumericNormContainer();
 
         int mStrokesCount;
         int mCurrentTemplateNum;
@@ -245,19 +251,18 @@ namespace NormCalculator
 
             /*********************************** GESTURE PARAMS ***********************************/
 
-            NumericNormContainer tempNormContainerGestureLength;
-            NumericNormContainer tempNormContainerGestureNumEvents;
-
-            NumericNormContainer tempNormContainerGestureDelayTime;
-
             NumericNormContainer tempNormContainerGestureTotalTimeInterval;
-            NumericNormContainer tempNormContainerStrokeTotalTimeInterval;
-
             NumericNormContainer tempNormContainerGestureTotalArea;
             NumericNormContainer tempNormContainerGestureTotalAreaMinXMinY;
 
             NumericNormContainer tempNormContainerGestureStrokesTotalArea;
             NumericNormContainer tempNormContainerGestureStrokesTotalAreaMinXMinY;
+
+            NumericNormContainer tempNormContainerGestureLength;
+            NumericNormContainer tempNormContainerGestureNumEvents;
+
+            NumericNormContainer tempNormContainerGestureDelayTime;
+            NumericNormContainer tempNormContainerStrokeTotalTimeInterval;
 
             NumericNormContainer tempNormContainerGestureMiddlePressure;
             NumericNormContainer tempNormContainerGestureMiddleSurface;
@@ -265,7 +270,7 @@ namespace NormCalculator
             NumericNormContainer tempNormContainerGestureAverageVelocity;
             NumericNormContainer tempNormContainerGestureMaxVelocity;
             NumericNormContainer tempNormContainerMidFirstStrokeVelocity;
-            
+
             NumericNormContainer tempNormContainerGestureAvgAcceleration;
             NumericNormContainer tempNormContainerGestureMaxAcceleration;
             NumericNormContainer tempNormContainerGestureAvgStartAcceleration;
@@ -292,6 +297,9 @@ namespace NormCalculator
             NumericNormContainer tempNormContainerStrokeMiddlePressure;
             NumericNormContainer tempNormContainerStrokeMiddleSurface;
 
+            NumericNormContainer tempNormContainerStrokeMaxRadialVelocity;
+            NumericNormContainer tempNormContainerStrokeMaxRadialAcceleration;
+
 
             bool isInitialized = false;
             string tempInstruction;
@@ -313,10 +321,7 @@ namespace NormCalculator
 
                             tempAccumulator = new UtilsAccumulator();
 
-                            tempNormContainerGestureLength = new NumericNormContainer();
-                            tempNormContainerGestureNumEvents = new NumericNormContainer();
-
-                            tempNormContainerGestureDelayTime = new NumericNormContainer();
+                            
 
                             tempNormContainerVelocitiesDistance = new SpatialNormContainer();
                             tempNormContainerRadialVelocitiesDistance = new SpatialNormContainer();
@@ -337,13 +342,18 @@ namespace NormCalculator
                             tempNormContainerAccumulatedNormalizedAreaTime = new SpatialNormContainer();
 
                             tempNormContainerGestureTotalTimeInterval = new NumericNormContainer();
-                            tempNormContainerStrokeTotalTimeInterval = new NumericNormContainer();
-
                             tempNormContainerGestureTotalArea = new NumericNormContainer();
                             tempNormContainerGestureTotalAreaMinXMinY = new NumericNormContainer();
 
                             tempNormContainerGestureStrokesTotalArea = new NumericNormContainer();
                             tempNormContainerGestureStrokesTotalAreaMinXMinY = new NumericNormContainer();
+
+                            tempNormContainerGestureLength = new NumericNormContainer();
+                            tempNormContainerGestureNumEvents = new NumericNormContainer();
+
+                            tempNormContainerGestureDelayTime = new NumericNormContainer();
+
+                            tempNormContainerStrokeTotalTimeInterval = new NumericNormContainer();
 
                             tempNormContainerGestureMiddlePressure = new NumericNormContainer();
                             tempNormContainerGestureMiddleSurface = new NumericNormContainer();
@@ -376,6 +386,9 @@ namespace NormCalculator
                             tempNormContainerStrokeMiddlePressure = new NumericNormContainer();
                             tempNormContainerStrokeMiddleSurface = new NumericNormContainer();
 
+                            tempNormContainerStrokeMaxRadialVelocity = new NumericNormContainer();
+                            tempNormContainerStrokeMaxRadialAcceleration = new NumericNormContainer();
+
                             for (int idxGesture = 0; idxGesture < tempTemplate.ListGestureExtended.size(); idxGesture++)
                             {
                                 tempGesture = (GestureExtended)tempTemplate.ListGestureExtended.get(idxGesture);
@@ -385,6 +398,14 @@ namespace NormCalculator
                                 {
                                     tempInstruction = mListInstructions[idxInstr];
                                     tempInstruction = "RLETTER";
+
+                                    tempNormContainerGestureTotalTimeInterval.AddValue(SafeAddValue(tempGesture.GestureTotalTimeInterval), tempInstruction);
+                                    tempNormContainerGestureTotalArea.AddValue(SafeAddValue(tempGesture.GestureTotalArea), tempInstruction);
+                                    tempNormContainerGestureTotalAreaMinXMinY.AddValue(SafeAddValue(tempGesture.GestureTotalAreaMinXMinY), tempInstruction);
+
+                                    tempNormContainerGestureStrokesTotalArea.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeArea), tempInstruction);
+                                    tempNormContainerGestureStrokesTotalAreaMinXMinY.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeAreaMinXMinY), tempInstruction);
+
                                     tempNormContainerGestureLength.AddValue(SafeAddValue(tempGesture.GestureLengthMM), tempInstruction);
                                     tempNormContainerGestureNumEvents.AddValue(tempGesture.ListGestureEventsExtended.size(), tempInstruction);
 
@@ -392,15 +413,7 @@ namespace NormCalculator
                                     {
                                         tempNormContainerGestureDelayTime.AddValue(SafeAddValue(tempGesture.GestureDelay), tempInstruction);
                                     }
-
-                                    tempNormContainerGestureTotalTimeInterval.AddValue(SafeAddValue(tempGesture.GestureTotalTimeInterval), tempInstruction);
                                     tempNormContainerStrokeTotalTimeInterval.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeTimeInterval), tempInstruction);
-
-                                    tempNormContainerGestureTotalArea.AddValue(SafeAddValue(tempGesture.GestureTotalArea), tempInstruction);
-                                    tempNormContainerGestureTotalAreaMinXMinY.AddValue(SafeAddValue(tempGesture.GestureTotalAreaMinXMinY), tempInstruction);
-
-                                    tempNormContainerGestureStrokesTotalArea.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeArea), tempInstruction);
-                                    tempNormContainerGestureStrokesTotalAreaMinXMinY.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeAreaMinXMinY), tempInstruction);
 
                                     tempNormContainerGestureMiddlePressure.AddValue(SafeAddValue(tempGesture.GestureAvgMiddlePressure), tempInstruction);
                                     tempNormContainerGestureMiddleSurface.AddValue(SafeAddValue(tempGesture.GestureAvgMiddleSurface), tempInstruction);
@@ -436,6 +449,9 @@ namespace NormCalculator
 
                                         tempNormContainerStrokeMiddlePressure.AddValue(SafeAddValue(tempStroke.MiddlePressure), tempInstruction, idxStroke);
                                         tempNormContainerStrokeMiddleSurface.AddValue(SafeAddValue(tempStroke.MiddleSurface), tempInstruction, idxStroke);
+
+                                        tempNormContainerStrokeMaxRadialVelocity.AddValue(SafeAddValue(tempStroke.StrokeMaxRadialVelocity), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeMaxRadialAcceleration.AddValue(SafeAddValue(tempStroke.StrokeMaxRadialAcceleration), tempInstruction, idxStroke);
 
                                         for (int idxEvent = 0; idxEvent < UtilsConsts.SAMPLE_SIZE; idxEvent++)
                                         {
@@ -508,16 +524,16 @@ namespace NormCalculator
                                         AddValueToNormContainer(tempInstruction, idxSpatial, tempNormContainerAccumulatedNormalizedAreaTime, mNormContainerSpatialAccumulatedNormalizedAreaMeanTime, mNormContainerSpatialAccumulatedNormalizedAreaStdTime);
                                     }
 
+                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureTotalTimeInterval, mNormContainerGestureTotalTimeIntervalMean, mNormContainerGestureTotalTimeIntervalStd);
+                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureTotalArea, mNormContainerGestureTotalAreaMean, mNormContainerGestureTotalAreaStd);
+                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureTotalAreaMinXMinY, mNormContainerGestureTotalAreaMinXMinYMean, mNormContainerGestureTotalAreaMinXMinYStd);
+
+                                    AddValueToNormContainer(tempInstruction, tempNormContainerStrokeTotalTimeInterval, mNormContainerStrokeTotalTimeIntervalMean, mNormContainerStrokeTotalTimeIntervalStd);
+
                                     AddValueToNormContainer(tempInstruction, tempNormContainerGestureLength, mNormContainerGestureLengthMean, mNormContainerGestureLengthStd);
                                     AddValueToNormContainer(tempInstruction, tempNormContainerGestureNumEvents, mNormContainerGestureNumEventsMean, mNormContainerGestureNumEventsStd);
 
                                     AddValueToNormContainer(tempInstruction, tempNormContainerGestureDelayTime, mNormContainerGestureDelayTimeMean, mNormContainerGestureDelayTimeStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureTotalTimeInterval, mNormContainerGestureTotalTimeIntervalMean, mNormContainerGestureTotalTimeIntervalStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerStrokeTotalTimeInterval, mNormContainerStrokeTotalTimeIntervalMean, mNormContainerStrokeTotalTimeIntervalStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureTotalArea, mNormContainerGestureTotalAreaMean, mNormContainerGestureTotalAreaStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureTotalAreaMinXMinY, mNormContainerGestureTotalAreaMinXMinYMean, mNormContainerGestureTotalAreaMinXMinYStd);
 
                                     AddValueToNormContainer(tempInstruction, tempNormContainerGestureStrokesTotalArea, mNormContainerGestureStrokesTotalAreaMean, mNormContainerGestureStrokesTotalAreaStd);
                                     AddValueToNormContainer(tempInstruction, tempNormContainerGestureStrokesTotalAreaMinXMinY, mNormContainerGestureStrokesTotalAreaMinXMinYMean, mNormContainerGestureStrokesTotalAreaMinXMinYStd);
@@ -555,6 +571,9 @@ namespace NormCalculator
 
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMiddlePressure, mNormContainerStrokeMiddlePressureMean, mNormContainerStrokeMiddlePressureStd);
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMiddleSurface, mNormContainerStrokeMiddleSurfaceMean, mNormContainerStrokeMiddleSurfaceStd);
+
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxRadialVelocity, mNormContainerStrokeMaxRadialVelocityMean, mNormContainerStrokeMaxRadialVelocityStd);
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxRadialAcceleration, mNormContainerStrokeMaxRadialAccelerationMean, mNormContainerStrokeMaxRadialAccelerationStd);
                                 }
                             }
                         }
@@ -704,6 +723,15 @@ namespace NormCalculator
 
             /******************************************** NORMAL GESTURE PARAMETERS ********************************************/
 
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_TIME_INTERVAL, mNormContainerGestureTotalTimeIntervalMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_TIME_INTERVAL, mNormContainerGestureTotalTimeIntervalStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA, mNormContainerGestureTotalAreaMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA, mNormContainerGestureTotalAreaStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA_MINX_MINY, mNormContainerGestureTotalAreaMinXMinYMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA_MINX_MINY, mNormContainerGestureTotalAreaMinXMinYStd);
+
             normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_DELAY_TIME, mNormContainerGestureDelayTimeMean);
             normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_DELAY_TIME, mNormContainerGestureDelayTimeStd);
 
@@ -713,17 +741,8 @@ namespace NormCalculator
             normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_NUM_EVENTS, mNormContainerGestureNumEventsMean);
             normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_NUM_EVENTS, mNormContainerGestureNumEventsStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_TIME_INTERVAL, mNormContainerGestureTotalTimeIntervalMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_TIME_INTERVAL, mNormContainerGestureTotalTimeIntervalStd);
-
             normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKES_TIME_INTERVAL, mNormContainerStrokeTotalTimeIntervalMean);
             normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKES_TIME_INTERVAL, mNormContainerStrokeTotalTimeIntervalStd);
-
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA, mNormContainerGestureTotalAreaMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA, mNormContainerGestureTotalAreaStd);
-
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA_MINX_MINY, mNormContainerGestureTotalAreaMinXMinYMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA_MINX_MINY, mNormContainerGestureTotalAreaMinXMinYStd);
 
             normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKE_AREA, mNormContainerGestureStrokesTotalAreaMean);
             normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKE_AREA, mNormContainerGestureStrokesTotalAreaStd);
@@ -798,6 +817,12 @@ namespace NormCalculator
 
             normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MIDDLE_SURFACE, mNormContainerStrokeMiddleSurfaceMean);
             normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MIDDLE_SURFACE, mNormContainerStrokeMiddleSurfaceStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_VELOCITY, mNormContainerStrokeMaxRadialVelocityMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_VELOCITY, mNormContainerStrokeMaxRadialVelocityStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_ACCELERATION, mNormContainerStrokeMaxRadialAccelerationMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_ACCELERATION, mNormContainerStrokeMaxRadialAccelerationStd);
 
             /********************************************************************************************************************************/
 

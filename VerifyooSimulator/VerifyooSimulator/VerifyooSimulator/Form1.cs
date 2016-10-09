@@ -35,7 +35,7 @@ namespace VerifyooSimulator
         double mTotalNumComparisons;
 
         int GESTURE_NUM_PARAMS = 3;
-        int STROKE_NUM_PARAMS = 12;
+        int STROKE_NUM_PARAMS = 14;
 
         int mIdxComparison;
 
@@ -131,10 +131,10 @@ namespace VerifyooSimulator
             switch (mSimulationType)
             {
                 case SIMULATOR_TYPE_AUTH:
-                    this.lblFrr.Invoke(new MethodInvoker(() => this.lblFrr.Text = GetPercentageStringFrr(mThreashold75)));
+                    this.lblFrr.Invoke(new MethodInvoker(() => this.lblFrr.Text = GetPercentageStringFrr(mThreashold80)));
                     break;
                 case SIMULATOR_TYPE_NAIVE_HACK:
-                    this.lblFar.Invoke(new MethodInvoker(() => this.lblFar.Text = GetPercentageStringFar(mThreashold75)));
+                    this.lblFar.Invoke(new MethodInvoker(() => this.lblFar.Text = GetPercentageStringFar(mThreashold80)));
                     break;
             }
 
@@ -438,17 +438,17 @@ namespace VerifyooSimulator
 
         private void AddStatParamHeader(StringBuilder stringBuilder, string paramName)
         {
-            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Name"));
+            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Name"));
             AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Score"));
-            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "AuthValue"));
-            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "BaseMean"));
-            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "PopMean"));
-            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Weight"));
-            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "TemplateZscore"));
-            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Zscore"));
-            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "PopStd"));
-            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "InternalStd"));
-            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "InternalStdUserOnly"));
+            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "AuthValue"));
+            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "BaseMean"));
+            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "PopMean"));
+            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Weight"));
+            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "TemplateZscore"));
+            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Zscore"));
+            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "PopStd"));
+            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "InternalStd"));
+            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "InternalStdUserOnly"));
         }
 
         private void InitStrokesHeader(StreamWriter streamWriter)
@@ -750,7 +750,7 @@ namespace VerifyooSimulator
                 listGestureParams.Add((ICompareResult)listInput.get(idx));
             }
 
-            listGestureParams = listGestureParams.OrderByDescending(o => Math.Abs(o.GetTemplateZScore())).ToList();
+            listGestureParams = listGestureParams.OrderByDescending(o => o.GetName()).ToList();
 
             return listGestureParams;
         }
@@ -794,30 +794,30 @@ namespace VerifyooSimulator
         {
             if (gestureParam != null)
             {
-                AppendWithComma(stringBuilder, gestureParam.GetName());
+                //AppendWithComma(stringBuilder, gestureParam.GetName());
                 AppendWithComma(stringBuilder, gestureParam.GetValue().ToString());
-                AppendWithComma(stringBuilder, gestureParam.GetOriginalValue().ToString());
-                AppendWithComma(stringBuilder, gestureParam.GetMean().ToString());
-                AppendWithComma(stringBuilder, gestureParam.GetPopMean().ToString());
-                AppendWithComma(stringBuilder, gestureParam.GetWeight().ToString());
-                AppendWithComma(stringBuilder, gestureParam.GetTemplateZScore().ToString());
-                AppendWithComma(stringBuilder, gestureParam.GetZScore().ToString());
-                AppendWithComma(stringBuilder, gestureParam.GetSD().ToString());
-                AppendWithComma(stringBuilder, gestureParam.GetInternalSD().ToString());
-                AppendWithComma(stringBuilder, gestureParam.GetInternalSdUserOnly().ToString());
+                //AppendWithComma(stringBuilder, gestureParam.GetOriginalValue().ToString());
+                //AppendWithComma(stringBuilder, gestureParam.GetMean().ToString());
+                //AppendWithComma(stringBuilder, gestureParam.GetPopMean().ToString());
+                //AppendWithComma(stringBuilder, gestureParam.GetWeight().ToString());
+                //AppendWithComma(stringBuilder, gestureParam.GetTemplateZScore().ToString());
+                //AppendWithComma(stringBuilder, gestureParam.GetZScore().ToString());
+                //AppendWithComma(stringBuilder, gestureParam.GetSD().ToString());
+                //AppendWithComma(stringBuilder, gestureParam.GetInternalSD().ToString());
+                //AppendWithComma(stringBuilder, gestureParam.GetInternalSdUserOnly().ToString());
             }
             else {
+                //AppendWithComma(stringBuilder, string.Empty);
                 AppendWithComma(stringBuilder, string.Empty);
-                AppendWithComma(stringBuilder, string.Empty);
-                AppendWithComma(stringBuilder, string.Empty);
-                AppendWithComma(stringBuilder, string.Empty);
-                AppendWithComma(stringBuilder, string.Empty);
-                AppendWithComma(stringBuilder, string.Empty);
-                AppendWithComma(stringBuilder, string.Empty);
-                AppendWithComma(stringBuilder, string.Empty);
-                AppendWithComma(stringBuilder, string.Empty);
-                AppendWithComma(stringBuilder, string.Empty);
-                AppendWithComma(stringBuilder, string.Empty);
+                //AppendWithComma(stringBuilder, string.Empty);
+                //AppendWithComma(stringBuilder, string.Empty);
+                //AppendWithComma(stringBuilder, string.Empty);
+                //AppendWithComma(stringBuilder, string.Empty);
+                //AppendWithComma(stringBuilder, string.Empty);
+                //AppendWithComma(stringBuilder, string.Empty);
+                //AppendWithComma(stringBuilder, string.Empty);
+                //AppendWithComma(stringBuilder, string.Empty);
+                //AppendWithComma(stringBuilder, string.Empty);
             }
         }
 
