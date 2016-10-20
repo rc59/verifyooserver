@@ -185,6 +185,7 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Logic\ConstsNormsStr.cs" />
+    <Compile Include="Logic\PerformanceMgr.cs" />
     <Compile Include="Logic\UserContainer.cs" />
     <Compile Include="Logic\UserContainerMgr.cs" />
     <Compile Include="Logic\UtilsTemplateConverter.cs" />

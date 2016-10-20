@@ -1,4 +1,5 @@
-﻿using Data.Comparison.Interfaces;
+﻿using Data.Comparison;
+using Data.Comparison.Interfaces;
 using Data.UserProfile.Extended;
 using Data.UserProfile.Raw;
 using java.util;
@@ -25,6 +26,10 @@ namespace VerifyooSimulator
 {
     public partial class Form1 : Form
     {
+        double mLimitRecordsNaiveHack = 0;
+        double mThreasholdForSelectedFAR = 0;
+        double mCustomFAR = 0;
+
         double mThreashold70;
         double mThreashold75;
         double mThreashold80;
@@ -43,6 +48,7 @@ namespace VerifyooSimulator
         const string EVENT_TYPE_SPATIAL = "Spatial";
         const string EVENT_TYPE_TEMPORAL = "Temporal";
 
+        const string SIMULATOR_TYPE_FAR_FRR = "FAR_FRR";
         const string SIMULATOR_TYPE_NAIVE_HACK = "FAR";
         const string SIMULATOR_TYPE_HACK = "Hack";
         const string SIMULATOR_TYPE_AUTH = "FRR";
@@ -60,14 +66,20 @@ namespace VerifyooSimulator
         StreamWriter mStreamWriterStrokes = null;
         StreamWriter mStreamWriterLog = null;
 
+        StreamWriter mStreamWriterRocFRR = null;
+        StreamWriter mStreamWriterRocFAR = null;
+
         private MongoCollection<ModelTemplate> mListMongo;
         private bool mIsFinished;
 
         string mSimulationType;
         private int NUM_DECIMALS = 8;
 
+        PerformanceMgr mPerformanceMgr;
+
         public Form1()
         {
+            mPerformanceMgr = new PerformanceMgr(1000);
             InitializeComponent();
         }
 
@@ -75,6 +87,7 @@ namespace VerifyooSimulator
         {
             if (mSimulationType.CompareTo(SIMULATOR_TYPE_AUTH) == 0)
             {
+                mPerformanceMgr.AddFRRValue(score);
                 if (score < 0.7)
                 {
                     mThreashold70++;
@@ -98,10 +111,11 @@ namespace VerifyooSimulator
                 if (score < 0.95)
                 {
                     mThreashold95++;
-                }
+                }                
             }
             if (mSimulationType.CompareTo(SIMULATOR_TYPE_HACK) == 0 || mSimulationType.CompareTo(SIMULATOR_TYPE_NAIVE_HACK) == 0)
             {
+                mPerformanceMgr.AddFARValue(score);
                 if (score > 0.7)
                 {
                     mThreashold70++;
@@ -125,19 +139,33 @@ namespace VerifyooSimulator
                 if (score > 0.95)
                 {
                     mThreashold95++;
+                }                
+
+                if(score > mThreasholdForSelectedFAR)
+                {
+                    mCustomFAR++;
                 }
             }
 
+            double selectedThreashold = 0.8;
+            if(mThreasholdForSelectedFAR > 0)
+            {
+                selectedThreashold = mThreasholdForSelectedFAR;
+            }
             switch (mSimulationType)
             {
                 case SIMULATOR_TYPE_AUTH:
                     this.lblFrr.Invoke(new MethodInvoker(() => this.lblFrr.Text = GetPercentageStringFrr(mThreashold80)));
                     break;
                 case SIMULATOR_TYPE_NAIVE_HACK:
-                    this.lblFar.Invoke(new MethodInvoker(() => this.lblFar.Text = GetPercentageStringFar(mThreashold80)));
+                    this.lblFar.Invoke(new MethodInvoker(() => this.lblFar.Text = GetPercentageStringFar(mCustomFAR)));
+                    break;
+                case SIMULATOR_TYPE_HACK:
+                    this.lblFar.Invoke(new MethodInvoker(() => this.lblFar.Text = GetPercentageStringFar(mCustomFAR)));
                     break;
             }
-
+            this.lblThreashold.Invoke(new MethodInvoker(() => this.lblThreashold.Text = Math.Round(selectedThreashold * 100, 5).ToString()));
+            
             double percentage = mThreashold70 / mTotalNumComparisons;
             this.lblThreashold70.Invoke(new MethodInvoker(() => this.lblThreashold70.Text = GetPercentageString(mThreashold70)));
 
@@ -154,9 +182,7 @@ namespace VerifyooSimulator
             this.lblThreashold90.Invoke(new MethodInvoker(() => this.lblThreashold90.Text = GetPercentageString(mThreashold90)));
 
             percentage = mThreashold95 / mTotalNumComparisons;
-            this.lblThreashold95.Invoke(new MethodInvoker(() => this.lblThreashold95.Text = GetPercentageString(mThreashold95)));
-
-
+            this.lblThreashold95.Invoke(new MethodInvoker(() => this.lblThreashold95.Text = GetPercentageString(mThreashold95)));            
         }
 
         private double GetFAR(double score)
@@ -247,7 +273,7 @@ namespace VerifyooSimulator
             int currentRecord = 0;
             int totalNumbRecords = (int)mListMongo.Count();
             int limit = 50;
-            int skip = 0;            
+            int skip = 0;
             
             try
             {
@@ -257,7 +283,7 @@ namespace VerifyooSimulator
 
                 InitGestureHeader(mStreamWriterGestures);
                 InitStrokesHeader(mStreamWriterStrokes);
-
+                
                 UpdateProgress(totalNumbRecords, currentRecord);
                 while (!mIsFinished)
                 {
@@ -427,6 +453,9 @@ namespace VerifyooSimulator
 
             AppendWithComma(stringBuilder, "PcaScore");
             AppendWithComma(stringBuilder, "DtwScore");
+            AppendWithComma(stringBuilder, "InterestPointScore");
+
+            AppendWithComma(stringBuilder, "ExtraParamsValue");
 
             for (int idx = 0; idx < GESTURE_NUM_PARAMS; idx++)
             {
@@ -438,17 +467,26 @@ namespace VerifyooSimulator
 
         private void AddStatParamHeader(StringBuilder stringBuilder, string paramName)
         {
-            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Name"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Name"));
             AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Score"));
-            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "AuthValue"));
-            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "BaseMean"));
-            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "PopMean"));
-            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Weight"));
-            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "TemplateZscore"));
-            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Zscore"));
-            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "PopStd"));
-            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "InternalStd"));
-            //AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "InternalStdUserOnly"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "AuthValue"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "BaseMean"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "PopMean"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Weight"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "TemplateZscore"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "Zscore"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "PopStd"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "InternalStd"));
+            AppendWithComma(stringBuilder, string.Format("{0}{1}", paramName, "InternalStdUserOnly"));
+        }
+
+        private void InitRocHeader(StreamWriter streamWriter)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            AppendWithComma(stringBuilder, "Treashold");
+            AppendWithComma(stringBuilder, "FAR/FRR");
+
+            streamWriter.WriteLine(stringBuilder.ToString());
         }
 
         private void InitStrokesHeader(StreamWriter streamWriter)
@@ -494,6 +532,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "DtwSpatialTetaDistance");
             AppendWithComma(stringBuilder, "DtwSpatialTetaTime");
             AppendWithComma(stringBuilder, "DtwSpatialVelocityDistance");
+            AppendWithComma(stringBuilder, "DtwSpatialVelocityDistance16");
             AppendWithComma(stringBuilder, "DtwSpatialVelocityTime");
             AppendWithComma(stringBuilder, "DtwVelocities");
 
@@ -522,11 +561,10 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "AccMovDiffZ");
             AppendWithComma(stringBuilder, "AccMovDiffTotal");
 
-            AppendWithComma(stringBuilder, "PcaScore");
-
             AppendWithComma(stringBuilder, "RadialVelocityDiff");
             AppendWithComma(stringBuilder, "RadialAccelerationDiff");
 
+            AppendWithComma(stringBuilder, "DtwTemporalVelocity");
             AppendWithComma(stringBuilder, "DtwTemporalVelocity0");
             AppendWithComma(stringBuilder, "DtwTemporalVelocity1");
             AppendWithComma(stringBuilder, "DtwTemporalVelocity2");
@@ -543,6 +581,15 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "DtwTemporalVelocity13");
             AppendWithComma(stringBuilder, "DtwTemporalVelocity14");
             AppendWithComma(stringBuilder, "DtwTemporalVelocity15");
+
+            AppendWithComma(stringBuilder, "PcaScore");
+            AppendWithComma(stringBuilder, "PcaScoreFinal");
+
+            AppendWithComma(stringBuilder, "DtwSpatialTotalScore");
+            AppendWithComma(stringBuilder, "DtwSpatialTotalScoreFinal");
+
+            AppendWithComma(stringBuilder, "InterestPointScore");
+            AppendWithComma(stringBuilder, "InterestPointScoreFinal");
 
             for (int idx = 0; idx < STROKE_NUM_PARAMS; idx++)
             {
@@ -573,6 +620,18 @@ namespace VerifyooSimulator
         private StreamWriter InitStreamWriterLog()
         {
             StreamWriter streamWriter = File.CreateText(@"C:\Temp\Log.txt");
+            return streamWriter;
+        }
+
+        private StreamWriter InitStreamWriterFAR()
+        {
+            StreamWriter streamWriter = File.CreateText(@"C:\Temp\RocFAR.csv");
+            return streamWriter;
+        }
+
+        private StreamWriter InitStreamWriterFRR()
+        {
+            StreamWriter streamWriter = File.CreateText(@"C:\Temp\RocFRR.csv");
             return streamWriter;
         }
 
@@ -731,11 +790,11 @@ namespace VerifyooSimulator
 
             string resultString;
             if (templateStoredHack != null) {
-                resultString = CreateGestureLine(mIdxComparison.ToString(), templateStored.Name, templateStored.Id.ToString(), templateStoredHack.Name, templateStoredHack.Id.ToString(), gestureAuth.Id.ToString(), mSimulationType, gestureAuth.Instruction, gestureComparer.GetScore().ToString(), listGestureParams, gestureAuth.GetGestureAvgZScore(), gestureAuth.GetMostUniqueParameter(), gestureComparer.PcaScore, gestureComparer.DtwScore);
+                resultString = CreateGestureLine(mIdxComparison.ToString(), templateStored.Name, templateStored.Id.ToString(), templateStoredHack.Name, templateStoredHack.Id.ToString(), gestureAuth.Id.ToString(), mSimulationType, gestureAuth.Instruction, gestureComparer.GetScore().ToString(), listGestureParams, gestureAuth.GetGestureAvgZScore(), gestureAuth.GetMostUniqueParameter(), gestureComparer);
             }
             else
             {
-                resultString = CreateGestureLine(mIdxComparison.ToString(), templateStored.Name, templateStored.Id.ToString(), String.Empty, String.Empty, gestureAuth.Id.ToString(), mSimulationType, gestureAuth.Instruction, gestureComparer.GetScore().ToString(), listGestureParams, gestureAuth.GetGestureAvgZScore(), gestureAuth.GetMostUniqueParameter(), gestureComparer.PcaScore, gestureComparer.DtwScore);
+                resultString = CreateGestureLine(mIdxComparison.ToString(), templateStored.Name, templateStored.Id.ToString(), String.Empty, String.Empty, gestureAuth.Id.ToString(), mSimulationType, gestureAuth.Instruction, gestureComparer.GetScore().ToString(), listGestureParams, gestureAuth.GetGestureAvgZScore(), gestureAuth.GetMostUniqueParameter(), gestureComparer);
             }
 
 
@@ -745,17 +804,30 @@ namespace VerifyooSimulator
         private List<ICompareResult> ConvertParamsList(ArrayList listInput)
         {
             List<ICompareResult> listGestureParams = new List<ICompareResult>();
+            ICompareResult tempResult = null;
+
             for (int idx = 0; idx < listInput.size(); idx++)
             {
-                listGestureParams.Add((ICompareResult)listInput.get(idx));
+                if (((ICompareResult)listInput.get(idx)).GetName().CompareTo("StrokeTransitionTime") == 0)
+                {
+                    tempResult = (ICompareResult)listInput.get(idx);
+                }
+                else
+                {
+                    listGestureParams.Add((ICompareResult)listInput.get(idx));
+                }
             }
-
+            
             listGestureParams = listGestureParams.OrderByDescending(o => o.GetName()).ToList();
+            if (tempResult != null)
+            {
+                listGestureParams.Add(tempResult);
+            }
 
             return listGestureParams;
         }
 
-        private string CreateGestureLine(string idxComparison, string userName, string templateStoredId, string userNameHack, string templateStoredHackId, string gestureAuthId, string comparisonType, string instruction, string totalScore, List<ICompareResult> listParams, double avgZScore, double mostUniqueParam, double pcaScore, double dtwScore)
+        private string CreateGestureLine(string idxComparison, string userName, string templateStoredId, string userNameHack, string templateStoredHackId, string gestureAuthId, string comparisonType, string instruction, string totalScore, List<ICompareResult> listParams, double avgZScore, double mostUniqueParam, GestureComparer gestureComparer)
         {
             StringBuilder stringBuilder = new StringBuilder();
             AppendWithComma(stringBuilder, idxComparison);
@@ -772,8 +844,12 @@ namespace VerifyooSimulator
 
             AppendWithComma(stringBuilder, mostUniqueParam.ToString());
 
-            AppendWithComma(stringBuilder, pcaScore.ToString());
-            AppendWithComma(stringBuilder, dtwScore.ToString());
+            AppendWithComma(stringBuilder, gestureComparer.PcaScore.ToString());
+            AppendWithComma(stringBuilder, gestureComparer.DtwScore.ToString());
+            AppendWithComma(stringBuilder, gestureComparer.InterestPointScore.ToString());
+
+            AppendWithComma(stringBuilder, gestureComparer.ExtraParamsValue.ToString());
+            
 
             for (int idx = 0; idx < GESTURE_NUM_PARAMS; idx++)
             {
@@ -794,30 +870,30 @@ namespace VerifyooSimulator
         {
             if (gestureParam != null)
             {
-                //AppendWithComma(stringBuilder, gestureParam.GetName());
+                AppendWithComma(stringBuilder, gestureParam.GetName());
                 AppendWithComma(stringBuilder, gestureParam.GetValue().ToString());
-                //AppendWithComma(stringBuilder, gestureParam.GetOriginalValue().ToString());
-                //AppendWithComma(stringBuilder, gestureParam.GetMean().ToString());
-                //AppendWithComma(stringBuilder, gestureParam.GetPopMean().ToString());
-                //AppendWithComma(stringBuilder, gestureParam.GetWeight().ToString());
-                //AppendWithComma(stringBuilder, gestureParam.GetTemplateZScore().ToString());
-                //AppendWithComma(stringBuilder, gestureParam.GetZScore().ToString());
-                //AppendWithComma(stringBuilder, gestureParam.GetSD().ToString());
-                //AppendWithComma(stringBuilder, gestureParam.GetInternalSD().ToString());
-                //AppendWithComma(stringBuilder, gestureParam.GetInternalSdUserOnly().ToString());
+                AppendWithComma(stringBuilder, gestureParam.GetOriginalValue().ToString());
+                AppendWithComma(stringBuilder, gestureParam.GetMean().ToString());
+                AppendWithComma(stringBuilder, gestureParam.GetPopMean().ToString());
+                AppendWithComma(stringBuilder, gestureParam.GetWeight().ToString());
+                AppendWithComma(stringBuilder, gestureParam.GetTemplateZScore().ToString());
+                AppendWithComma(stringBuilder, gestureParam.GetZScore().ToString());
+                AppendWithComma(stringBuilder, gestureParam.GetSD().ToString());
+                AppendWithComma(stringBuilder, gestureParam.GetInternalSD().ToString());
+                AppendWithComma(stringBuilder, gestureParam.GetInternalSdUserOnly().ToString());
             }
             else {
-                //AppendWithComma(stringBuilder, string.Empty);
                 AppendWithComma(stringBuilder, string.Empty);
-                //AppendWithComma(stringBuilder, string.Empty);
-                //AppendWithComma(stringBuilder, string.Empty);
-                //AppendWithComma(stringBuilder, string.Empty);
-                //AppendWithComma(stringBuilder, string.Empty);
-                //AppendWithComma(stringBuilder, string.Empty);
-                //AppendWithComma(stringBuilder, string.Empty);
-                //AppendWithComma(stringBuilder, string.Empty);
-                //AppendWithComma(stringBuilder, string.Empty);
-                //AppendWithComma(stringBuilder, string.Empty);
+                AppendWithComma(stringBuilder, string.Empty);
+                AppendWithComma(stringBuilder, string.Empty);
+                AppendWithComma(stringBuilder, string.Empty);
+                AppendWithComma(stringBuilder, string.Empty);
+                AppendWithComma(stringBuilder, string.Empty);
+                AppendWithComma(stringBuilder, string.Empty);
+                AppendWithComma(stringBuilder, string.Empty);
+                AppendWithComma(stringBuilder, string.Empty);
+                AppendWithComma(stringBuilder, string.Empty);
+                AppendWithComma(stringBuilder, string.Empty);
             }
         }
 
@@ -843,14 +919,14 @@ namespace VerifyooSimulator
                     finalScore = 0;
                 }
  
-                line = CreateStrokeLine(mIdxComparison.ToString(), idxStrokeComparer.ToString(), templateStored.Name, templateStored.Id.ToString(), usernameHack, templateStoredHackId, gestureAuth.Id.ToString(), ((StrokeExtended)gestureAuth.ListStrokesExtended.get(idxStrokeComparer)).Id.ToString(), mSimulationType, gestureAuth.Instruction, Math.Round(tempStrokeComparer.GetScore(), 5).ToString(), Math.Round(tempStrokeComparer.GetMinCosineDistance(), 5).ToString(), tempStrokeComparer.DtwAccelerations, tempStrokeComparer.DtwCoordinates, tempStrokeComparer.DtwEvents, tempStrokeComparer.DtwNormalizedCoordinates, tempStrokeComparer.DtwNormalizedCoordinatesSpatialDistance, tempStrokeComparer.DtwSpatialAcceleration, tempStrokeComparer.DtwTemporalAcceleration, tempStrokeComparer.DtwSpatialAccumNormArea, tempStrokeComparer.DtwTemporalAccumNormArea, tempStrokeComparer.DtwSpatialDeltaTeta, tempStrokeComparer.DtwTemporalDeltaTeta, tempStrokeComparer.DtwSpatialRadialAcceleration, tempStrokeComparer.DtwTemporalRadialAcceleration, tempStrokeComparer.DtwSpatialRadialVelocity, tempStrokeComparer.DtwTemporalRadialVelocity, tempStrokeComparer.DtwSpatialRadius, tempStrokeComparer.DtwTemporalRadius, tempStrokeComparer.DtwSpatialTeta, tempStrokeComparer.DtwTemporalTeta, tempStrokeComparer.DtwSpatialVelocity, tempStrokeComparer.DtwTemporalVelocity, tempStrokeComparer.DtwVelocities, tempStrokeComparer.SpatialScoreVelocity, tempStrokeComparer.SpatialScoreAcceleration, tempStrokeComparer.SpatialScoreRadialVelocity, tempStrokeComparer.SpatialScoreRadialAcceleration, tempStrokeComparer.SpatialScoreRadius, tempStrokeComparer.SpatialScoreTeta, tempStrokeComparer.SpatialScoreDeltaTeta, tempStrokeComparer.SpatialScoreAccumulatedNormArea, tempStrokeComparer.TemporalScoreVelocity, tempStrokeComparer.TemporalScoreAcceleration, tempStrokeComparer.TemporalScoreRadialVelocity, tempStrokeComparer.TemporalScoreRadialAcceleration, tempStrokeComparer.TemporalScoreRadius, tempStrokeComparer.TemporalScoreTeta, tempStrokeComparer.TemporalScoreDeltaTeta, tempStrokeComparer.TemporalScoreAccumulatedNormArea, tempStrokeComparer.StrokeSpatialScore, tempStrokeComparer.StrokeDistanceTotalScore, tempStrokeComparer.StrokeDistanceTotalScoreStartToStart, tempStrokeComparer.StrokeDistanceTotalScoreStartToEnd, tempStrokeComparer.StrokeDistanceTotalScoreEndToStart, tempStrokeComparer.StrokeDistanceTotalScoreEndToEnd, listStrokeParams, tempStrokeComparer.AccDiffX, tempStrokeComparer.AccDiffY, tempStrokeComparer.AccDiffZ, tempStrokeComparer.AccDiffTotal, tempStrokeComparer.PcaScore, tempStrokeComparer);
+                line = CreateStrokeLine(mIdxComparison.ToString(), idxStrokeComparer.ToString(), templateStored.Name, templateStored.Id.ToString(), usernameHack, templateStoredHackId, gestureAuth.Id.ToString(), ((StrokeExtended)gestureAuth.ListStrokesExtended.get(idxStrokeComparer)).Id.ToString(), mSimulationType, gestureAuth.Instruction, Math.Round(tempStrokeComparer.GetScore(), 5).ToString(), Math.Round(tempStrokeComparer.GetMinCosineDistance(), 5).ToString(), tempStrokeComparer.DtwAccelerations, tempStrokeComparer.DtwCoordinates, tempStrokeComparer.DtwEvents, tempStrokeComparer.DtwNormalizedCoordinates, tempStrokeComparer.DtwNormalizedCoordinatesSpatialDistance, tempStrokeComparer.DtwSpatialAcceleration, tempStrokeComparer.DtwTemporalAcceleration, tempStrokeComparer.DtwSpatialAccumNormArea, tempStrokeComparer.DtwTemporalAccumNormArea, tempStrokeComparer.DtwSpatialDeltaTeta, tempStrokeComparer.DtwTemporalDeltaTeta, tempStrokeComparer.DtwSpatialRadialAcceleration, tempStrokeComparer.DtwTemporalRadialAcceleration, tempStrokeComparer.DtwSpatialRadialVelocity, tempStrokeComparer.DtwTemporalRadialVelocity, tempStrokeComparer.DtwSpatialRadius, tempStrokeComparer.DtwTemporalRadius, tempStrokeComparer.DtwSpatialTeta, tempStrokeComparer.DtwTemporalTeta, tempStrokeComparer.DtwSpatialVelocity, tempStrokeComparer.DtwSpatialVelocity16, tempStrokeComparer.DtwTemporalVelocity, tempStrokeComparer.DtwVelocities, tempStrokeComparer.SpatialScoreVelocity, tempStrokeComparer.SpatialScoreAcceleration, tempStrokeComparer.SpatialScoreRadialVelocity, tempStrokeComparer.SpatialScoreRadialAcceleration, tempStrokeComparer.SpatialScoreRadius, tempStrokeComparer.SpatialScoreTeta, tempStrokeComparer.SpatialScoreDeltaTeta, tempStrokeComparer.SpatialScoreAccumulatedNormArea, tempStrokeComparer.TemporalScoreVelocity, tempStrokeComparer.TemporalScoreAcceleration, tempStrokeComparer.TemporalScoreRadialVelocity, tempStrokeComparer.TemporalScoreRadialAcceleration, tempStrokeComparer.TemporalScoreRadius, tempStrokeComparer.TemporalScoreTeta, tempStrokeComparer.TemporalScoreDeltaTeta, tempStrokeComparer.TemporalScoreAccumulatedNormArea, tempStrokeComparer.StrokeSpatialScore, tempStrokeComparer.StrokeDistanceTotalScore, tempStrokeComparer.StrokeDistanceTotalScoreStartToStart, tempStrokeComparer.StrokeDistanceTotalScoreStartToEnd, tempStrokeComparer.StrokeDistanceTotalScoreEndToStart, tempStrokeComparer.StrokeDistanceTotalScoreEndToEnd, listStrokeParams, tempStrokeComparer.AccDiffX, tempStrokeComparer.AccDiffY, tempStrokeComparer.AccDiffZ, tempStrokeComparer.AccDiffTotal, tempStrokeComparer.PcaScore, tempStrokeComparer);
                 listResultString.Add(line);
             }
 
             return listResultString;
         }
 
-        private string CreateStrokeLine(string idxComparison, string idxStroke, string userName, string templateStoredId, string userNameHack, string templateStoredHackId, string gestureAuthId, string strokeAuthId, string comparisonType, string instruction, string totalScore, string strokeCosineDistance, double DtwAccelerations, double DtwCoordinates, double DtwEvents, double DtwNormalizedCoordinates, double DtwNormalizedCoordinatesSpatialDistance, double DtwSpatialAccelerationDistance, double DtwSpatialAccelerationTime, double DtwSpatialAccumNormAreaDistance, double DtwSpatialAccumNormAreaTime, double DtwSpatialDeltaTetaDistance, double DtwSpatialDeltaTetaTime, double DtwSpatialRadialAccelerationDistance, double DtwSpatialRadialAccelerationTime, double DtwSpatialRadialVelocityDistance, double DtwSpatialRadialVelocityTime, double DtwSpatialRadiusDistance, double DtwSpatialRadiusTime, double DtwSpatialTetaDistance, double DtwSpatialTetaTime, double DtwSpatialVelocityDistance, double DtwSpatialVelocityTime, double DtwVelocities, double SpatialScoreDistanceVelocity, double SpatialScoreDistanceAcceleration, double SpatialScoreDistanceRadialVelocity, double SpatialScoreDistanceRadialAcceleration, double SpatialScoreDistanceRadius, double SpatialScoreDistanceTeta, double SpatialScoreDistanceDeltaTeta, double SpatialScoreDistanceAccumulatedNormArea, double SpatialScoreTimeVelocity, double SpatialScoreTimeAcceleration, double SpatialScoreTimeRadialVelocity, double SpatialScoreTimeRadialAcceleration, double SpatialScoreTimeRadius, double SpatialScoreTimeTeta, double SpatialScoreTimeDeltaTeta, double SpatialScoreTimeAccumulatedNormArea, double totalSpatialTemporalScore, double StrokeDistanceTotalScore, double StrokeDistanceTotalScoreStartToStart, double StrokeDistanceTotalScoreStartToEnd, double StrokeDistanceTotalScoreEndToStart, double StrokeDistanceTotalScoreEndToEnd, List<ICompareResult> listParams, double accMovDiffX, double accMovDiffY, double accMovDiffZ, double accMovDiffTotal, double pcaScore, StrokeComparer tempStrokeComparer)
+        private string CreateStrokeLine(string idxComparison, string idxStroke, string userName, string templateStoredId, string userNameHack, string templateStoredHackId, string gestureAuthId, string strokeAuthId, string comparisonType, string instruction, string totalScore, string strokeCosineDistance, double DtwAccelerations, double DtwCoordinates, double DtwEvents, double DtwNormalizedCoordinates, double DtwNormalizedCoordinatesSpatialDistance, double DtwSpatialAccelerationDistance, double DtwSpatialAccelerationTime, double DtwSpatialAccumNormAreaDistance, double DtwSpatialAccumNormAreaTime, double DtwSpatialDeltaTetaDistance, double DtwSpatialDeltaTetaTime, double DtwSpatialRadialAccelerationDistance, double DtwSpatialRadialAccelerationTime, double DtwSpatialRadialVelocityDistance, double DtwSpatialRadialVelocityTime, double DtwSpatialRadiusDistance, double DtwSpatialRadiusTime, double DtwSpatialTetaDistance, double DtwSpatialTetaTime, double DtwSpatialVelocityDistance, double DtwSpatialVelocityDistance16, double DtwSpatialVelocityTime, double DtwVelocities, double SpatialScoreDistanceVelocity, double SpatialScoreDistanceAcceleration, double SpatialScoreDistanceRadialVelocity, double SpatialScoreDistanceRadialAcceleration, double SpatialScoreDistanceRadius, double SpatialScoreDistanceTeta, double SpatialScoreDistanceDeltaTeta, double SpatialScoreDistanceAccumulatedNormArea, double SpatialScoreTimeVelocity, double SpatialScoreTimeAcceleration, double SpatialScoreTimeRadialVelocity, double SpatialScoreTimeRadialAcceleration, double SpatialScoreTimeRadius, double SpatialScoreTimeTeta, double SpatialScoreTimeDeltaTeta, double SpatialScoreTimeAccumulatedNormArea, double totalSpatialTemporalScore, double StrokeDistanceTotalScore, double StrokeDistanceTotalScoreStartToStart, double StrokeDistanceTotalScoreStartToEnd, double StrokeDistanceTotalScoreEndToStart, double StrokeDistanceTotalScoreEndToEnd, List<ICompareResult> listParams, double accMovDiffX, double accMovDiffY, double accMovDiffZ, double accMovDiffTotal, double pcaScore, StrokeComparer tempStrokeComparer)
         {
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -894,6 +970,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(DtwSpatialTetaDistance, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(DtwSpatialTetaTime, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(DtwSpatialVelocityDistance, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(DtwSpatialVelocityDistance16, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(DtwSpatialVelocityTime, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(DtwVelocities, 5).ToString());            
 
@@ -919,13 +996,12 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(accMovDiffX, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(accMovDiffY, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(accMovDiffZ, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(accMovDiffTotal, 5).ToString());
-
-            AppendWithComma(stringBuilder, Math.Round(pcaScore, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(accMovDiffTotal, 5).ToString());            
 
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.RadialVelocityDiff, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.RadialAccelerationDiff, 5).ToString());
 
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity0, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity1, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity2, 5).ToString());
@@ -942,6 +1018,15 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity13, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity14, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity15, 5).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(pcaScore, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.PcaScoreFinal, 5).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwSpatialTotalScore, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwSpatialTotalScoreFinal, 5).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointScore, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointScoreFinal, 5).ToString());
 
             for (int idx = 0; idx < STROKE_NUM_PARAMS; idx++)
             {
@@ -1100,6 +1185,8 @@ namespace VerifyooSimulator
                 UpdateProgress(totalNumbRecords, currentRecord);
                 String numComparisons;
 
+                bool isBreak = false;
+
                 foreach (UserContainer userContainerBase in userContainerMgr.GetUserContainers().Values)
                 {
                     try
@@ -1139,17 +1226,27 @@ namespace VerifyooSimulator
                             }
 
                             currentRecord++;
-                            UpdateProgress(totalNumbRecords, currentRecord);
+                            if (currentRecord >= mLimitRecordsNaiveHack)
+                            {
+                                isBreak = true;
+                                break;
+                            }
+                            UpdateProgress(totalNumbRecords, currentRecord);                            
                         }                        
                     }
                     catch (Exception exc)
                     {
                         string msg = exc.Message;
-                    }
+                    }                   
 
                     mStreamWriterGestures.Flush();
                     mStreamWriterStrokes.Flush();
                     mStreamWriterLog.Flush();
+
+                    if(isBreak)
+                    {
+                        break;
+                    }
                 }
 
                 mStreamWriterGestures.Close();
@@ -1236,7 +1333,7 @@ namespace VerifyooSimulator
                 mStreamWriterStrokes.Close();
                 mStreamWriterLog.Close();
 
-                EnableButtons();
+                //EnableButtons();
 
                 this.lblEndTime.Invoke(new MethodInvoker(() => this.lblEndTime.Text = DateTime.Now.ToLongTimeString()));               
                 UpdateProgress(totalNumbRecords, currentRecord);
@@ -1304,9 +1401,7 @@ namespace VerifyooSimulator
             IEnumerable<ModelTemplate> modelTemplates;
 
             TemplateExtended tempTemplate = null;
-
-            List<GestureExtended> gesturesTestSample;
-
+            
             mListMongo = UtilsNewDB.GetTemplates();
             mIsFinished = false;
 
@@ -1331,12 +1426,15 @@ namespace VerifyooSimulator
                 while (!mIsFinished)
                 {
                     modelTemplates = mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
-
+                    
                     foreach (ModelTemplate template in modelTemplates)
                     {
                         tempTemplate = UtilsTemplateConverter.ConvertTemplateNew(template);
 
-                        ExportTemplateToCSV(tempTemplate, currentRecord, template);
+                        if(tempTemplate.Name.CompareTo("roy_dalal") == 0)
+                        {
+                            ExportTemplateToCSV(tempTemplate, currentRecord, template);
+                        }
 
                         currentRecord++;
                         UpdateProgress(totalNumbRecords, currentRecord);
@@ -1351,7 +1449,7 @@ namespace VerifyooSimulator
                         mIsFinished = true;
 
                         CloseCsvStreams();
-                        EnableButtons();
+                        //EnableButtons();
 
                         this.lblEndTime.Invoke(new MethodInvoker(() => this.lblEndTime.Text = DateTime.Now.ToLongTimeString()));
                         UpdateProgress(totalNumbRecords, currentRecord);
@@ -1458,6 +1556,12 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "DeltaTeta");
 
             AppendWithComma(stringBuilder, "AccumulatedNormalizedArea");
+
+            AppendWithComma(stringBuilder, "DeltaTetaAngleDiffProp");
+            AppendWithComma(stringBuilder, "AngleDiffDeltaTetaProp");
+
+            AppendWithComma(stringBuilder, "EventDensity");
+            AppendWithComma(stringBuilder, "EventDistance");
 
             //AppendWithComma(stringBuilder, "IsHistory");
 
@@ -1757,6 +1861,31 @@ namespace VerifyooSimulator
 
             AppendWithComma(stringBuilder, Math.Round(inputEvent.AccumulatedNormalizedArea, NUM_DECIMALS).ToString());
 
+            double deltaTetaAngleProp = 0;
+            if (inputEvent.AngleDiff != 0) {
+                deltaTetaAngleProp = Math.Abs(inputEvent.DeltaTeta / inputEvent.AngleDiff);
+            }
+            else
+            {
+                deltaTetaAngleProp = 100000000000;
+            }
+            AppendWithComma(stringBuilder, Math.Round(deltaTetaAngleProp, NUM_DECIMALS).ToString());
+
+            double angleDiffDeltaTetaProp = 0;
+            if (inputEvent.DeltaTeta != 0)
+            {
+                angleDiffDeltaTetaProp = Math.Abs(inputEvent.AngleDiff / inputEvent.DeltaTeta);
+            }
+            else
+            {
+                angleDiffDeltaTetaProp = 100000000000;
+            }
+
+            AppendWithComma(stringBuilder, Math.Round(angleDiffDeltaTetaProp, NUM_DECIMALS).ToString());
+
+            AppendWithComma(stringBuilder, inputEvent.EventDensity.ToString());
+            AppendWithComma(stringBuilder, inputEvent.EventDistance.ToString());
+
             //AppendWithComma(stringBuilder, inputEvent.IsHistory.ToString());
 
             switch (eventType) {
@@ -1785,6 +1914,22 @@ namespace VerifyooSimulator
             this.button4.Invoke(new MethodInvoker(() => this.button4.Enabled = true));
             this.button5.Invoke(new MethodInvoker(() => this.button5.Enabled = true));
             this.button6.Invoke(new MethodInvoker(() => this.button6.Enabled = true));
+            this.button7.Invoke(new MethodInvoker(() => this.button7.Enabled = true));
+
+            mStreamWriterRocFRR = InitStreamWriterFRR();
+            mStreamWriterRocFAR = InitStreamWriterFAR();
+
+            InitRocHeader(mStreamWriterRocFAR);
+            InitRocHeader(mStreamWriterRocFRR);
+
+            mPerformanceMgr.WriteFRR(mStreamWriterRocFRR);
+            mPerformanceMgr.WriteFAR(mStreamWriterRocFAR);
+
+            mStreamWriterRocFRR.Flush();
+            mStreamWriterRocFAR.Flush();
+
+            mStreamWriterRocFRR.Close();
+            mStreamWriterRocFAR.Close();
         }
 
         private void SetButtonStatus(bool isEnabled) {
@@ -1795,6 +1940,7 @@ namespace VerifyooSimulator
             button4.Enabled = isEnabled;
             button5.Enabled = isEnabled;
             button6.Enabled = isEnabled;
+            button7.Enabled = isEnabled;
         }
 
 
@@ -1824,6 +1970,10 @@ namespace VerifyooSimulator
                         if (template.DeviceId.CompareTo("062bba750ae4e2b3") == 0)
                         {
                             template.Name = template.Name.ToLower();
+
+                            if (template.Name.Contains("oded_luria")) {
+                                template.Name = "oded_luria";
+                            }
 
                             if (template.Name.CompareTo("shir_mor88@walla.com") != 0 &&
                                 template.Name.CompareTo("yinon_m") != 0 &&
@@ -1873,6 +2023,61 @@ namespace VerifyooSimulator
             {
                 return true;
             }
+        }        
+
+        private void SetThreasholdForSelectedFAR()
+        {
+            double value = 0;
+            Double.TryParse(textBoxFrrTarget.Text, out value);
+            mThreasholdForSelectedFAR = mPerformanceMgr.GetThreasholdForFAR(value);
+        }
+
+        private void SimulationFarFrr()
+        {
+            mSimulationType = SIMULATOR_TYPE_AUTH;
+            RunFullSimulation();
+            SetThreasholdForSelectedFAR();
+
+            mThreashold70 = 0;
+            mThreashold75 = 0;
+            mThreashold80 = 0;
+            mThreashold85 = 0;
+            mThreashold90 = 0;
+            mThreashold95 = 0;
+
+            mTotalNumComparisons = 0;
+
+            if (checkBoxIsAdvHack.Checked)
+            {
+                mSimulationType = SIMULATOR_TYPE_HACK;
+            }
+            else
+            {
+                mSimulationType = SIMULATOR_TYPE_NAIVE_HACK;
+            }
+            
+            RunFullSimulation();
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            DisableButtons();
+
+            Double.TryParse(textBoxComparisonsLimit.Text, out mLimitRecordsNaiveHack);
+            mTotalNumComparisons = 1;
+            lblStartTime.Text = DateTime.Now.ToLongTimeString();
+            lblType.Text = SIMULATOR_TYPE_FAR_FRR;
+            Task task = Task.Run((Action)SimulationFarFrr);
+        }
+
+        private void lblComparisons_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label12_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

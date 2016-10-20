@@ -183,6 +183,27 @@ namespace NormCalculator
         NumericNormContainer mNormContainerStrokeMaxRadialAccelerationMean = new NumericNormContainer();
         NumericNormContainer mNormContainerStrokeMaxRadialAccelerationStd = new NumericNormContainer();
 
+        NumericNormContainer mNormContainerStrokeMaxInterestPointIndexMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMaxInterestPointIndexStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeMaxInterestPointDensityMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMaxInterestPointDensityStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeMaxInterestPointLocationMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMaxInterestPointLocationStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeMaxInterestPointPressureMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMaxInterestPointPressureStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeMaxInterestPointSurfaceMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMaxInterestPointSurfaceStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeMaxInterestPointVelocityMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMaxInterestPointVelocityStd = new NumericNormContainer();
+
+        NumericNormContainer mNormContainerStrokeMaxInterestPointAccelerationMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeMaxInterestPointAccelerationStd = new NumericNormContainer();
+
         int mStrokesCount;
         int mCurrentTemplateNum;
 
@@ -300,6 +321,13 @@ namespace NormCalculator
             NumericNormContainer tempNormContainerStrokeMaxRadialVelocity;
             NumericNormContainer tempNormContainerStrokeMaxRadialAcceleration;
 
+            NumericNormContainer tempNormContainerStrokeMaxInterestPointIndex;
+            NumericNormContainer tempNormContainerStrokeMaxInterestPointDensity;
+            NumericNormContainer tempNormContainerStrokeMaxInterestPointLocation;
+            NumericNormContainer tempNormContainerStrokeMaxInterestPointPressure;
+            NumericNormContainer tempNormContainerStrokeMaxInterestPointSurface;
+            NumericNormContainer tempNormContainerStrokeMaxInterestPointVelocity;
+            NumericNormContainer tempNormContainerStrokeMaxInterestPointAcceleration;
 
             bool isInitialized = false;
             string tempInstruction;
@@ -389,6 +417,14 @@ namespace NormCalculator
                             tempNormContainerStrokeMaxRadialVelocity = new NumericNormContainer();
                             tempNormContainerStrokeMaxRadialAcceleration = new NumericNormContainer();
 
+                            tempNormContainerStrokeMaxInterestPointIndex = new NumericNormContainer();
+                            tempNormContainerStrokeMaxInterestPointDensity = new NumericNormContainer();
+                            tempNormContainerStrokeMaxInterestPointLocation = new NumericNormContainer();
+                            tempNormContainerStrokeMaxInterestPointPressure = new NumericNormContainer();
+                            tempNormContainerStrokeMaxInterestPointSurface = new NumericNormContainer();
+                            tempNormContainerStrokeMaxInterestPointVelocity = new NumericNormContainer();
+                            tempNormContainerStrokeMaxInterestPointAcceleration = new NumericNormContainer();
+
                             for (int idxGesture = 0; idxGesture < tempTemplate.ListGestureExtended.size(); idxGesture++)
                             {
                                 tempGesture = (GestureExtended)tempTemplate.ListGestureExtended.get(idxGesture);
@@ -452,6 +488,14 @@ namespace NormCalculator
 
                                         tempNormContainerStrokeMaxRadialVelocity.AddValue(SafeAddValue(tempStroke.StrokeMaxRadialVelocity), tempInstruction, idxStroke);
                                         tempNormContainerStrokeMaxRadialAcceleration.AddValue(SafeAddValue(tempStroke.StrokeMaxRadialAcceleration), tempInstruction, idxStroke);
+
+                                        tempNormContainerStrokeMaxInterestPointIndex.AddValue(SafeAddValue(tempStroke.MaxInterestPointIndex), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeMaxInterestPointDensity.AddValue(SafeAddValue(tempStroke.MaxInterestPointDensity), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeMaxInterestPointLocation.AddValue(SafeAddValue(tempStroke.MaxInterestPointLocation), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeMaxInterestPointPressure.AddValue(SafeAddValue(tempStroke.MaxInterestPointPressure), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeMaxInterestPointSurface.AddValue(SafeAddValue(tempStroke.MaxInterestPointSurface), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeMaxInterestPointVelocity.AddValue(SafeAddValue(tempStroke.MaxInterestPointVelocity), tempInstruction, idxStroke);
+                                        tempNormContainerStrokeMaxInterestPointAcceleration.AddValue(SafeAddValue(tempStroke.MaxInterestPointAcceleration), tempInstruction, idxStroke);
 
                                         for (int idxEvent = 0; idxEvent < UtilsConsts.SAMPLE_SIZE; idxEvent++)
                                         {
@@ -574,6 +618,14 @@ namespace NormCalculator
 
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxRadialVelocity, mNormContainerStrokeMaxRadialVelocityMean, mNormContainerStrokeMaxRadialVelocityStd);
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxRadialAcceleration, mNormContainerStrokeMaxRadialAccelerationMean, mNormContainerStrokeMaxRadialAccelerationStd);
+
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxInterestPointIndex, mNormContainerStrokeMaxInterestPointIndexMean, mNormContainerStrokeMaxInterestPointIndexStd);
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxInterestPointDensity, mNormContainerStrokeMaxInterestPointDensityMean, mNormContainerStrokeMaxInterestPointDensityStd);
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxInterestPointLocation, mNormContainerStrokeMaxInterestPointLocationMean, mNormContainerStrokeMaxInterestPointLocationStd);
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxInterestPointPressure, mNormContainerStrokeMaxInterestPointPressureMean, mNormContainerStrokeMaxInterestPointPressureStd);
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxInterestPointSurface, mNormContainerStrokeMaxInterestPointSurfaceMean, mNormContainerStrokeMaxInterestPointSurfaceStd);
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxInterestPointVelocity, mNormContainerStrokeMaxInterestPointVelocityMean, mNormContainerStrokeMaxInterestPointVelocityStd);
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxInterestPointAcceleration, mNormContainerStrokeMaxInterestPointAccelerationMean, mNormContainerStrokeMaxInterestPointAccelerationStd);
                                 }
                             }
                         }
@@ -823,6 +875,27 @@ namespace NormCalculator
 
             normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_ACCELERATION, mNormContainerStrokeMaxRadialAccelerationMean);
             normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_ACCELERATION, mNormContainerStrokeMaxRadialAccelerationStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_INDEX, mNormContainerStrokeMaxInterestPointIndexMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_INDEX, mNormContainerStrokeMaxInterestPointIndexStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_DENSITY, mNormContainerStrokeMaxInterestPointDensityMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_DENSITY, mNormContainerStrokeMaxInterestPointDensityStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_LOCATION, mNormContainerStrokeMaxInterestPointLocationMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_LOCATION, mNormContainerStrokeMaxInterestPointLocationStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_PRESSURE, mNormContainerStrokeMaxInterestPointPressureMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_PRESSURE, mNormContainerStrokeMaxInterestPointPressureStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_SURFACE, mNormContainerStrokeMaxInterestPointSurfaceMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_SURFACE, mNormContainerStrokeMaxInterestPointSurfaceStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_VELOCITY, mNormContainerStrokeMaxInterestPointVelocityMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_VELOCITY, mNormContainerStrokeMaxInterestPointVelocityStd);
+
+            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_ACCELERATION, mNormContainerStrokeMaxInterestPointAccelerationMean);
+            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_ACCELERATION, mNormContainerStrokeMaxInterestPointAccelerationStd);
 
             /********************************************************************************************************************************/
 
