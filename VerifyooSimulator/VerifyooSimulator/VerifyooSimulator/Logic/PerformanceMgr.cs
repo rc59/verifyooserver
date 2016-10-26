@@ -10,6 +10,7 @@ namespace VerifyooSimulator.Logic
     public class PerformanceMgr
     {
         protected int mResolution;
+        protected int mIdxSelectedThreashold;
 
         protected double[] mThreasholds;
 
@@ -24,6 +25,7 @@ namespace VerifyooSimulator.Logic
 
         public PerformanceMgr(int resolution)
         {
+            mIdxSelectedThreashold = -1;
             mResolution = resolution;
 
             double threasholdInc = 1 / (double)resolution;
@@ -98,6 +100,14 @@ namespace VerifyooSimulator.Logic
             }
         }
 
+        public double GetFAR(double targetFRR)
+        {
+            if (mIdxSelectedThreashold == -1) {
+                double temp = GetThreasholdForFAR(targetFRR);
+            }
+            return mFAR[mIdxSelectedThreashold];
+        }
+
         public void WriteFAR(StreamWriter streamWriter)
         {
             StringBuilder stringBuilder;
@@ -136,8 +146,8 @@ namespace VerifyooSimulator.Logic
                 }
             }
 
+            mIdxSelectedThreashold = idxMinFrrDiff;
             return mThreasholds[idxMinFrrDiff];
-        }
-
+        }        
     }
 }

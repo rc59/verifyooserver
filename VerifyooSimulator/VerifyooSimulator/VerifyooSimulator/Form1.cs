@@ -68,19 +68,30 @@ namespace VerifyooSimulator
 
         StreamWriter mStreamWriterRocFRR = null;
         StreamWriter mStreamWriterRocFAR = null;
+        StreamWriter mStreamWriterParamsPerformance = null;
 
         private MongoCollection<ModelTemplate> mListMongo;
         private bool mIsFinished;
 
         string mSimulationType;
         private int NUM_DECIMALS = 8;
+        private int RESOLUTION_ROC = 1000;
+
+        private double mTargetFRR;
 
         PerformanceMgr mPerformanceMgr;
+        Dictionary<String, PerformanceMgr> mListPerformanceMgr;        
+
+
 
         public Form1()
         {
-            mPerformanceMgr = new PerformanceMgr(1000);
+            mPerformanceMgr = new PerformanceMgr(RESOLUTION_ROC);
+            mListPerformanceMgr = new Dictionary<string, PerformanceMgr>();
             InitializeComponent();
+
+            mTargetFRR = 0;
+            Double.TryParse(textBoxFrrTarget.Text, out mTargetFRR);
         }
 
         private void UpdateThreasholds(double score)
@@ -455,7 +466,8 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "DtwScore");
             AppendWithComma(stringBuilder, "InterestPointScore");
 
-            AppendWithComma(stringBuilder, "ExtraParamsValue");
+            AppendWithComma(stringBuilder, "BooleanParamsScore");
+            AppendWithComma(stringBuilder, "NormalizedParamsScore");
 
             for (int idx = 0; idx < GESTURE_NUM_PARAMS; idx++)
             {
@@ -485,6 +497,30 @@ namespace VerifyooSimulator
             StringBuilder stringBuilder = new StringBuilder();
             AppendWithComma(stringBuilder, "Treashold");
             AppendWithComma(stringBuilder, "FAR/FRR");
+
+            streamWriter.WriteLine(stringBuilder.ToString());
+        }
+
+        private void InitParamsPerformance(StreamWriter streamWriter)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            AppendWithComma(stringBuilder, "Param Name");
+            AppendWithComma(stringBuilder, "FAR");
+            AppendWithComma(stringBuilder, "FRR");
+            AppendWithComma(stringBuilder, "Threashold");
+
+            streamWriter.WriteLine(stringBuilder.ToString());
+        }
+
+        private void WriteParamPerformanceLine(StreamWriter streamWriter, string paramName, PerformanceMgr perfMgr)
+        {            
+            double threashold = perfMgr.GetThreasholdForFAR(mTargetFRR);
+
+            StringBuilder stringBuilder = new StringBuilder();
+            AppendWithComma(stringBuilder, paramName);
+            AppendWithComma(stringBuilder, perfMgr.GetFAR(mTargetFRR).ToString());
+            AppendWithComma(stringBuilder, "0.222%");
+            AppendWithComma(stringBuilder, threashold.ToString());
 
             streamWriter.WriteLine(stringBuilder.ToString());
         }
@@ -587,9 +623,20 @@ namespace VerifyooSimulator
 
             AppendWithComma(stringBuilder, "DtwSpatialTotalScore");
             AppendWithComma(stringBuilder, "DtwSpatialTotalScoreFinal");
+            AppendWithComma(stringBuilder, "DtwYona");
 
             AppendWithComma(stringBuilder, "InterestPointScore");
             AppendWithComma(stringBuilder, "InterestPointScoreFinal");
+
+            AppendWithComma(stringBuilder, "MaxInterestPointIndex");
+            AppendWithComma(stringBuilder, "MaxInterestPointDensity");
+            AppendWithComma(stringBuilder, "MaxInterestPointLocation");
+            AppendWithComma(stringBuilder, "MaxInterestPointPressure");
+            AppendWithComma(stringBuilder, "MaxInterestPointSurface");
+            AppendWithComma(stringBuilder, "MaxInterestPointVelocity");
+            AppendWithComma(stringBuilder, "MaxInterestPointAcceleration");
+            AppendWithComma(stringBuilder, "MaxInterestPointAvgVelocity");
+            AppendWithComma(stringBuilder, "MaxInterestPointDeltaTeta");
 
             for (int idx = 0; idx < STROKE_NUM_PARAMS; idx++)
             {
@@ -626,6 +673,12 @@ namespace VerifyooSimulator
         private StreamWriter InitStreamWriterFAR()
         {
             StreamWriter streamWriter = File.CreateText(@"C:\Temp\RocFAR.csv");
+            return streamWriter;
+        }
+
+        private StreamWriter InitStreamWriterParamsPerformance()
+        {
+            StreamWriter streamWriter = File.CreateText(@"C:\Temp\ParamsPerformance.csv");
             return streamWriter;
         }
 
@@ -768,7 +821,7 @@ namespace VerifyooSimulator
 
                     WriteStringsToFile(listResultStrings, mStreamWriterGestures);
 
-                    listResultStrings = CreateStrokeResultStrings(gestureComparer, tempTemplate, gestureTest, string.Empty, string.Empty);
+                    listResultStrings = CreateStrokeResultStrings(gestureComparer, tempTemplate, gestureTest, tempTemplateHack.Name, tempTemplateHack.Id.ToString());
                     WriteStringsToFile(listResultStrings, mStreamWriterStrokes);
 
                     return tempScore;
@@ -848,8 +901,8 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, gestureComparer.DtwScore.ToString());
             AppendWithComma(stringBuilder, gestureComparer.InterestPointScore.ToString());
 
-            AppendWithComma(stringBuilder, gestureComparer.ExtraParamsValue.ToString());
-            
+            AppendWithComma(stringBuilder, gestureComparer.BooleanParamsScore.ToString());
+            AppendWithComma(stringBuilder, gestureComparer.NormalizedParamsScore.ToString());
 
             for (int idx = 0; idx < GESTURE_NUM_PARAMS; idx++)
             {
@@ -866,10 +919,33 @@ namespace VerifyooSimulator
             return stringBuilder.ToString();
         }
 
+        private void AddParameterToPerformanceMgr(string paramName, double value)
+        {            
+            if (!mListPerformanceMgr.ContainsKey(paramName))
+            {
+                mListPerformanceMgr.Add(paramName, new PerformanceMgr(RESOLUTION_ROC));
+            }
+
+            switch (mSimulationType)
+            {
+                case SIMULATOR_TYPE_HACK:
+                    mListPerformanceMgr[paramName].AddFARValue(value);
+                    break;
+                case SIMULATOR_TYPE_NAIVE_HACK:
+                    mListPerformanceMgr[paramName].AddFARValue(value);
+                    break;
+                case SIMULATOR_TYPE_AUTH:
+                    mListPerformanceMgr[paramName].AddFRRValue(value);
+                    break;
+            }
+        }
+
         private void AppendStatParam(StringBuilder stringBuilder, ICompareResult gestureParam)
-        {
+        {            
             if (gestureParam != null)
             {
+                AddParameterToPerformanceMgr(gestureParam.GetName(), gestureParam.GetValue());
+
                 AppendWithComma(stringBuilder, gestureParam.GetName());
                 AppendWithComma(stringBuilder, gestureParam.GetValue().ToString());
                 AppendWithComma(stringBuilder, gestureParam.GetOriginalValue().ToString());
@@ -1024,9 +1100,32 @@ namespace VerifyooSimulator
 
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwSpatialTotalScore, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwSpatialTotalScoreFinal, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwYona, 10).ToString());
 
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointScore, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointScoreFinal, 5).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointIndex, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointDensity, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointLocation, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointPressure, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointSurface, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointVelocity, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointAcceleration, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointAvgVelocity, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointDeltaTeta, 5).ToString());
+
+            AddParameterToPerformanceMgr("MaxInterestPointDeltaTeta", tempStrokeComparer.MaxInterestPointDeltaTeta);
+            AddParameterToPerformanceMgr("MaxInterestPointDensity", tempStrokeComparer.MaxInterestPointDensity);
+            AddParameterToPerformanceMgr("MaxInterestPointLocation", tempStrokeComparer.MaxInterestPointLocation);
+            AddParameterToPerformanceMgr("MaxInterestPointIndex", tempStrokeComparer.MaxInterestPointIndex);
+            AddParameterToPerformanceMgr("MaxInterestPointVelocity", tempStrokeComparer.MaxInterestPointVelocity);
+            AddParameterToPerformanceMgr("MaxInterestPointAcceleration", tempStrokeComparer.MaxInterestPointAcceleration);
+            AddParameterToPerformanceMgr("MaxInterestPointDeltaTeta", tempStrokeComparer.MaxInterestPointDeltaTeta);
+            AddParameterToPerformanceMgr("MaxInterestPointAvgVelocity", tempStrokeComparer.MaxInterestPointAvgVelocity);
+
+            AddParameterToPerformanceMgr("PcaScore", tempStrokeComparer.PcaScore);
+            AddParameterToPerformanceMgr("DtwScore", tempStrokeComparer.DtwSpatialTotalScore);
 
             for (int idx = 0; idx < STROKE_NUM_PARAMS; idx++)
             {
@@ -1431,10 +1530,10 @@ namespace VerifyooSimulator
                     {
                         tempTemplate = UtilsTemplateConverter.ConvertTemplateNew(template);
 
-                        if(tempTemplate.Name.CompareTo("roy_dalal") == 0)
+                        if (tempTemplate.Name.CompareTo("roy_dalal") == 0)
                         {
                             ExportTemplateToCSV(tempTemplate, currentRecord, template);
-                        }
+                        }                        
 
                         currentRecord++;
                         UpdateProgress(totalNumbRecords, currentRecord);
@@ -1561,6 +1660,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "AngleDiffDeltaTetaProp");
 
             AppendWithComma(stringBuilder, "EventDensity");
+            AppendWithComma(stringBuilder, "EventDensitySignalStrength");
             AppendWithComma(stringBuilder, "EventDistance");
 
             //AppendWithComma(stringBuilder, "IsHistory");
@@ -1620,6 +1720,10 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "MiddleSurface");
 
             AppendWithComma(stringBuilder, "StrokeTimeInterval");
+
+            AppendWithComma(stringBuilder, "MaxInterestPointIndex");
+            AppendWithComma(stringBuilder, "MaxInterestPointBoundaryMin");
+            AppendWithComma(stringBuilder, "MaxInterestPointBoundaryMax");
 
             streamWriter.WriteLine(stringBuilder.ToString());
         }
@@ -1775,7 +1879,11 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, inputStroke.MiddleSurface.ToString());
 
             AppendWithComma(stringBuilder, inputStroke.StrokeTimeInterval.ToString());
-            
+
+            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointIndex.ToString());
+            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointBoundaryMin.ToString());
+            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointBoundaryMax.ToString());
+
             mStreamWriterCsvStrokes.WriteLine(stringBuilder.ToString());
 
             MotionEventExtended tempEvent;
@@ -1791,9 +1899,9 @@ namespace VerifyooSimulator
                 WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_SPATIAL, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime, recordType);
             }
 
-            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsTemporalExtended.size() - 1; idxEvent++)
+            for (int idxEvent = 0; idxEvent < inputStroke.ListEventsFreqExtended.size() - 1; idxEvent++)
             {
-                tempEvent = (MotionEventExtended)inputStroke.ListEventsTemporalExtended.get(idxEvent);
+                tempEvent = (MotionEventExtended)inputStroke.ListEventsFreqExtended.get(idxEvent);
                 WriteEvent(inputTemplate, inputGesture, inputStroke, tempEvent, EVENT_TYPE_TEMPORAL, idxTemplate, idxGesture, idxStroke, idxEvent, gestureStartTime, recordType);
             }
         }
@@ -1884,6 +1992,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(angleDiffDeltaTetaProp, NUM_DECIMALS).ToString());
 
             AppendWithComma(stringBuilder, inputEvent.EventDensity.ToString());
+            AppendWithComma(stringBuilder, inputEvent.EventDensitySignalStrength.ToString());
             AppendWithComma(stringBuilder, inputEvent.EventDistance.ToString());
 
             //AppendWithComma(stringBuilder, inputEvent.IsHistory.ToString());
@@ -1908,6 +2017,27 @@ namespace VerifyooSimulator
 
         private void EnableButtons()
         {
+            mStreamWriterRocFRR = InitStreamWriterFRR();
+            mStreamWriterRocFAR = InitStreamWriterFAR();
+            mStreamWriterParamsPerformance = InitStreamWriterParamsPerformance();
+
+            InitRocHeader(mStreamWriterRocFAR);
+            InitRocHeader(mStreamWriterRocFRR);
+            InitParamsPerformance(mStreamWriterParamsPerformance);
+
+            mPerformanceMgr.WriteFRR(mStreamWriterRocFRR);
+            mPerformanceMgr.WriteFAR(mStreamWriterRocFAR);
+
+            WriteParamsPerformance(mStreamWriterParamsPerformance);
+
+            mStreamWriterRocFRR.Flush();
+            mStreamWriterRocFAR.Flush();
+            mStreamWriterParamsPerformance.Flush();
+
+            mStreamWriterRocFRR.Close();
+            mStreamWriterRocFAR.Close();
+            mStreamWriterParamsPerformance.Close();
+
             this.button1.Invoke(new MethodInvoker(() => this.button1.Enabled = true));
             this.button2.Invoke(new MethodInvoker(() => this.button2.Enabled = true));
             this.button3.Invoke(new MethodInvoker(() => this.button3.Enabled = true));
@@ -1915,21 +2045,22 @@ namespace VerifyooSimulator
             this.button5.Invoke(new MethodInvoker(() => this.button5.Enabled = true));
             this.button6.Invoke(new MethodInvoker(() => this.button6.Enabled = true));
             this.button7.Invoke(new MethodInvoker(() => this.button7.Enabled = true));
+        }
 
-            mStreamWriterRocFRR = InitStreamWriterFRR();
-            mStreamWriterRocFAR = InitStreamWriterFAR();
-
-            InitRocHeader(mStreamWriterRocFAR);
-            InitRocHeader(mStreamWriterRocFRR);
-
-            mPerformanceMgr.WriteFRR(mStreamWriterRocFRR);
-            mPerformanceMgr.WriteFAR(mStreamWriterRocFAR);
-
-            mStreamWriterRocFRR.Flush();
-            mStreamWriterRocFAR.Flush();
-
-            mStreamWriterRocFRR.Close();
-            mStreamWriterRocFAR.Close();
+        private void WriteParamsPerformance(StreamWriter streamWriter)
+        {
+            PerformanceMgr tempPerfMgr;
+            foreach (string paramName in mListPerformanceMgr.Keys) {
+                try
+                {
+                    tempPerfMgr = mListPerformanceMgr[paramName];
+                    WriteParamPerformanceLine(streamWriter, paramName, tempPerfMgr);
+                }
+                catch(Exception exc)
+                {
+                    string msg = exc.Message;
+                }
+            }
         }
 
         private void SetButtonStatus(bool isEnabled) {
