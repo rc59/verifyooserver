@@ -67,6 +67,11 @@
             this.checkBoxIsAdvHack = new System.Windows.Forms.CheckBox();
             this.label14 = new System.Windows.Forms.Label();
             this.textBoxComparisonsLimit = new System.Windows.Forms.TextBox();
+            this.button8 = new System.Windows.Forms.Button();
+            this.lblFARRaw = new System.Windows.Forms.Label();
+            this.label16 = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
+            this.lblFRRCalc = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblCompleted
@@ -256,7 +261,7 @@
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(12, 329);
+            this.button3.Location = new System.Drawing.Point(11, 438);
             this.button3.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(360, 37);
@@ -302,7 +307,7 @@
             // 
             // button6
             // 
-            this.button6.Location = new System.Drawing.Point(12, 288);
+            this.button6.Location = new System.Drawing.Point(12, 349);
             this.button6.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(360, 37);
@@ -314,7 +319,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(12, 76);
+            this.label10.Location = new System.Drawing.Point(12, 102);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(39, 17);
             this.label10.TabIndex = 27;
@@ -333,7 +338,7 @@
             // lblFar
             // 
             this.lblFar.AutoSize = true;
-            this.lblFar.Location = new System.Drawing.Point(55, 76);
+            this.lblFar.Location = new System.Drawing.Point(88, 102);
             this.lblFar.Name = "lblFar";
             this.lblFar.Size = new System.Drawing.Size(43, 17);
             this.lblFar.TabIndex = 29;
@@ -351,7 +356,7 @@
             // 
             // button7
             // 
-            this.button7.Location = new System.Drawing.Point(11, 143);
+            this.button7.Location = new System.Drawing.Point(11, 187);
             this.button7.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(360, 37);
@@ -405,7 +410,7 @@
             // 
             // textBoxFrrTarget
             // 
-            this.textBoxFrrTarget.Location = new System.Drawing.Point(157, 107);
+            this.textBoxFrrTarget.Location = new System.Drawing.Point(157, 127);
             this.textBoxFrrTarget.Name = "textBoxFrrTarget";
             this.textBoxFrrTarget.Size = new System.Drawing.Size(215, 22);
             this.textBoxFrrTarget.TabIndex = 34;
@@ -414,16 +419,16 @@
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(12, 110);
+            this.label13.Location = new System.Drawing.Point(12, 130);
             this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(86, 17);
+            this.label13.Size = new System.Drawing.Size(117, 17);
             this.label13.TabIndex = 35;
-            this.label13.Text = "Target FRR:";
+            this.label13.Text = "Target FRR Raw:";
             // 
             // checkBoxIsAdvHack
             // 
             this.checkBoxIsAdvHack.AutoSize = true;
-            this.checkBoxIsAdvHack.Location = new System.Drawing.Point(15, 190);
+            this.checkBoxIsAdvHack.Location = new System.Drawing.Point(15, 234);
             this.checkBoxIsAdvHack.Name = "checkBoxIsAdvHack";
             this.checkBoxIsAdvHack.Size = new System.Drawing.Size(129, 21);
             this.checkBoxIsAdvHack.TabIndex = 36;
@@ -433,7 +438,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(12, 229);
+            this.label14.Location = new System.Drawing.Point(12, 273);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(117, 17);
             this.label14.TabIndex = 38;
@@ -441,17 +446,69 @@
             // 
             // textBoxComparisonsLimit
             // 
-            this.textBoxComparisonsLimit.Location = new System.Drawing.Point(157, 226);
+            this.textBoxComparisonsLimit.Location = new System.Drawing.Point(157, 270);
             this.textBoxComparisonsLimit.Name = "textBoxComparisonsLimit";
             this.textBoxComparisonsLimit.Size = new System.Drawing.Size(215, 22);
             this.textBoxComparisonsLimit.TabIndex = 37;
             this.textBoxComparisonsLimit.Text = "300";
             // 
+            // button8
+            // 
+            this.button8.Location = new System.Drawing.Point(12, 394);
+            this.button8.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.button8.Name = "button8";
+            this.button8.Size = new System.Drawing.Size(360, 37);
+            this.button8.TabIndex = 39;
+            this.button8.Text = "Export Norms";
+            this.button8.UseVisualStyleBackColor = true;
+            this.button8.Click += new System.EventHandler(this.button8_Click);
+            // 
+            // lblFARRaw
+            // 
+            this.lblFARRaw.AutoSize = true;
+            this.lblFARRaw.Location = new System.Drawing.Point(88, 76);
+            this.lblFARRaw.Name = "lblFARRaw";
+            this.lblFARRaw.Size = new System.Drawing.Size(74, 17);
+            this.lblFARRaw.TabIndex = 41;
+            this.lblFARRaw.Text = "[FAR Raw]";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(12, 76);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(70, 17);
+            this.label16.TabIndex = 40;
+            this.label16.Text = "FAR Raw:";
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(12, 156);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(86, 17);
+            this.label17.TabIndex = 42;
+            this.label17.Text = "Target FRR:";
+            // 
+            // lblFRRCalc
+            // 
+            this.lblFRRCalc.AutoSize = true;
+            this.lblFRRCalc.Location = new System.Drawing.Point(154, 156);
+            this.lblFRRCalc.Name = "lblFRRCalc";
+            this.lblFRRCalc.Size = new System.Drawing.Size(44, 17);
+            this.lblFRRCalc.TabIndex = 43;
+            this.lblFRRCalc.Text = "[FRR]";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(377, 374);
+            this.ClientSize = new System.Drawing.Size(380, 484);
+            this.Controls.Add(this.lblFRRCalc);
+            this.Controls.Add(this.label17);
+            this.Controls.Add(this.lblFARRaw);
+            this.Controls.Add(this.label16);
+            this.Controls.Add(this.button8);
             this.Controls.Add(this.label14);
             this.Controls.Add(this.textBoxComparisonsLimit);
             this.Controls.Add(this.checkBoxIsAdvHack);
@@ -539,6 +596,11 @@
         private System.Windows.Forms.CheckBox checkBoxIsAdvHack;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.TextBox textBoxComparisonsLimit;
+        private System.Windows.Forms.Button button8;
+        private System.Windows.Forms.Label lblFARRaw;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Label lblFRRCalc;
     }
 }
 

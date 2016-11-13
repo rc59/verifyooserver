@@ -13,7 +13,7 @@ namespace VerifyooSimulator.DAL
     {
         public static MongoDatabase GetDbInstance()
         {
-            //const string connectionString = "mongodb://52.26.178.48/?safe=true";
+            //const string connectionString = "mongodb://52.29.210.15/?safe=true";
             const string connectionString = "mongodb://localhost/?safe=true";
             var mongoClient = new MongoClient(connectionString);
             var mongoServer = mongoClient.GetServer();
@@ -25,7 +25,7 @@ namespace VerifyooSimulator.DAL
         }
         public static MongoDatabase GetDbInstanceCloud()
         {
-            const string connectionString = "mongodb://52.26.178.48/?safe=true";            
+            const string connectionString = "mongodb://52.29.210.15/?safe=true";            
             var mongoClient = new MongoClient(connectionString);
             var mongoServer = mongoClient.GetServer();
 

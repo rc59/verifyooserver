@@ -1,4 +1,5 @@
-﻿using java.util;
+﻿using Data.MetaData;
+using java.util;
 using Logic.Comparison.Stats.Norms;
 using Logic.Utils;
 using NormCalculator.Models.NormsObj;
@@ -12,6 +13,8 @@ namespace NormCalculator.Models
 {
     class ModelNormContainerMgr
     {
+        public List<ModelNormStroke> ListNormStrokes = new List<ModelNormStroke>();
+
         public Dictionary<String, ModelSpatialNormContainer> HashMapSpatialNormsMeansDistance = new Dictionary<string, ModelSpatialNormContainer>();
         public Dictionary<String, ModelSpatialNormContainer> HashMapSpatialNormsSdsDistance = new Dictionary<string, ModelSpatialNormContainer>();
 
@@ -67,6 +70,14 @@ namespace NormCalculator.Models
             ModelAccumulatorsContainer tempModelAccumulatorContainer;
 
             string tempKey, tempKeyInternal;
+
+            NormStroke tempNormStroke;
+            ModelNormStroke tempModelNormStroke;
+            for (int idx = 0; idx < normContainerMgr.ListNormStrokes.size(); idx++) {
+                tempNormStroke = (NormStroke)normContainerMgr.ListNormStrokes.get(idx);
+                tempModelNormStroke = new ModelNormStroke(tempNormStroke);
+                ListNormStrokes.Add(tempModelNormStroke);
+            }
 
             for (int idx = 0; idx < keySetSpatialNormsDistance.Length; idx++) {
                 tempKey = (string)keySetSpatialNormsDistance[idx];
@@ -212,6 +223,13 @@ namespace NormCalculator.Models
             NumericNormContainer tempNumericNormContainer;
 
             AccumulatorsContainer tempAccumulatorsContainer;
+
+            resultNormContainerMgr.ListNormStrokes = new ArrayList();
+            NormStroke tempNormStroke;
+            for (int idx = 0; idx < ListNormStrokes.Count; idx++) {
+                tempNormStroke = ListNormStrokes[idx].ToNormStroke();
+                resultNormContainerMgr.ListNormStrokes.add(tempNormStroke);
+            }
 
             /****************************************** SPATIAL DISTANCE ******************************************/
 

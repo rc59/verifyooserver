@@ -158,10 +158,12 @@
     </Compile>
     <Compile Include="Models\ModelGesture.cs" />
     <Compile Include="Models\ModelMotionEventCompact.cs" />
+    <Compile Include="Models\NormsObj\DTWCoordObj.cs" />
     <Compile Include="Models\NormsObj\ModelAccumulatorsContainer.cs" />
     <Compile Include="Models\NormsObj\ModelNormContainerMgr.cs" />
     <Compile Include="Models\ModelStroke.cs" />
     <Compile Include="Models\ModelTemplate.cs" />
+    <Compile Include="Models\NormsObj\ModelNormStroke.cs" />
     <Compile Include="Models\NormsObj\ModelNumericNormContainer.cs" />
     <Compile Include="Models\NormsObj\ModelSpatialNormContainer.cs" />
     <Compile Include="Models\NormsObj\ModelUtilsAccum.cs" />

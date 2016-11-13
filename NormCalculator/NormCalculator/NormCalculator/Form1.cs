@@ -25,8 +25,11 @@ namespace NormCalculator
 {
     public partial class Form1 : Form
     {
+        String mCurrId;
         Dictionary<String, bool> mHashInvalid = new Dictionary<string, bool>();
         MongoCollection<ModelTemplate> mListMongo;
+
+        NormContainerMgr mNormContainerMgr = new NormContainerMgr();
 
         /************************************* SPATIAL PARAMETERS - DISTANCE *************************************/
 
@@ -329,8 +332,21 @@ namespace NormCalculator
             NumericNormContainer tempNormContainerStrokeMaxInterestPointVelocity;
             NumericNormContainer tempNormContainerStrokeMaxInterestPointAcceleration;
 
+            try
+            {
+                mNormContainerMgr.InitBuckets();
+            }
+            catch(Exception exc)
+            {
+                string msgExc = exc.Message;
+            }
+
             bool isInitialized = false;
-            string tempInstruction;
+            string tempInstruction = "BUCKET";
+            int strokeKey;
+
+            List<string> listTempInstructions;
+            string gestureKey;    
 
             try
             {
@@ -340,209 +356,216 @@ namespace NormCalculator
                     //modelTemplates = mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
 
                     foreach (ModelTemplate template in modelTemplates)
-                    {                        
+                    {
+                        mCurrId = template._id.ToString();
                         mCurrentTemplateNum++;                            
 
                         if(template.State.CompareTo("Hack") != 0 && template.ExpShapeList.Count > 0)
                         {
-                            tempTemplate = UtilsTemplateConverter.ConvertTemplateNew(template);
-
-                            tempAccumulator = new UtilsAccumulator();
-
-                            
-
-                            tempNormContainerVelocitiesDistance = new SpatialNormContainer();
-                            tempNormContainerRadialVelocitiesDistance = new SpatialNormContainer();
-                            tempNormContainerAccelerationDistance = new SpatialNormContainer();
-                            tempNormContainerRadialAccelerationDistance = new SpatialNormContainer();
-                            tempNormContainerRadiusDistance = new SpatialNormContainer();
-                            tempNormContainerTetaDistance = new SpatialNormContainer();
-                            tempNormContainerDeltaTetaDistance = new SpatialNormContainer();
-                            tempNormContainerAccumulatedNormalizedAreaDistance = new SpatialNormContainer();
-
-                            tempNormContainerVelocitiesTime = new SpatialNormContainer();
-                            tempNormContainerRadialVelocitiesTime = new SpatialNormContainer();
-                            tempNormContainerAccelerationTime = new SpatialNormContainer();
-                            tempNormContainerRadialAccelerationTime = new SpatialNormContainer();
-                            tempNormContainerRadiusTime = new SpatialNormContainer();
-                            tempNormContainerTetaTime = new SpatialNormContainer();
-                            tempNormContainerDeltaTetaTime = new SpatialNormContainer();
-                            tempNormContainerAccumulatedNormalizedAreaTime = new SpatialNormContainer();
-
-                            tempNormContainerGestureTotalTimeInterval = new NumericNormContainer();
-                            tempNormContainerGestureTotalArea = new NumericNormContainer();
-                            tempNormContainerGestureTotalAreaMinXMinY = new NumericNormContainer();
-
-                            tempNormContainerGestureStrokesTotalArea = new NumericNormContainer();
-                            tempNormContainerGestureStrokesTotalAreaMinXMinY = new NumericNormContainer();
-
-                            tempNormContainerGestureLength = new NumericNormContainer();
-                            tempNormContainerGestureNumEvents = new NumericNormContainer();
-
-                            tempNormContainerGestureDelayTime = new NumericNormContainer();
-
-                            tempNormContainerStrokeTotalTimeInterval = new NumericNormContainer();
-
-                            tempNormContainerGestureMiddlePressure = new NumericNormContainer();
-                            tempNormContainerGestureMiddleSurface = new NumericNormContainer();
-
-                            tempNormContainerGestureAverageVelocity = new NumericNormContainer();
-                            tempNormContainerGestureMaxVelocity = new NumericNormContainer();
-                            tempNormContainerMidFirstStrokeVelocity = new NumericNormContainer();
-
-                            tempNormContainerGestureAvgStartAcceleration = new NumericNormContainer();
-                            tempNormContainerGestureAvgAcceleration = new NumericNormContainer();
-                            tempNormContainerGestureMaxAcceleration = new NumericNormContainer();
-
-                            tempNormContainerGestureAccumulatedLengthSlope = new NumericNormContainer();
-
-                            tempNormContainerStrokeTransitionTime = new NumericNormContainer();
-                            tempNormContainerStrokeLength = new NumericNormContainer();
-                            tempNormContainerStrokeNumEvents = new NumericNormContainer();
-                            tempNormContainerStrokeTimeInterval = new NumericNormContainer();
-
-                            tempNormContainerStrokeTotalArea = new NumericNormContainer();
-                            tempNormContainerStrokeTotalAreaMinXMinY = new NumericNormContainer();
-
-                            tempNormContainerStrokeVelocityAvg = new NumericNormContainer();
-                            tempNormContainerStrokeVelocityMax = new NumericNormContainer();
-                            tempNormContainerStrokeVelocityMid = new NumericNormContainer();
-
-                            tempNormContainerStrokeAccelerationAvg = new NumericNormContainer();
-                            tempNormContainerStrokeAccelerationMax = new NumericNormContainer();
-
-                            tempNormContainerStrokeMiddlePressure = new NumericNormContainer();
-                            tempNormContainerStrokeMiddleSurface = new NumericNormContainer();
-
-                            tempNormContainerStrokeMaxRadialVelocity = new NumericNormContainer();
-                            tempNormContainerStrokeMaxRadialAcceleration = new NumericNormContainer();
-
-                            tempNormContainerStrokeMaxInterestPointIndex = new NumericNormContainer();
-                            tempNormContainerStrokeMaxInterestPointDensity = new NumericNormContainer();
-                            tempNormContainerStrokeMaxInterestPointLocation = new NumericNormContainer();
-                            tempNormContainerStrokeMaxInterestPointPressure = new NumericNormContainer();
-                            tempNormContainerStrokeMaxInterestPointSurface = new NumericNormContainer();
-                            tempNormContainerStrokeMaxInterestPointVelocity = new NumericNormContainer();
-                            tempNormContainerStrokeMaxInterestPointAcceleration = new NumericNormContainer();
-
-                            for (int idxGesture = 0; idxGesture < tempTemplate.ListGestureExtended.size(); idxGesture++)
+                            try
                             {
-                                tempGesture = (GestureExtended)tempTemplate.ListGestureExtended.get(idxGesture);
-                                tempInstruction = tempGesture.Instruction;
+                                tempTemplate = UtilsTemplateConverter.ConvertTemplateNew(template);
 
-                                for (int idxInstr = 0; idxInstr < mListInstructions.Count; idxInstr++)
+                                tempAccumulator = new UtilsAccumulator();
+
+                                tempNormContainerVelocitiesDistance = new SpatialNormContainer();
+                                tempNormContainerRadialVelocitiesDistance = new SpatialNormContainer();
+                                tempNormContainerAccelerationDistance = new SpatialNormContainer();
+                                tempNormContainerRadialAccelerationDistance = new SpatialNormContainer();
+                                tempNormContainerRadiusDistance = new SpatialNormContainer();
+                                tempNormContainerTetaDistance = new SpatialNormContainer();
+                                tempNormContainerDeltaTetaDistance = new SpatialNormContainer();
+                                tempNormContainerAccumulatedNormalizedAreaDistance = new SpatialNormContainer();
+
+                                tempNormContainerVelocitiesTime = new SpatialNormContainer();
+                                tempNormContainerRadialVelocitiesTime = new SpatialNormContainer();
+                                tempNormContainerAccelerationTime = new SpatialNormContainer();
+                                tempNormContainerRadialAccelerationTime = new SpatialNormContainer();
+                                tempNormContainerRadiusTime = new SpatialNormContainer();
+                                tempNormContainerTetaTime = new SpatialNormContainer();
+                                tempNormContainerDeltaTetaTime = new SpatialNormContainer();
+                                tempNormContainerAccumulatedNormalizedAreaTime = new SpatialNormContainer();
+
+                                tempNormContainerGestureTotalTimeInterval = new NumericNormContainer();
+                                tempNormContainerGestureTotalArea = new NumericNormContainer();
+                                tempNormContainerGestureTotalAreaMinXMinY = new NumericNormContainer();
+
+                                tempNormContainerGestureStrokesTotalArea = new NumericNormContainer();
+                                tempNormContainerGestureStrokesTotalAreaMinXMinY = new NumericNormContainer();
+
+                                tempNormContainerGestureLength = new NumericNormContainer();
+                                tempNormContainerGestureNumEvents = new NumericNormContainer();
+
+                                tempNormContainerGestureDelayTime = new NumericNormContainer();
+
+                                tempNormContainerStrokeTotalTimeInterval = new NumericNormContainer();
+
+                                tempNormContainerGestureMiddlePressure = new NumericNormContainer();
+                                tempNormContainerGestureMiddleSurface = new NumericNormContainer();
+
+                                tempNormContainerGestureAverageVelocity = new NumericNormContainer();
+                                tempNormContainerGestureMaxVelocity = new NumericNormContainer();
+                                tempNormContainerMidFirstStrokeVelocity = new NumericNormContainer();
+
+                                tempNormContainerGestureAvgStartAcceleration = new NumericNormContainer();
+                                tempNormContainerGestureAvgAcceleration = new NumericNormContainer();
+                                tempNormContainerGestureMaxAcceleration = new NumericNormContainer();
+
+                                tempNormContainerGestureAccumulatedLengthSlope = new NumericNormContainer();
+
+                                tempNormContainerStrokeTransitionTime = new NumericNormContainer();
+                                tempNormContainerStrokeLength = new NumericNormContainer();
+                                tempNormContainerStrokeNumEvents = new NumericNormContainer();
+                                tempNormContainerStrokeTimeInterval = new NumericNormContainer();
+
+                                tempNormContainerStrokeTotalArea = new NumericNormContainer();
+                                tempNormContainerStrokeTotalAreaMinXMinY = new NumericNormContainer();
+
+                                tempNormContainerStrokeVelocityAvg = new NumericNormContainer();
+                                tempNormContainerStrokeVelocityMax = new NumericNormContainer();
+                                tempNormContainerStrokeVelocityMid = new NumericNormContainer();
+
+                                tempNormContainerStrokeAccelerationAvg = new NumericNormContainer();
+                                tempNormContainerStrokeAccelerationMax = new NumericNormContainer();
+
+                                tempNormContainerStrokeMiddlePressure = new NumericNormContainer();
+                                tempNormContainerStrokeMiddleSurface = new NumericNormContainer();
+
+                                tempNormContainerStrokeMaxRadialVelocity = new NumericNormContainer();
+                                tempNormContainerStrokeMaxRadialAcceleration = new NumericNormContainer();
+
+                                tempNormContainerStrokeMaxInterestPointIndex = new NumericNormContainer();
+                                tempNormContainerStrokeMaxInterestPointDensity = new NumericNormContainer();
+                                tempNormContainerStrokeMaxInterestPointLocation = new NumericNormContainer();
+                                tempNormContainerStrokeMaxInterestPointPressure = new NumericNormContainer();
+                                tempNormContainerStrokeMaxInterestPointSurface = new NumericNormContainer();
+                                tempNormContainerStrokeMaxInterestPointVelocity = new NumericNormContainer();
+                                tempNormContainerStrokeMaxInterestPointAcceleration = new NumericNormContainer();
+
+                                listTempInstructions = new List<string>();
+                                for (int idxGesture = 0; idxGesture < tempTemplate.ListGestureExtended.size(); idxGesture++)
                                 {
-                                    tempInstruction = mListInstructions[idxInstr];
-                                    tempInstruction = "RLETTER";
+                                    tempGesture = (GestureExtended)tempTemplate.ListGestureExtended.get(idxGesture);
+                                    gestureKey = GetGestureKey(tempGesture.Instruction, tempGesture.ListStrokesExtended.size());
+                                    //tempInstruction = tempGesture.Instruction;
+                                    listTempInstructions.Add(gestureKey);
 
-                                    tempNormContainerGestureTotalTimeInterval.AddValue(SafeAddValue(tempGesture.GestureTotalTimeInterval), tempInstruction);
-                                    tempNormContainerGestureTotalArea.AddValue(SafeAddValue(tempGesture.GestureTotalArea), tempInstruction);
-                                    tempNormContainerGestureTotalAreaMinXMinY.AddValue(SafeAddValue(tempGesture.GestureTotalAreaMinXMinY), tempInstruction);
-
-                                    tempNormContainerGestureStrokesTotalArea.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeArea), tempInstruction);
-                                    tempNormContainerGestureStrokesTotalAreaMinXMinY.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeAreaMinXMinY), tempInstruction);
-
-                                    tempNormContainerGestureLength.AddValue(SafeAddValue(tempGesture.GestureLengthMM), tempInstruction);
-                                    tempNormContainerGestureNumEvents.AddValue(tempGesture.ListGestureEventsExtended.size(), tempInstruction);
-
-                                    if (idxGesture > 0)
+                                    for (int idxInstr = 0; idxInstr < mListInstructions.Count; idxInstr++)
                                     {
-                                        tempNormContainerGestureDelayTime.AddValue(SafeAddValue(tempGesture.GestureDelay), tempInstruction);
-                                    }
-                                    tempNormContainerStrokeTotalTimeInterval.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeTimeInterval), tempInstruction);
-
-                                    tempNormContainerGestureMiddlePressure.AddValue(SafeAddValue(tempGesture.GestureAvgMiddlePressure), tempInstruction);
-                                    tempNormContainerGestureMiddleSurface.AddValue(SafeAddValue(tempGesture.GestureAvgMiddleSurface), tempInstruction);
-
-                                    tempNormContainerGestureAverageVelocity.AddValue(SafeAddValue(tempGesture.GestureAverageVelocity), tempInstruction);
-                                    tempNormContainerGestureMaxVelocity.AddValue(SafeAddValue(tempGesture.GestureMaxVelocity), tempInstruction);
-                                    tempNormContainerMidFirstStrokeVelocity.AddValue(SafeAddValue(tempGesture.MidOfFirstStrokeVelocity), tempInstruction);
-
-                                    tempNormContainerGestureAvgAcceleration.AddValue(SafeAddValue(tempGesture.GestureAverageAcceleration), tempInstruction);
-                                    tempNormContainerGestureMaxAcceleration.AddValue(SafeAddValue(tempGesture.GestureMaxAcceleration), tempInstruction);
-                                    tempNormContainerGestureAvgStartAcceleration.AddValue(SafeAddValue(tempGesture.GestureAverageStartAcceleration), tempInstruction);
-
-                                    tempNormContainerGestureAccumulatedLengthSlope.AddValue(SafeAddValue(tempGesture.GestureAccumulatedLengthLinearRegSlope), tempInstruction);
-
-                                    for (int idxStroke = 0; idxStroke < tempGesture.ListStrokesExtended.size(); idxStroke++)
-                                    {
-                                        tempStroke = (StrokeExtended)tempGesture.ListStrokesExtended.get(idxStroke);
-
-                                        tempNormContainerStrokeTransitionTime.AddValue(SafeAddValue(tempStroke.StrokeTransitionTime), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeLength.AddValue(SafeAddValue(tempStroke.StrokePropertiesObj.LengthMM), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeNumEvents.AddValue(SafeAddValue(tempStroke.ListEventsExtended.size()), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeTimeInterval.AddValue(SafeAddValue(tempStroke.StrokeTimeInterval), tempInstruction, idxStroke);
-
-                                        tempNormContainerStrokeTotalArea.AddValue(SafeAddValue(tempStroke.ShapeDataObj.ShapeArea), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeTotalAreaMinXMinY.AddValue(SafeAddValue(tempStroke.ShapeDataObj.ShapeAreaMinXMinY), tempInstruction, idxStroke);
-
-                                        tempNormContainerStrokeVelocityAvg.AddValue(SafeAddValue(tempStroke.StrokeAverageVelocity), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeVelocityMax.AddValue(SafeAddValue(tempStroke.StrokeMaxVelocity), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeVelocityMid.AddValue(SafeAddValue(tempStroke.StrokeMidVelocity), tempInstruction, idxStroke);
-
-                                        tempNormContainerStrokeAccelerationAvg.AddValue(SafeAddValue(tempStroke.StrokeAverageAcceleration), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeAccelerationMax.AddValue(SafeAddValue(tempStroke.StrokeMaxAcceleration), tempInstruction, idxStroke);
-
-                                        tempNormContainerStrokeMiddlePressure.AddValue(SafeAddValue(tempStroke.MiddlePressure), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeMiddleSurface.AddValue(SafeAddValue(tempStroke.MiddleSurface), tempInstruction, idxStroke);
-
-                                        tempNormContainerStrokeMaxRadialVelocity.AddValue(SafeAddValue(tempStroke.StrokeMaxRadialVelocity), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeMaxRadialAcceleration.AddValue(SafeAddValue(tempStroke.StrokeMaxRadialAcceleration), tempInstruction, idxStroke);
-
-                                        tempNormContainerStrokeMaxInterestPointIndex.AddValue(SafeAddValue(tempStroke.MaxInterestPointIndex), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeMaxInterestPointDensity.AddValue(SafeAddValue(tempStroke.MaxInterestPointDensity), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeMaxInterestPointLocation.AddValue(SafeAddValue(tempStroke.MaxInterestPointLocation), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeMaxInterestPointPressure.AddValue(SafeAddValue(tempStroke.MaxInterestPointPressure), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeMaxInterestPointSurface.AddValue(SafeAddValue(tempStroke.MaxInterestPointSurface), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeMaxInterestPointVelocity.AddValue(SafeAddValue(tempStroke.MaxInterestPointVelocity), tempInstruction, idxStroke);
-                                        tempNormContainerStrokeMaxInterestPointAcceleration.AddValue(SafeAddValue(tempStroke.MaxInterestPointAcceleration), tempInstruction, idxStroke);
-
-                                        for (int idxEvent = 0; idxEvent < UtilsConsts.SAMPLE_SIZE; idxEvent++)
-                                        {
-                                            tempEventDistance = (MotionEventExtended)tempStroke.ListEventsSpatialExtended.get(idxEvent);
-                                            tempEventTime = (MotionEventExtended)tempStroke.ListEventsTemporalExtended.get(idxEvent);
-
-                                            isInitialized = true;
-
-                                            /********************************************* DISTANCE *********************************************/
-
-                                            tempNormContainerVelocitiesDistance.AddValue(SafeAddValue(tempEventDistance.Velocity), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerRadialVelocitiesDistance.AddValue(SafeAddValue(tempEventDistance.RadialVelocity), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerRadialAccelerationDistance.AddValue(SafeAddValue(tempEventDistance.RadialAcceleration), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerRadiusDistance.AddValue(SafeAddValue(tempEventDistance.Radius), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerTetaDistance.AddValue(SafeAddValue(tempEventDistance.Teta), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerDeltaTetaDistance.AddValue(SafeAddValue(tempEventDistance.DeltaTeta), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerAccumulatedNormalizedAreaDistance.AddValue(SafeAddValue(tempEventDistance.AccumulatedNormalizedArea), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerAccelerationDistance.AddValue(SafeAddValue(tempEventDistance.Acceleration), tempInstruction, idxStroke, idxEvent);
-
-                                            /********************************************* TIME *********************************************/
-
-                                            tempNormContainerVelocitiesTime.AddValue(SafeAddValue(tempEventTime.Velocity), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerRadialVelocitiesTime.AddValue(SafeAddValue(tempEventTime.RadialVelocity), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerRadialAccelerationTime.AddValue(SafeAddValue(tempEventTime.RadialAcceleration), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerRadiusTime.AddValue(SafeAddValue(tempEventTime.Radius), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerTetaTime.AddValue(SafeAddValue(tempEventTime.Teta), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerDeltaTetaTime.AddValue(SafeAddValue(tempEventTime.DeltaTeta), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerAccumulatedNormalizedAreaTime.AddValue(SafeAddValue(tempEventTime.AccumulatedNormalizedArea), tempInstruction, idxStroke, idxEvent);
-                                            tempNormContainerAccelerationTime.AddValue(SafeAddValue(tempEventTime.Acceleration), tempInstruction, idxStroke, idxEvent);
+                                        if (mListInstructions[idxInstr].CompareTo(tempGesture.Instruction) == 0) {
+                                            tempNormContainerGestureTotalTimeInterval.AddValue(SafeAddValue(tempGesture.GestureTotalTimeInterval), gestureKey);
+                                            tempNormContainerGestureTotalArea.AddValue(SafeAddValue(tempGesture.GestureTotalArea), gestureKey);
+                                            tempNormContainerGestureTotalAreaMinXMinY.AddValue(SafeAddValue(tempGesture.GestureTotalAreaMinXMinY), gestureKey);
                                         }
 
-                                        mStrokesCount++;
+                                        //tempInstruction = "RLETTER";                                        
 
-                                        msg = string.Format("Finished {0}/{1} Records", mCurrentTemplateNum, totalNumbRecords);
-                                        this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = msg));
+                                        //tempNormContainerGestureStrokesTotalArea.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeArea), tempInstruction);
+                                        //tempNormContainerGestureStrokesTotalAreaMinXMinY.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeAreaMinXMinY), tempInstruction);
+
+                                        //tempNormContainerGestureLength.AddValue(SafeAddValue(tempGesture.GestureLengthMM), tempInstruction);
+                                        //tempNormContainerGestureNumEvents.AddValue(tempGesture.ListGestureEventsExtended.size(), tempInstruction);
+
+                                        //if (idxGesture > 0)
+                                        //{
+                                        //    tempNormContainerGestureDelayTime.AddValue(SafeAddValue(tempGesture.GestureDelay), tempInstruction);
+                                        //}
+                                        //tempNormContainerStrokeTotalTimeInterval.AddValue(SafeAddValue(tempGesture.GestureTotalStrokeTimeInterval), tempInstruction);
+
+                                        //tempNormContainerGestureMiddlePressure.AddValue(SafeAddValue(tempGesture.GestureAvgMiddlePressure), tempInstruction);
+                                        //tempNormContainerGestureMiddleSurface.AddValue(SafeAddValue(tempGesture.GestureAvgMiddleSurface), tempInstruction);
+
+                                        //tempNormContainerGestureAverageVelocity.AddValue(SafeAddValue(tempGesture.GestureAverageVelocity), tempInstruction);
+                                        //tempNormContainerGestureMaxVelocity.AddValue(SafeAddValue(tempGesture.GestureMaxVelocity), tempInstruction);
+                                        //tempNormContainerMidFirstStrokeVelocity.AddValue(SafeAddValue(tempGesture.MidOfFirstStrokeVelocity), tempInstruction);
+
+                                        //tempNormContainerGestureAvgAcceleration.AddValue(SafeAddValue(tempGesture.GestureAverageAcceleration), tempInstruction);
+                                        //tempNormContainerGestureMaxAcceleration.AddValue(SafeAddValue(tempGesture.GestureMaxAcceleration), tempInstruction);
+                                        //tempNormContainerGestureAvgStartAcceleration.AddValue(SafeAddValue(tempGesture.GestureAverageStartAcceleration), tempInstruction);
+
+                                        //tempNormContainerGestureAccumulatedLengthSlope.AddValue(SafeAddValue(tempGesture.GestureAccumulatedLengthLinearRegSlope), tempInstruction);
+
+                                        for (int idxStroke = 0; idxStroke < tempGesture.ListStrokesExtended.size(); idxStroke++)
+                                        {
+                                            tempStroke = (StrokeExtended)tempGesture.ListStrokesExtended.get(idxStroke);
+
+                                            strokeKey = mNormContainerMgr.GetStrokeIndex(tempStroke);
+
+                                            if(tempStroke.StrokeTransitionTime > 0)
+                                            {
+                                                tempNormContainerStrokeTransitionTime.AddValue(SafeAddValue(tempStroke.StrokeTransitionTime), tempInstruction, strokeKey);
+                                            }
+                                            tempNormContainerStrokeLength.AddValue(SafeAddValue(tempStroke.StrokePropertiesObj.LengthMM), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeNumEvents.AddValue(SafeAddValue(tempStroke.ListEventsExtended.size()), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeTimeInterval.AddValue(SafeAddValue(tempStroke.StrokeTimeInterval), tempInstruction, strokeKey);
+
+                                            tempNormContainerStrokeTotalArea.AddValue(SafeAddValue(tempStroke.ShapeDataObj.ShapeArea), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeTotalAreaMinXMinY.AddValue(SafeAddValue(tempStroke.ShapeDataObj.ShapeAreaMinXMinY), tempInstruction, strokeKey);
+
+                                            tempNormContainerStrokeVelocityAvg.AddValue(SafeAddValue(tempStroke.StrokeAverageVelocity), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeVelocityMax.AddValue(SafeAddValue(tempStroke.StrokeMaxVelocity), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeVelocityMid.AddValue(SafeAddValue(tempStroke.StrokeMidVelocity), tempInstruction, strokeKey);
+
+                                            tempNormContainerStrokeAccelerationAvg.AddValue(SafeAddValue(tempStroke.StrokeAverageAcceleration), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeAccelerationMax.AddValue(SafeAddValue(tempStroke.StrokeMaxAcceleration), tempInstruction, strokeKey);
+
+                                            tempNormContainerStrokeMiddlePressure.AddValue(SafeAddValue(tempStroke.MiddlePressure), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeMiddleSurface.AddValue(SafeAddValue(tempStroke.MiddleSurface), tempInstruction, strokeKey);
+
+                                            tempNormContainerStrokeMaxRadialVelocity.AddValue(SafeAddValue(tempStroke.StrokeMaxRadialVelocity), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeMaxRadialAcceleration.AddValue(SafeAddValue(tempStroke.StrokeMaxRadialAcceleration), tempInstruction, strokeKey);
+
+                                            tempNormContainerStrokeMaxInterestPointIndex.AddValue(SafeAddValue(tempStroke.MaxInterestPointIndex), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeMaxInterestPointDensity.AddValue(SafeAddValue(tempStroke.MaxInterestPointDensity), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeMaxInterestPointLocation.AddValue(SafeAddValue(tempStroke.MaxInterestPointLocation), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeMaxInterestPointPressure.AddValue(SafeAddValue(tempStroke.MaxInterestPointPressure), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeMaxInterestPointSurface.AddValue(SafeAddValue(tempStroke.MaxInterestPointSurface), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeMaxInterestPointVelocity.AddValue(SafeAddValue(tempStroke.MaxInterestPointVelocity), tempInstruction, strokeKey);
+                                            tempNormContainerStrokeMaxInterestPointAcceleration.AddValue(SafeAddValue(tempStroke.MaxInterestPointAcceleration), tempInstruction, strokeKey);
+
+                                            for (int idxEvent = 0; idxEvent < UtilsConsts.SAMPLE_SIZE; idxEvent++)
+                                            {
+                                                tempEventDistance = (MotionEventExtended)tempStroke.ListEventsSpatialExtended.get(idxEvent);
+                                                tempEventTime = (MotionEventExtended)tempStroke.ListEventsTemporalExtended.get(idxEvent);
+
+                                                isInitialized = true;
+
+                                                /********************************************* DISTANCE *********************************************/
+
+                                                tempNormContainerVelocitiesDistance.AddValue(SafeAddValue(tempEventDistance.Velocity), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerRadialVelocitiesDistance.AddValue(SafeAddValue(tempEventDistance.RadialVelocity), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerRadialAccelerationDistance.AddValue(SafeAddValue(tempEventDistance.RadialAcceleration), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerRadiusDistance.AddValue(SafeAddValue(tempEventDistance.Radius), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerTetaDistance.AddValue(SafeAddValue(tempEventDistance.Teta), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerDeltaTetaDistance.AddValue(SafeAddValue(tempEventDistance.DeltaTeta), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerAccumulatedNormalizedAreaDistance.AddValue(SafeAddValue(tempEventDistance.AccumulatedNormalizedArea), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerAccelerationDistance.AddValue(SafeAddValue(tempEventDistance.Acceleration), tempInstruction, strokeKey, idxEvent);
+
+                                                /********************************************* TIME *********************************************/
+
+                                                tempNormContainerVelocitiesTime.AddValue(SafeAddValue(tempEventTime.Velocity), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerRadialVelocitiesTime.AddValue(SafeAddValue(tempEventTime.RadialVelocity), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerRadialAccelerationTime.AddValue(SafeAddValue(tempEventTime.RadialAcceleration), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerRadiusTime.AddValue(SafeAddValue(tempEventTime.Radius), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerTetaTime.AddValue(SafeAddValue(tempEventTime.Teta), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerDeltaTetaTime.AddValue(SafeAddValue(tempEventTime.DeltaTeta), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerAccumulatedNormalizedAreaTime.AddValue(SafeAddValue(tempEventTime.AccumulatedNormalizedArea), tempInstruction, strokeKey, idxEvent);
+                                                tempNormContainerAccelerationTime.AddValue(SafeAddValue(tempEventTime.Acceleration), tempInstruction, strokeKey, idxEvent);
+                                            }
+
+                                            mStrokesCount++;
+
+                                            msg = string.Format("Finished {0}/{1} Records", mCurrentTemplateNum, totalNumbRecords);
+                                            this.lblStatus.Invoke(new MethodInvoker(() => this.lblStatus.Text = msg));
+                                        }
                                     }
+                                    
                                 }
-                            }
 
-                            if (isInitialized)
-                            {
-                                isInitialized = false;
-
-                                for (int idxInstruction = 0; idxInstruction < mListInstructions.Count; idxInstruction++)
+                                if (isInitialized)
                                 {
-                                    tempInstruction = mListInstructions[idxInstruction];
-                                    tempInstruction = "RLETTER";
+                                    isInitialized = false;
+
                                     for (int idxSpatial = 0; idxSpatial < ConstsGeneral.SPATIAL_SAMPLING_SIZE; idxSpatial++)
                                     {
                                         /********************************************* DISTANCE *********************************************/
@@ -567,36 +590,6 @@ namespace NormCalculator
                                         AddValueToNormContainer(tempInstruction, idxSpatial, tempNormContainerDeltaTetaTime, mNormContainerSpatialDeltaTetaMeanTime, mNormContainerSpatialDeltaTetaStdTime);
                                         AddValueToNormContainer(tempInstruction, idxSpatial, tempNormContainerAccumulatedNormalizedAreaTime, mNormContainerSpatialAccumulatedNormalizedAreaMeanTime, mNormContainerSpatialAccumulatedNormalizedAreaStdTime);
                                     }
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureTotalTimeInterval, mNormContainerGestureTotalTimeIntervalMean, mNormContainerGestureTotalTimeIntervalStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureTotalArea, mNormContainerGestureTotalAreaMean, mNormContainerGestureTotalAreaStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureTotalAreaMinXMinY, mNormContainerGestureTotalAreaMinXMinYMean, mNormContainerGestureTotalAreaMinXMinYStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerStrokeTotalTimeInterval, mNormContainerStrokeTotalTimeIntervalMean, mNormContainerStrokeTotalTimeIntervalStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureLength, mNormContainerGestureLengthMean, mNormContainerGestureLengthStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureNumEvents, mNormContainerGestureNumEventsMean, mNormContainerGestureNumEventsStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureDelayTime, mNormContainerGestureDelayTimeMean, mNormContainerGestureDelayTimeStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureStrokesTotalArea, mNormContainerGestureStrokesTotalAreaMean, mNormContainerGestureStrokesTotalAreaStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureStrokesTotalAreaMinXMinY, mNormContainerGestureStrokesTotalAreaMinXMinYMean, mNormContainerGestureStrokesTotalAreaMinXMinYStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureStrokesTotalArea, mNormContainerGestureStrokesTotalAreaMean, mNormContainerGestureStrokesTotalAreaStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureStrokesTotalAreaMinXMinY, mNormContainerGestureStrokesTotalAreaMinXMinYMean, mNormContainerGestureStrokesTotalAreaMinXMinYStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureMiddlePressure, mNormContainerGestureMiddlePressureMean, mNormContainerGestureMiddlePressureStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureMiddleSurface, mNormContainerGestureMiddleSurfaceMean, mNormContainerGestureMiddleSurfaceStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureAverageVelocity, mNormContainerGestureAvgVelocityMean, mNormContainerGestureAvgVelocityStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureMaxVelocity, mNormContainerGestureMaxVelocityMean, mNormContainerGestureMaxVelocityStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerMidFirstStrokeVelocity, mNormContainerGestureMidFirstStrokeVelocityMean, mNormContainerGestureMidFirstStrokeVelocityStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureAvgAcceleration, mNormContainerGestureAvgAccelerationMean, mNormContainerGestureAvgAccelerationStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureMaxAcceleration, mNormContainerGestureMaxAccelerationMean, mNormContainerGestureMaxAccelerationStd);
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureAvgStartAcceleration, mNormContainerGestureAvgStartAccelerationMean, mNormContainerGestureAvgStartAccelerationStd);
-
-                                    AddValueToNormContainer(tempInstruction, tempNormContainerGestureAccumulatedLengthSlope, mNormContainerGestureAccumulatedLengthSlopeMean, mNormContainerGestureAccumulatedLengthSlopeStd);
 
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeTransitionTime, mNormContainerStrokeTransitionTimeMean, mNormContainerStrokeTransitionTimeStd);
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeLength, mNormContainerStrokeLengthMean, mNormContainerStrokeLengthStd);
@@ -626,8 +619,48 @@ namespace NormCalculator
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxInterestPointSurface, mNormContainerStrokeMaxInterestPointSurfaceMean, mNormContainerStrokeMaxInterestPointSurfaceStd);
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxInterestPointVelocity, mNormContainerStrokeMaxInterestPointVelocityMean, mNormContainerStrokeMaxInterestPointVelocityStd);
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeMaxInterestPointAcceleration, mNormContainerStrokeMaxInterestPointAccelerationMean, mNormContainerStrokeMaxInterestPointAccelerationStd);
+
+                                    for (int idxInstruction = 0; idxInstruction < listTempInstructions.Count; idxInstruction++)
+                                    {
+                                        //tempInstruction = mListInstructions[idxInstruction];
+                                        //tempInstruction = "RLETTER";
+                                        
+                                        AddValueToNormContainer(listTempInstructions[idxInstruction], tempNormContainerGestureTotalTimeInterval, mNormContainerGestureTotalTimeIntervalMean, mNormContainerGestureTotalTimeIntervalStd);
+                                        AddValueToNormContainer(listTempInstructions[idxInstruction], tempNormContainerGestureTotalArea, mNormContainerGestureTotalAreaMean, mNormContainerGestureTotalAreaStd);
+                                        AddValueToNormContainer(listTempInstructions[idxInstruction], tempNormContainerGestureTotalAreaMinXMinY, mNormContainerGestureTotalAreaMinXMinYMean, mNormContainerGestureTotalAreaMinXMinYStd);
+
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerStrokeTotalTimeInterval, mNormContainerStrokeTotalTimeIntervalMean, mNormContainerStrokeTotalTimeIntervalStd);
+
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureLength, mNormContainerGestureLengthMean, mNormContainerGestureLengthStd);
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureNumEvents, mNormContainerGestureNumEventsMean, mNormContainerGestureNumEventsStd);
+
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureDelayTime, mNormContainerGestureDelayTimeMean, mNormContainerGestureDelayTimeStd);
+
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureStrokesTotalArea, mNormContainerGestureStrokesTotalAreaMean, mNormContainerGestureStrokesTotalAreaStd);
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureStrokesTotalAreaMinXMinY, mNormContainerGestureStrokesTotalAreaMinXMinYMean, mNormContainerGestureStrokesTotalAreaMinXMinYStd);
+
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureStrokesTotalArea, mNormContainerGestureStrokesTotalAreaMean, mNormContainerGestureStrokesTotalAreaStd);
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureStrokesTotalAreaMinXMinY, mNormContainerGestureStrokesTotalAreaMinXMinYMean, mNormContainerGestureStrokesTotalAreaMinXMinYStd);
+
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureMiddlePressure, mNormContainerGestureMiddlePressureMean, mNormContainerGestureMiddlePressureStd);
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureMiddleSurface, mNormContainerGestureMiddleSurfaceMean, mNormContainerGestureMiddleSurfaceStd);
+
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureAverageVelocity, mNormContainerGestureAvgVelocityMean, mNormContainerGestureAvgVelocityStd);
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureMaxVelocity, mNormContainerGestureMaxVelocityMean, mNormContainerGestureMaxVelocityStd);
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerMidFirstStrokeVelocity, mNormContainerGestureMidFirstStrokeVelocityMean, mNormContainerGestureMidFirstStrokeVelocityStd);
+
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureAvgAcceleration, mNormContainerGestureAvgAccelerationMean, mNormContainerGestureAvgAccelerationStd);
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureMaxAcceleration, mNormContainerGestureMaxAccelerationMean, mNormContainerGestureMaxAccelerationStd);
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureAvgStartAcceleration, mNormContainerGestureAvgStartAccelerationMean, mNormContainerGestureAvgStartAccelerationStd);
+
+                                        //AddValueToNormContainer(tempInstruction, tempNormContainerGestureAccumulatedLengthSlope, mNormContainerGestureAccumulatedLengthSlopeMean, mNormContainerGestureAccumulatedLengthSlopeStd);                                        
+                                    }
                                 }
                             }
+                            catch(Exception exc)
+                            {
+                                string msgExc = exc.Message;
+                            }                            
                         }
                     }
 
@@ -652,9 +685,14 @@ namespace NormCalculator
         private void AddValueToNormContainer(string instruction, NumericNormContainer normContainerInput, NumericNormContainer normContainerOutputMean, NumericNormContainer normContainerOutputSd)
         {
             double tempMean, tempStd;
-
+            
             tempMean = normContainerInput.GetMean(instruction);
             tempStd = normContainerInput.GetStd(instruction);
+
+            if (Double.IsNaN(tempStd))
+            {
+                tempStd = tempMean / 4;
+            }
 
             normContainerOutputMean.AddValue(tempMean, instruction);
             normContainerOutputSd.AddValue(tempStd, instruction);
@@ -664,238 +702,262 @@ namespace NormCalculator
         {
             double tempMean, tempStd;
             int idxCurrentStroke = 0;
-            bool isContinue = true;
 
-            while (isContinue)
-            {
-                if (normContainerInput.HashNorms.containsKey(string.Format("{0}-{1}", instruction, idxCurrentStroke.ToString())))
+            object[] keySet = normContainerInput.HashNorms.keySet().toArray();
+            string tempKey;
+
+            for (int idx = 0; idx < keySet.Length; idx++) {
+                tempKey = (string) keySet[idx];
+
+                idxCurrentStroke = GetStrokeIdx(tempKey);
+                tempMean = normContainerInput.GetMean(instruction, idxCurrentStroke);
+                tempStd = normContainerInput.GetStd(instruction, idxCurrentStroke);
+
+                if (Double.IsNaN(tempStd))
                 {
-                    tempMean = normContainerInput.GetMean(instruction, idxCurrentStroke);
-                    tempStd = normContainerInput.GetStd(instruction, idxCurrentStroke);
-
-                    if (Double.IsNaN(tempStd))
-                    {
-                        tempStd = tempMean / 4;
-                    }
-                    
-                    normContainerOutputMean.AddValue(SafeAddValue(tempMean), instruction, idxCurrentStroke);
-                    normContainerOutputSd.AddValue(SafeAddValue(tempStd), instruction, idxCurrentStroke);
-
-                    idxCurrentStroke++;
+                    tempStd = tempMean / 4;
                 }
-                else
-                {
-                    isContinue = false;
-                }
+
+                normContainerOutputMean.AddValue(SafeAddValue(tempMean), instruction, idxCurrentStroke);
+                normContainerOutputSd.AddValue(SafeAddValue(tempStd), instruction, idxCurrentStroke);
             }
+
+
+            //while (isContinue)
+            //{
+            //    if (normContainerInput.HashNorms.containsKey(string.Format("{0}-{1}", instruction, idxCurrentStroke.ToString())))
+            //    {
+            //        tempMean = normContainerInput.GetMean(instruction, idxCurrentStroke);
+            //        tempStd = normContainerInput.GetStd(instruction, idxCurrentStroke);
+
+            //        if (Double.IsNaN(tempStd))
+            //        {
+            //            tempStd = tempMean / 4;
+            //        }
+                    
+            //        normContainerOutputMean.AddValue(SafeAddValue(tempMean), instruction, idxCurrentStroke);
+            //        normContainerOutputSd.AddValue(SafeAddValue(tempStd), instruction, idxCurrentStroke);
+
+            //        idxCurrentStroke++;
+            //    }
+            //    else
+            //    {
+            //        isContinue = false;
+            //    }
+            //}
 
             
         }
 
+        private int GetStrokeIdx(string tempKey)
+        {
+            string[] listStrs = tempKey.Split('-');
+            int idxTemp = 0;
+            int.TryParse(listStrs[1], out idxTemp);
+
+            return idxTemp;
+        }
+
         private void AddValueToNormContainer(string instruction, int idxSpatial, SpatialNormContainer normContainerInput, SpatialNormContainer normContainerOutputMean, SpatialNormContainer normContainerOutputSd)
         {
-            double tempMean, tempStd;
-
-            bool isContinue = true;
+            double tempMean, tempStd;          
             int idxCurrentStroke = 0;
 
-            while(isContinue)
+            object[] keySet = normContainerInput.HashNorms.keySet().toArray();
+            string tempKey;
+
+            for (int idx = 0; idx < keySet.Length; idx++)
             {
-                if (normContainerInput.HashNorms.containsKey(string.Format("{0}-{1}", instruction, idxCurrentStroke.ToString()))) {
-                    tempMean = normContainerInput.GetMean(instruction, idxCurrentStroke, idxSpatial);
-                    tempStd = normContainerInput.GetStd(instruction, idxCurrentStroke, idxSpatial);
+                tempKey = (string)keySet[idx];
+                idxCurrentStroke = GetStrokeIdx(tempKey);
 
-                    normContainerOutputMean.AddValue(SafeAddValue(tempMean), instruction, idxCurrentStroke, idxSpatial);
-                    normContainerOutputSd.AddValue(SafeAddValue(tempStd), instruction, idxCurrentStroke, idxSpatial);
+                tempMean = normContainerInput.GetMean(instruction, idxCurrentStroke, idxSpatial);
+                tempStd = normContainerInput.GetStd(instruction, idxCurrentStroke, idxSpatial);
 
-                    idxCurrentStroke++;
-                }
-                else
-                {
-                    isContinue = false;
-                }
-            }            
+                normContainerOutputMean.AddValue(SafeAddValue(tempMean), instruction, idxCurrentStroke, idxSpatial);
+                normContainerOutputSd.AddValue(SafeAddValue(tempStd), instruction, idxCurrentStroke, idxSpatial);
+
+                idxCurrentStroke++;
+            }
         }
 
         private void CalculateNorms()
-        {
-            NormContainerMgr normContainerMgr = new NormContainerMgr();
-
+        {            
             /******************************************** SPATIAL PARAMETERS - DISTANCE ********************************************/
 
-            normContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.VELOCITIES, mNormContainerSpatialVelocitiesMeanDistance);
-            normContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.VELOCITIES, mNormContainerSpatialVelocitiesStdDistance);
+            mNormContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.VELOCITIES, mNormContainerSpatialVelocitiesMeanDistance);
+            mNormContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.VELOCITIES, mNormContainerSpatialVelocitiesStdDistance);
 
-            normContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.ACCELERATIONS, mNormContainerSpatialAccelerationsMeanDistance);
-            normContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.ACCELERATIONS, mNormContainerSpatialAccelerationsStdDistance);
+            mNormContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.ACCELERATIONS, mNormContainerSpatialAccelerationsMeanDistance);
+            mNormContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.ACCELERATIONS, mNormContainerSpatialAccelerationsStdDistance);
 
-            normContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.RADIAL_VELOCITIES, mNormContainerSpatialRadialVelocitiesMeanDistance);
-            normContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.RADIAL_VELOCITIES, mNormContainerSpatialRadialVelocitiesStdDistance);
+            mNormContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.RADIAL_VELOCITIES, mNormContainerSpatialRadialVelocitiesMeanDistance);
+            mNormContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.RADIAL_VELOCITIES, mNormContainerSpatialRadialVelocitiesStdDistance);
 
-            normContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.RADIAL_ACCELERATION, mNormContainerSpatialRadialAccelerationsMeanDistance);
-            normContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.RADIAL_ACCELERATION, mNormContainerSpatialRadialAccelerationsStdDistance);
+            mNormContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.RADIAL_ACCELERATION, mNormContainerSpatialRadialAccelerationsMeanDistance);
+            mNormContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.RADIAL_ACCELERATION, mNormContainerSpatialRadialAccelerationsStdDistance);
 
-            normContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.RADIUS, mNormContainerSpatialRadiusMeanDistance);
-            normContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.RADIUS, mNormContainerSpatialRadiusStdDistance);
+            mNormContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.RADIUS, mNormContainerSpatialRadiusMeanDistance);
+            mNormContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.RADIUS, mNormContainerSpatialRadiusStdDistance);
 
-            normContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.TETA, mNormContainerSpatialTetaMeanDistance);
-            normContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.TETA, mNormContainerSpatialTetaStdDistance);
+            mNormContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.TETA, mNormContainerSpatialTetaMeanDistance);
+            mNormContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.TETA, mNormContainerSpatialTetaStdDistance);
 
-            normContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.DELTA_TETA, mNormContainerSpatialDeltaTetaMeanDistance);
-            normContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.DELTA_TETA, mNormContainerSpatialDeltaTetaStdDistance);
+            mNormContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.DELTA_TETA, mNormContainerSpatialDeltaTetaMeanDistance);
+            mNormContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.DELTA_TETA, mNormContainerSpatialDeltaTetaStdDistance);
 
-            normContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaMeanDistance);
-            normContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaStdDistance);
+            mNormContainerMgr.HashMapSpatialNormsMeansDistance.put(ConstsParamNames.StrokeSampling.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaMeanDistance);
+            mNormContainerMgr.HashMapSpatialNormsSdsDistance.put(ConstsParamNames.StrokeSampling.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaStdDistance);
 
             /******************************************** SPATIAL PARAMETERS - TIME ********************************************/
 
-            normContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.VELOCITIES, mNormContainerSpatialVelocitiesMeanTime);
-            normContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.VELOCITIES, mNormContainerSpatialVelocitiesStdTime);
+            mNormContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.VELOCITIES, mNormContainerSpatialVelocitiesMeanTime);
+            mNormContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.VELOCITIES, mNormContainerSpatialVelocitiesStdTime);
 
-            normContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.ACCELERATIONS, mNormContainerSpatialAccelerationsMeanTime);
-            normContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.ACCELERATIONS, mNormContainerSpatialAccelerationsStdTime);
+            mNormContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.ACCELERATIONS, mNormContainerSpatialAccelerationsMeanTime);
+            mNormContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.ACCELERATIONS, mNormContainerSpatialAccelerationsStdTime);
 
-            normContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.RADIAL_VELOCITIES, mNormContainerSpatialRadialVelocitiesMeanTime);
-            normContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.RADIAL_VELOCITIES, mNormContainerSpatialRadialVelocitiesStdTime);
+            mNormContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.RADIAL_VELOCITIES, mNormContainerSpatialRadialVelocitiesMeanTime);
+            mNormContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.RADIAL_VELOCITIES, mNormContainerSpatialRadialVelocitiesStdTime);
 
-            normContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.RADIAL_ACCELERATION, mNormContainerSpatialRadialAccelerationsMeanTime);
-            normContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.RADIAL_ACCELERATION, mNormContainerSpatialRadialAccelerationsStdTime);
+            mNormContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.RADIAL_ACCELERATION, mNormContainerSpatialRadialAccelerationsMeanTime);
+            mNormContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.RADIAL_ACCELERATION, mNormContainerSpatialRadialAccelerationsStdTime);
 
-            normContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.RADIUS, mNormContainerSpatialRadiusMeanTime);
-            normContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.RADIUS, mNormContainerSpatialRadiusStdTime);
+            mNormContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.RADIUS, mNormContainerSpatialRadiusMeanTime);
+            mNormContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.RADIUS, mNormContainerSpatialRadiusStdTime);
 
-            normContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.TETA, mNormContainerSpatialTetaMeanTime);
-            normContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.TETA, mNormContainerSpatialTetaStdTime);
+            mNormContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.TETA, mNormContainerSpatialTetaMeanTime);
+            mNormContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.TETA, mNormContainerSpatialTetaStdTime);
 
-            normContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.DELTA_TETA, mNormContainerSpatialDeltaTetaMeanTime);
-            normContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.DELTA_TETA, mNormContainerSpatialDeltaTetaStdTime);
+            mNormContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.DELTA_TETA, mNormContainerSpatialDeltaTetaMeanTime);
+            mNormContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.DELTA_TETA, mNormContainerSpatialDeltaTetaStdTime);
 
-            normContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaMeanTime);
-            normContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaStdTime);
+            mNormContainerMgr.HashMapSpatialNormsMeansTime.put(ConstsParamNames.StrokeSampling.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaMeanTime);
+            mNormContainerMgr.HashMapSpatialNormsSdsTime.put(ConstsParamNames.StrokeSampling.ACCUMULATED_NORM_AREA, mNormContainerSpatialAccumulatedNormalizedAreaStdTime);
 
             /******************************************** NORMAL GESTURE PARAMETERS ********************************************/
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_TIME_INTERVAL, mNormContainerGestureTotalTimeIntervalMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_TIME_INTERVAL, mNormContainerGestureTotalTimeIntervalStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_TIME_INTERVAL, mNormContainerGestureTotalTimeIntervalMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_TIME_INTERVAL, mNormContainerGestureTotalTimeIntervalStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA, mNormContainerGestureTotalAreaMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA, mNormContainerGestureTotalAreaStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA, mNormContainerGestureTotalAreaMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA, mNormContainerGestureTotalAreaStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA_MINX_MINY, mNormContainerGestureTotalAreaMinXMinYMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA_MINX_MINY, mNormContainerGestureTotalAreaMinXMinYStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA_MINX_MINY, mNormContainerGestureTotalAreaMinXMinYMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_AREA_MINX_MINY, mNormContainerGestureTotalAreaMinXMinYStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_DELAY_TIME, mNormContainerGestureDelayTimeMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_DELAY_TIME, mNormContainerGestureDelayTimeStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_DELAY_TIME, mNormContainerGestureDelayTimeMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_DELAY_TIME, mNormContainerGestureDelayTimeStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_LENGTH, mNormContainerGestureLengthMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_LENGTH, mNormContainerGestureLengthStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_LENGTH, mNormContainerGestureLengthMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_LENGTH, mNormContainerGestureLengthStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_NUM_EVENTS, mNormContainerGestureNumEventsMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_NUM_EVENTS, mNormContainerGestureNumEventsStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_NUM_EVENTS, mNormContainerGestureNumEventsMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_NUM_EVENTS, mNormContainerGestureNumEventsStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKES_TIME_INTERVAL, mNormContainerStrokeTotalTimeIntervalMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKES_TIME_INTERVAL, mNormContainerStrokeTotalTimeIntervalStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKES_TIME_INTERVAL, mNormContainerStrokeTotalTimeIntervalMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKES_TIME_INTERVAL, mNormContainerStrokeTotalTimeIntervalStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKE_AREA, mNormContainerGestureStrokesTotalAreaMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKE_AREA, mNormContainerGestureStrokesTotalAreaStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKE_AREA, mNormContainerGestureStrokesTotalAreaMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKE_AREA, mNormContainerGestureStrokesTotalAreaStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKE_AREA_MINX_MINY, mNormContainerGestureStrokesTotalAreaMinXMinYMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKE_AREA_MINX_MINY, mNormContainerGestureStrokesTotalAreaMinXMinYStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKE_AREA_MINX_MINY, mNormContainerGestureStrokesTotalAreaMinXMinYMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_TOTAL_STROKE_AREA_MINX_MINY, mNormContainerGestureStrokesTotalAreaMinXMinYStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_MIDDLE_PRESSURE, mNormContainerGestureMiddlePressureMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_MIDDLE_PRESSURE, mNormContainerGestureMiddlePressureStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_MIDDLE_PRESSURE, mNormContainerGestureMiddlePressureMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_MIDDLE_PRESSURE, mNormContainerGestureMiddlePressureStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_MIDDLE_SURFACE, mNormContainerGestureMiddleSurfaceMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_MIDDLE_SURFACE, mNormContainerGestureMiddleSurfaceStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_MIDDLE_SURFACE, mNormContainerGestureMiddleSurfaceMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_MIDDLE_SURFACE, mNormContainerGestureMiddleSurfaceStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_AVERAGE_VELOCITY, mNormContainerGestureAvgVelocityMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_AVERAGE_VELOCITY, mNormContainerGestureAvgVelocityStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_AVERAGE_VELOCITY, mNormContainerGestureAvgVelocityMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_AVERAGE_VELOCITY, mNormContainerGestureAvgVelocityStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_MAX_VELOCITY, mNormContainerGestureMaxVelocityMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_MAX_VELOCITY, mNormContainerGestureMaxVelocityStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_MAX_VELOCITY, mNormContainerGestureMaxVelocityMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_MAX_VELOCITY, mNormContainerGestureMaxVelocityStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_MID_OF_FIRST_STROKE_VELOCITY, mNormContainerGestureMidFirstStrokeVelocityMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_MID_OF_FIRST_STROKE_VELOCITY, mNormContainerGestureMidFirstStrokeVelocityStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_MID_OF_FIRST_STROKE_VELOCITY, mNormContainerGestureMidFirstStrokeVelocityMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_MID_OF_FIRST_STROKE_VELOCITY, mNormContainerGestureMidFirstStrokeVelocityStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_AVG_ACCELERATION, mNormContainerGestureAvgAccelerationMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_AVG_ACCELERATION, mNormContainerGestureAvgAccelerationStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_AVG_ACCELERATION, mNormContainerGestureAvgAccelerationMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_AVG_ACCELERATION, mNormContainerGestureAvgAccelerationStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_MAX_ACCELERATION, mNormContainerGestureMaxAccelerationMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_MAX_ACCELERATION, mNormContainerGestureMaxAccelerationStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_MAX_ACCELERATION, mNormContainerGestureMaxAccelerationMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_MAX_ACCELERATION, mNormContainerGestureMaxAccelerationStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_AVG_START_ACCELERATION, mNormContainerGestureAvgStartAccelerationMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_AVG_START_ACCELERATION, mNormContainerGestureAvgStartAccelerationStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_AVG_START_ACCELERATION, mNormContainerGestureAvgStartAccelerationMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_AVG_START_ACCELERATION, mNormContainerGestureAvgStartAccelerationStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_ACCUMULATED_LENGTH_SLOPE, mNormContainerGestureAccumulatedLengthSlopeMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_ACCUMULATED_LENGTH_SLOPE, mNormContainerGestureAccumulatedLengthSlopeStd);
+            //mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Gesture.GESTURE_ACCUMULATED_LENGTH_SLOPE, mNormContainerGestureAccumulatedLengthSlopeMean);
+            //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_ACCUMULATED_LENGTH_SLOPE, mNormContainerGestureAccumulatedLengthSlopeStd);
 
             /******************************************** NORMAL STROKE PARAMETERS ********************************************/
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TRANSITION_TIME, mNormContainerStrokeTransitionTimeMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TRANSITION_TIME, mNormContainerStrokeTransitionTimeStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TRANSITION_TIME, mNormContainerStrokeTransitionTimeMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TRANSITION_TIME, mNormContainerStrokeTransitionTimeStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_LENGTH, mNormContainerStrokeLengthMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_LENGTH, mNormContainerStrokeLengthStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_LENGTH, mNormContainerStrokeLengthMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_LENGTH, mNormContainerStrokeLengthStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_NUM_EVENTS, mNormContainerStrokeNumEventsMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_NUM_EVENTS, mNormContainerStrokeNumEventsStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_NUM_EVENTS, mNormContainerStrokeNumEventsMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_NUM_EVENTS, mNormContainerStrokeNumEventsStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TIME_INTERVAL, mNormContainerStrokeTimeIntervalMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TIME_INTERVAL, mNormContainerStrokeTimeIntervalStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TIME_INTERVAL, mNormContainerStrokeTimeIntervalMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TIME_INTERVAL, mNormContainerStrokeTimeIntervalStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA, mNormContainerStrokeTotalAreaMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA, mNormContainerStrokeTotalAreaStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA, mNormContainerStrokeTotalAreaMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA, mNormContainerStrokeTotalAreaStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA_MINX_MINY, mNormContainerStrokeAreaMinXMinYMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA_MINX_MINY, mNormContainerStrokeAreaMinXMinYStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA_MINX_MINY, mNormContainerStrokeAreaMinXMinYMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TOTAL_AREA_MINX_MINY, mNormContainerStrokeAreaMinXMinYStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_AVERAGE_VELOCITY, mNormContainerStrokeVelocityAvgMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_AVERAGE_VELOCITY, mNormContainerStrokeVelocityAvgStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_AVERAGE_VELOCITY, mNormContainerStrokeVelocityAvgMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_AVERAGE_VELOCITY, mNormContainerStrokeVelocityAvgStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_VELOCITY, mNormContainerStrokeVelocityMaxMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_VELOCITY, mNormContainerStrokeVelocityMaxStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_VELOCITY, mNormContainerStrokeVelocityMaxMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_VELOCITY, mNormContainerStrokeVelocityMaxStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MID_VELOCITY, mNormContainerStrokeVelocityMidMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MID_VELOCITY, mNormContainerStrokeVelocityMidStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MID_VELOCITY, mNormContainerStrokeVelocityMidMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MID_VELOCITY, mNormContainerStrokeVelocityMidStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_AVERAGE_ACCELERATION, mNormContainerStrokeAccelerationAvgMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_AVERAGE_ACCELERATION, mNormContainerStrokeAccelerationAvgStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_AVERAGE_ACCELERATION, mNormContainerStrokeAccelerationAvgMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_AVERAGE_ACCELERATION, mNormContainerStrokeAccelerationAvgStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_ACCELERATION, mNormContainerStrokeAccelerationMaxMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_ACCELERATION, mNormContainerStrokeAccelerationMaxStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_ACCELERATION, mNormContainerStrokeAccelerationMaxMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_ACCELERATION, mNormContainerStrokeAccelerationMaxStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MIDDLE_PRESSURE, mNormContainerStrokeMiddlePressureMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MIDDLE_PRESSURE, mNormContainerStrokeMiddlePressureStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MIDDLE_PRESSURE, mNormContainerStrokeMiddlePressureMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MIDDLE_PRESSURE, mNormContainerStrokeMiddlePressureStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MIDDLE_SURFACE, mNormContainerStrokeMiddleSurfaceMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MIDDLE_SURFACE, mNormContainerStrokeMiddleSurfaceStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MIDDLE_SURFACE, mNormContainerStrokeMiddleSurfaceMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MIDDLE_SURFACE, mNormContainerStrokeMiddleSurfaceStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_VELOCITY, mNormContainerStrokeMaxRadialVelocityMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_VELOCITY, mNormContainerStrokeMaxRadialVelocityStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_VELOCITY, mNormContainerStrokeMaxRadialVelocityMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_VELOCITY, mNormContainerStrokeMaxRadialVelocityStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_ACCELERATION, mNormContainerStrokeMaxRadialAccelerationMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_ACCELERATION, mNormContainerStrokeMaxRadialAccelerationStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_ACCELERATION, mNormContainerStrokeMaxRadialAccelerationMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_MAX_RADIAL_ACCELERATION, mNormContainerStrokeMaxRadialAccelerationStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_INDEX, mNormContainerStrokeMaxInterestPointIndexMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_INDEX, mNormContainerStrokeMaxInterestPointIndexStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_INDEX, mNormContainerStrokeMaxInterestPointIndexMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_INDEX, mNormContainerStrokeMaxInterestPointIndexStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_DENSITY, mNormContainerStrokeMaxInterestPointDensityMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_DENSITY, mNormContainerStrokeMaxInterestPointDensityStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_DENSITY, mNormContainerStrokeMaxInterestPointDensityMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_DENSITY, mNormContainerStrokeMaxInterestPointDensityStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_LOCATION, mNormContainerStrokeMaxInterestPointLocationMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_LOCATION, mNormContainerStrokeMaxInterestPointLocationStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_LOCATION, mNormContainerStrokeMaxInterestPointLocationMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_LOCATION, mNormContainerStrokeMaxInterestPointLocationStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_PRESSURE, mNormContainerStrokeMaxInterestPointPressureMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_PRESSURE, mNormContainerStrokeMaxInterestPointPressureStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_PRESSURE, mNormContainerStrokeMaxInterestPointPressureMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_PRESSURE, mNormContainerStrokeMaxInterestPointPressureStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_SURFACE, mNormContainerStrokeMaxInterestPointSurfaceMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_SURFACE, mNormContainerStrokeMaxInterestPointSurfaceStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_SURFACE, mNormContainerStrokeMaxInterestPointSurfaceMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_SURFACE, mNormContainerStrokeMaxInterestPointSurfaceStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_VELOCITY, mNormContainerStrokeMaxInterestPointVelocityMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_VELOCITY, mNormContainerStrokeMaxInterestPointVelocityStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_VELOCITY, mNormContainerStrokeMaxInterestPointVelocityMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_VELOCITY, mNormContainerStrokeMaxInterestPointVelocityStd);
 
-            normContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_ACCELERATION, mNormContainerStrokeMaxInterestPointAccelerationMean);
-            normContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_ACCELERATION, mNormContainerStrokeMaxInterestPointAccelerationStd);
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_ACCELERATION, mNormContainerStrokeMaxInterestPointAccelerationMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.InterestPoints.STROKE_MAX_INTEREST_POINT_ACCELERATION, mNormContainerStrokeMaxInterestPointAccelerationStd);
 
             /********************************************************************************************************************************/
 
@@ -968,9 +1030,9 @@ namespace NormCalculator
             //double internalMeanGestureAccumulatedLengthSlope = normContainerMgr.GetNumericNormInternalSd("SLETTER", ConstsParamNames.Gesture.GESTURE_ACCUMULATED_LENGTH_SLOPE);            
 
             JSONSerializer jsonSerializer = new JSONSerializer();
-            string jsonNormContainerMgr = jsonSerializer.deepSerialize(normContainerMgr);
+            string jsonNormContainerMgr = jsonSerializer.deepSerialize(mNormContainerMgr);
 
-            ModelNormContainerMgr modelNormContainerMgr = new ModelNormContainerMgr(normContainerMgr);
+            ModelNormContainerMgr modelNormContainerMgr = new ModelNormContainerMgr(mNormContainerMgr);
             //NormContainerMgr normContainerMgr2 = modelNormContainerMgr.ToNormContainerMgr();
             //ModelNormContainerMgr modelNormContainerMgr2 = new ModelNormContainerMgr(normContainerMgr2);
             //NormContainerMgr normContainerMgr3 = modelNormContainerMgr2.ToNormContainerMgr();
@@ -995,5 +1057,10 @@ namespace NormCalculator
             UtilsInstructions utilsInstructions = new UtilsInstructions();
             mListInstructions = utilsInstructions.GetInstructions();
         }
+
+        private string GetGestureKey(string instruction, int numStrokes) {
+            return string.Format("{0}-{1}", instruction, numStrokes.ToString());
+        }
+
     }
 }

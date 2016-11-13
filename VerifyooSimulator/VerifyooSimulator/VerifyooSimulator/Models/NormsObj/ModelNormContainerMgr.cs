@@ -1,6 +1,8 @@
-﻿using java.util;
+﻿using Data.MetaData;
+using java.util;
 using Logic.Comparison.Stats.Norms;
 using Logic.Utils;
+using NormCalculator.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +13,8 @@ namespace VerifyooSimulator.Models.NormsObj
 {
     class ModelNormContainerMgr
     {
+        public List<ModelNormStroke> ListNormStrokes = new List<ModelNormStroke>();
+
         public Dictionary<String, ModelSpatialNormContainer> HashMapSpatialNormsMeansDistance = new Dictionary<string, ModelSpatialNormContainer>();
         public Dictionary<String, ModelSpatialNormContainer> HashMapSpatialNormsSdsDistance = new Dictionary<string, ModelSpatialNormContainer>();
 
@@ -66,6 +70,15 @@ namespace VerifyooSimulator.Models.NormsObj
             ModelAccumulatorsContainer tempModelAccumulatorContainer;
 
             string tempKey, tempKeyInternal;
+
+            NormStroke tempNormStroke;
+            ModelNormStroke tempModelNormStroke;
+            for (int idx = 0; idx < normContainerMgr.ListNormStrokes.size(); idx++)
+            {
+                tempNormStroke = (NormStroke)normContainerMgr.ListNormStrokes.get(idx);
+                tempModelNormStroke = new ModelNormStroke(tempNormStroke);
+                ListNormStrokes.Add(tempModelNormStroke);
+            }
 
             for (int idx = 0; idx < keySetSpatialNormsDistance.Length; idx++)
             {
@@ -214,6 +227,14 @@ namespace VerifyooSimulator.Models.NormsObj
             NumericNormContainer tempNumericNormContainer;
 
             AccumulatorsContainer tempAccumulatorsContainer;
+
+            resultNormContainerMgr.ListNormStrokes = new ArrayList();
+            NormStroke tempNormStroke;
+            for (int idx = 0; idx < ListNormStrokes.Count; idx++)
+            {
+                tempNormStroke = ListNormStrokes[idx].ToNormStroke();
+                resultNormContainerMgr.ListNormStrokes.add(tempNormStroke);
+            }
 
             /****************************************** SPATIAL DISTANCE ******************************************/
 
