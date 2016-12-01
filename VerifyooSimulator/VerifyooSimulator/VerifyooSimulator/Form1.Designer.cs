@@ -428,6 +428,8 @@
             // checkBoxIsAdvHack
             // 
             this.checkBoxIsAdvHack.AutoSize = true;
+            this.checkBoxIsAdvHack.Checked = true;
+            this.checkBoxIsAdvHack.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxIsAdvHack.Location = new System.Drawing.Point(15, 234);
             this.checkBoxIsAdvHack.Name = "checkBoxIsAdvHack";
             this.checkBoxIsAdvHack.Size = new System.Drawing.Size(129, 21);

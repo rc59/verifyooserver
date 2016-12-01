@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using MongoDB.Driver.Builders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace VerifyooSimulator.DAL
 
         public static MongoCollection<ModelTemplate> GetTemplates()
         {
-            MongoDatabase dataBase = GetDbInstance();
+            MongoDatabase dataBase = GetDbInstance();            
             MongoCollection<ModelTemplate> templates = dataBase.GetCollection<ModelTemplate>("templates");
 
             return templates;

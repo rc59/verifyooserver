@@ -8,6 +8,7 @@ using Logic.Comparison;
 using Logic.Comparison.Stats.Norms;
 using Logic.Utils;
 using MongoDB.Driver;
+using MongoDB.Driver.Builders;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -85,7 +86,7 @@ namespace VerifyooSimulator
         private double mTargetFRR;
 
         PerformanceMgr mPerformanceMgr;
-        Dictionary<String, PerformanceMgr> mListPerformanceMgr;
+        Dictionary<String, PerformanceMgr> mListPerformanceMgr;        
 
         public Form1()
         {
@@ -321,7 +322,7 @@ namespace VerifyooSimulator
                 UpdateProgress(totalNumbRecords, currentRecord);
                 while (!mIsFinished)
                 {
-                    modelTemplates = mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
+                    modelTemplates = FindAll(limit, skip); //mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
 
                     foreach (ModelTemplate template in modelTemplates)
                     {
@@ -403,7 +404,7 @@ namespace VerifyooSimulator
                 UpdateProgress(totalNumbRecords, currentRecord);
                 while (!mIsFinished)
                 {
-                    modelTemplates = mListMongo.FindAll().SetLimit(limit).SetSkip(skip);                    
+                    modelTemplates = FindAll(limit, skip); //mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
 
                     foreach (ModelTemplate template in modelTemplates)
                     {
@@ -568,8 +569,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "StrokeAuthId");
             AppendWithComma(stringBuilder, "ComparisonType");
             AppendWithComma(stringBuilder, "Instruction");
-
-            AppendWithComma(stringBuilder, "StrokeScore");
+            
             AppendWithComma(stringBuilder, "StrokeCosineDistance");
 
             AppendWithComma(stringBuilder, "StrokeDistanceTotalScore");
@@ -578,49 +578,11 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "StrokeDistanceTotalScoreEndToStart");
             AppendWithComma(stringBuilder, "StrokeDistanceTotalScoreEndToEnd");
 
-            AppendWithComma(stringBuilder, "DtwAccelerations");
-            AppendWithComma(stringBuilder, "DtwCoordinates");
-            AppendWithComma(stringBuilder, "DtwEvents");
-            AppendWithComma(stringBuilder, "DtwNormalizedCoordinates");
-            AppendWithComma(stringBuilder, "DtwNormalizedCoordinatesSpatialDistance");
-            AppendWithComma(stringBuilder, "DtwSpatialAccelerationDistance");
-            AppendWithComma(stringBuilder, "DtwSpatialAccelerationTime");
-            AppendWithComma(stringBuilder, "DtwSpatialAccumNormAreaDistance");
-            AppendWithComma(stringBuilder, "DtwSpatialAccumNormAreaTime");
-            AppendWithComma(stringBuilder, "DtwSpatialDeltaTetaDistance");
-            AppendWithComma(stringBuilder, "DtwSpatialDeltaTetaTime");
-            AppendWithComma(stringBuilder, "DtwSpatialRadialAccelerationDistance");
-            AppendWithComma(stringBuilder, "DtwSpatialRadialAccelerationTime");
-            AppendWithComma(stringBuilder, "DtwSpatialRadialVelocityDistance");
-            AppendWithComma(stringBuilder, "DtwSpatialRadialVelocityTime");
-            AppendWithComma(stringBuilder, "DtwSpatialRadiusDistance");
-            AppendWithComma(stringBuilder, "DtwSpatialRadiusTime");
-            AppendWithComma(stringBuilder, "DtwSpatialTetaDistance");
-            AppendWithComma(stringBuilder, "DtwSpatialTetaTime");
             AppendWithComma(stringBuilder, "DtwSpatialVelocityDistance");
             AppendWithComma(stringBuilder, "DtwSpatialVelocityDistance16");
             AppendWithComma(stringBuilder, "DtwSpatialVelocityTime");
-            AppendWithComma(stringBuilder, "DtwVelocities");
 
-            AppendWithComma(stringBuilder, "SpatialScoreDistanceVelocity");
-            AppendWithComma(stringBuilder, "SpatialScoreDistanceAcceleration");
-            AppendWithComma(stringBuilder, "SpatialScoreDistanceRadialVelocity");
-            AppendWithComma(stringBuilder, "SpatialScoreDistanceRadialAcceleration");
-            AppendWithComma(stringBuilder, "SpatialScoreDistanceRadius");
-            AppendWithComma(stringBuilder, "SpatialScoreDistanceTeta");
-            AppendWithComma(stringBuilder, "SpatialScoreDistanceDeltaTeta");
-            AppendWithComma(stringBuilder, "SpatialScoreDistanceAccumulatedNormArea");
-
-            AppendWithComma(stringBuilder, "SpatialScoreTimeVelocity");
-            AppendWithComma(stringBuilder, "SpatialScoreTimeAcceleration");
-            AppendWithComma(stringBuilder, "SpatialScoreTimeRadialVelocity");
-            AppendWithComma(stringBuilder, "SpatialScoreTimeRadialAcceleration");
-            AppendWithComma(stringBuilder, "SpatialScoreTimeRadius");
-            AppendWithComma(stringBuilder, "SpatialScoreTimeTeta");
-            AppendWithComma(stringBuilder, "SpatialScoreTimeDeltaTeta");
-            AppendWithComma(stringBuilder, "SpatialScoreTimeAccumulatedNormArea");
-
-            AppendWithComma(stringBuilder, "TotalSpatialTemporalScore");
+            
 
             AppendWithComma(stringBuilder, "AccMovDiffX");
             AppendWithComma(stringBuilder, "AccMovDiffY");
@@ -631,22 +593,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "RadialAccelerationDiff");
 
             AppendWithComma(stringBuilder, "DtwTemporalVelocity");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity0");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity1");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity2");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity3");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity4");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity5");
             AppendWithComma(stringBuilder, "DtwTemporalVelocity6");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity7");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity8");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity9");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity10");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity11");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity12");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity13");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity14");
-            AppendWithComma(stringBuilder, "DtwTemporalVelocity15");
 
             AppendWithComma(stringBuilder, "PcaScore");
             AppendWithComma(stringBuilder, "PcaScoreFinal");
@@ -658,22 +605,22 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "InterestPointScore");
             AppendWithComma(stringBuilder, "InterestPointScoreFinal");
             AppendWithComma(stringBuilder, "IsInterestPointFound");
-
-            AppendWithComma(stringBuilder, "MaxInterestPointIndex");
-            AppendWithComma(stringBuilder, "MaxInterestPointDensity");
-            AppendWithComma(stringBuilder, "MaxInterestPointLocation");
-            AppendWithComma(stringBuilder, "MaxInterestPointPressure");
-            AppendWithComma(stringBuilder, "MaxInterestPointSurface");
-            AppendWithComma(stringBuilder, "MaxInterestPointVelocity");
-            AppendWithComma(stringBuilder, "MaxInterestPointAcceleration");
-            AppendWithComma(stringBuilder, "MaxInterestPointAvgVelocity");
-            AppendWithComma(stringBuilder, "MaxInterestPointDTWVelocity");
-            AppendWithComma(stringBuilder, "MaxInterestPointMaxVelocity");
-            AppendWithComma(stringBuilder, "MaxInterestPointMaxAcceleration");
-            AppendWithComma(stringBuilder, "MaxInterestPointDeltaTeta");
-            AppendWithComma(stringBuilder, "MaxInterestPointDTWCoords");
-            AppendWithComma(stringBuilder, "MaxInterestPointConvolution");
+                        
             AppendWithComma(stringBuilder, "VelocitiesConvolution");
+
+            AppendWithComma(stringBuilder, "IsThereInterestPoints");
+            AppendWithComma(stringBuilder, "InterestPointNewIdxStartDiff");
+            AppendWithComma(stringBuilder, "InterestPointNewIdxEndDiff");
+            AppendWithComma(stringBuilder, "InterestPointNewIdxAvgDiff");
+            AppendWithComma(stringBuilder, "InterestPointNewIdxLocationDiff");
+
+            AppendWithComma(stringBuilder, "InterestPointCountDiff");
+            AppendWithComma(stringBuilder, "InterestPointCountPercentageDiff");
+
+            AppendWithComma(stringBuilder, "InterestPointNewIdxStartAllDiff");
+            AppendWithComma(stringBuilder, "InterestPointNewIdxEndAllDiff");
+            AppendWithComma(stringBuilder, "InterestPointNewIdxAvgAllDiff");
+            AppendWithComma(stringBuilder, "InterestPointNewIdxLocationAllDiff");            
 
             AppendWithComma(stringBuilder, "InterestPointDensityStrengthsDiff");
             AppendWithComma(stringBuilder, "InterestPointDensityStrengthsWithEdgesDiff");            
@@ -1092,57 +1039,17 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, comparisonType);
             AppendWithComma(stringBuilder, instruction);
 
-            AppendWithComma(stringBuilder, totalScore);
             AppendWithComma(stringBuilder, strokeCosineDistance);
 
             AppendWithComma(stringBuilder, (Math.Round(StrokeDistanceTotalScore, 5).ToString()));
             AppendWithComma(stringBuilder, (Math.Round(StrokeDistanceTotalScoreStartToStart, 5).ToString()));
             AppendWithComma(stringBuilder, (Math.Round(StrokeDistanceTotalScoreStartToEnd, 5).ToString()));
             AppendWithComma(stringBuilder, (Math.Round(StrokeDistanceTotalScoreEndToStart, 5).ToString()));
-            AppendWithComma(stringBuilder, (Math.Round(StrokeDistanceTotalScoreEndToEnd, 5).ToString()));
+            AppendWithComma(stringBuilder, (Math.Round(StrokeDistanceTotalScoreEndToEnd, 5).ToString()));            
 
-            AppendWithComma(stringBuilder, Math.Round(DtwAccelerations, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwCoordinates, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwEvents, 5).ToString()); 
-            AppendWithComma(stringBuilder, Math.Round(DtwNormalizedCoordinates, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwNormalizedCoordinatesSpatialDistance, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialAccelerationDistance, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialAccelerationTime, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialAccumNormAreaDistance, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialAccumNormAreaTime, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialDeltaTetaDistance, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialDeltaTetaTime, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialRadialAccelerationDistance, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialRadialAccelerationTime, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialRadialVelocityDistance, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialRadialVelocityTime, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialRadiusDistance, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialRadiusTime, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialTetaDistance, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialTetaTime, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(DtwSpatialVelocityDistance, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(DtwSpatialVelocityDistance16, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwSpatialVelocityTime, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(DtwVelocities, 5).ToString());            
-
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreDistanceVelocity, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreDistanceAcceleration, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreDistanceRadialVelocity, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreDistanceRadialAcceleration, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreDistanceRadius, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreDistanceTeta, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreDistanceDeltaTeta, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreDistanceAccumulatedNormArea, 5).ToString());
-
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreTimeVelocity, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreTimeAcceleration, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreTimeRadialVelocity, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreTimeRadialAcceleration, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreTimeRadius, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreTimeTeta, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreTimeDeltaTeta, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(SpatialScoreTimeAccumulatedNormArea, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(totalSpatialTemporalScore, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(DtwSpatialVelocityTime, 5).ToString());            
 
             AppendWithComma(stringBuilder, Math.Round(accMovDiffX, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(accMovDiffY, 5).ToString());
@@ -1153,22 +1060,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.RadialAccelerationDiff, 5).ToString());
 
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity0, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity1, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity2, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity3, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity4, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity5, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity6, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity7, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity8, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity9, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity10, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity11, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity12, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity13, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity14, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwTemporalVelocity15, 5).ToString());
 
             AppendWithComma(stringBuilder, Math.Round(pcaScore, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.PcaScoreFinal, 5).ToString());
@@ -1181,21 +1073,19 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointScoreFinal, 5).ToString());
             AppendWithComma(stringBuilder, tempStrokeComparer.IsInterestPointFound.ToString());            
 
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointIndex, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointDensity, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointLocation, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointPressure, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointSurface, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointVelocity, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointAcceleration, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointAvgVelocity, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointDTWVelocity, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointMaxVelocity, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointMaxAcceleration, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointDeltaTeta, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointDTWCoords, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.MaxInterestPointConvolution, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.VelocitiesConvolution, 5).ToString());
+
+            AppendWithComma(stringBuilder, tempStrokeComparer.IsThereInterestPoints.ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxStartDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxEndDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxAvgDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxLocationDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointCountDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointCountPercentageDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxStartAllDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxEndAllDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxAvgAllDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxLocationAllDiff, 5).ToString());
 
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointDensityStrengthsDiff, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointDensityStrengthsWithEdgesDiff, 5).ToString());
@@ -1255,7 +1145,7 @@ namespace VerifyooSimulator
             {                
                 while (!mIsFinished)
                 {
-                    modelTemplates = mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
+                    modelTemplates = FindAll(limit, skip); //mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
 
                     foreach (ModelTemplate template in modelTemplates)
                     {
@@ -1281,6 +1171,8 @@ namespace VerifyooSimulator
                     }
                 }
 
+                //AddAuthToReg(userContainerMgr);
+
                 if (mSimulationType.CompareTo(SIMULATOR_TYPE_NAIVE_HACK) != 0)
                 {
                     RunFullComparisons(userContainerMgr);
@@ -1296,8 +1188,27 @@ namespace VerifyooSimulator
                 WriteToLog(exc.Message);
                 MessageBox.Show(string.Format("Error: {0}", exc.Message));
             }
-        }      
-            
+        }
+
+        private void AddAuthToReg(UserContainerMgr userContainerMgr)
+        {
+            UserContainer tempUserContainer;
+            List<ModelGesture> tempListGestures;
+
+            foreach (string key in userContainerMgr.GetUserContainers().Keys)
+            {
+                tempUserContainer = userContainerMgr.GetUserContainers()[key];
+
+                for (int idx = 0; idx < tempUserContainer.ListTemplatesAuthentication.Count; idx++) {
+                    tempListGestures = tempUserContainer.ListTemplatesAuthentication[idx].ExpShapeList;
+
+                    for (int idxGesture = 0; idxGesture < tempListGestures.Count; idxGesture++) {
+                        tempUserContainer.TemplateRegistration.ExpShapeList.Add(tempListGestures[idxGesture]);
+                    }
+                }
+            }
+        }
+
         private void CleanCommonGestures(TemplateExtended baseTemplate)
         {
             for (int idxGesture = baseTemplate.ListGestureExtended.size() - 1; idxGesture >= 0; idxGesture--)
@@ -1305,7 +1216,7 @@ namespace VerifyooSimulator
                 if (((GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture)).Instruction.CompareTo("SLETTER") == 0 ||
                     ((GestureExtended)baseTemplate.ListGestureExtended.get(idxGesture)).Instruction.CompareTo("MLETTER") == 0)
                 {
-                    baseTemplate.ListGestureExtended.remove(idxGesture);
+                    //baseTemplate.ListGestureExtended.remove(idxGesture);
                 }
             }
 
@@ -1617,13 +1528,14 @@ namespace VerifyooSimulator
                 UpdateProgress(totalNumbRecords, currentRecord);
                 while (!mIsFinished)
                 {
-                    modelTemplates = mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
-                    
+                    modelTemplates = FindAll(limit, skip);
+
                     foreach (ModelTemplate template in modelTemplates)
                     {
                         tempTemplate = UtilsTemplateConverter.ConvertTemplateNew(template);
-
-                        if(template.State.CompareTo("Register") == 0 || template.State.CompareTo("Authenticate") == 0 || template.State.CompareTo("Hack") == 0)
+                        
+                        if (template.State.CompareTo("Register") == 0 || template.State.CompareTo("Authenticate") == 0 || template.State.CompareTo("Hack") == 0)
+                        //if (template.State.CompareTo("Norms") == 0)
                         {
                             //if (tempTemplate.Name.CompareTo("haimu@elasticode.com") == 0
                             //    || tempTemplate.Name.CompareTo("anastasiya1ivanov@gmail.com") == 0
@@ -1635,10 +1547,10 @@ namespace VerifyooSimulator
                             //    ExportTemplateToCSV(tempTemplate, currentRecord, template);
                             //}
                             ExportTemplateToCSV(tempTemplate, currentRecord, template);
-
-                            currentRecord++;
-                            UpdateProgress(totalNumbRecords, currentRecord, true);
                         }
+                        
+                        currentRecord++;
+                        UpdateProgress(totalNumbRecords, currentRecord, true);
                     }
 
                     FlushCsvStreams();
@@ -1662,6 +1574,14 @@ namespace VerifyooSimulator
                 WriteToLog(exc.Message);
                 MessageBox.Show(string.Format("Error: {0}", exc.Message));
             }
+        }
+
+        private IEnumerable<ModelTemplate> FindAll(int limit, int skip)
+        {
+            //IMongoQuery query = Query<ModelTemplate>.EQ(c => c.DeviceId, "fake1");
+            //IMongoQuery query = Query<ModelTemplate>.EQ(c => c.Name, "anastasiya1ivanov@gmail.com");
+            IMongoQuery query = Query<ModelTemplate>.EQ(c => c.DeviceId, "062bba750ae4e2b3");
+            return mListMongo.Find(query).SetLimit(limit).SetSkip(skip);
         }
 
         private void CloseCsvStreams()
@@ -2063,7 +1983,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, inputStroke.MaxInterestPointPressure.ToString());
             AppendWithComma(stringBuilder, inputStroke.MaxInterestPointSurface.ToString());
             AppendWithComma(stringBuilder, inputStroke.InterestPointsMostFreqDensity.ToString());
-
+            
             AppendWithComma(stringBuilder, inputStroke.InterestPointsStartIndex.ToString());
             AppendWithComma(stringBuilder, inputStroke.InterestPointsEndIndex.ToString());
 
@@ -2279,6 +2199,8 @@ namespace VerifyooSimulator
             {
                 while (!isFinished)
                 {
+                    //IMongoQuery query = Query<ModelTemplate>.EQ(c => c.Name, "rafi-x4");
+                    //modelTemplates = mongoCloud.Find(query).SetLimit(limit).SetSkip(skip);
                     modelTemplates = mongoCloud.FindAll().SetLimit(limit).SetSkip(skip);
 
                     foreach (ModelTemplate template in modelTemplates)
@@ -2286,27 +2208,44 @@ namespace VerifyooSimulator
                         currentRecord++;
                         UpdateProgress(totalNumbRecords, currentRecord);
 
-                        if (template.DeviceId.CompareTo("062bba750ae4e2b3") == 0)
+                        if (template.ExpShapeList.Count > 0 && IsValid(template))
                         {
-                            template.Name = template.Name.ToLower();
-
-                            if (template.Name.Contains("oded_luria")) {
-                                template.Name = "oded_luria";
-                            }
-
-                            if (template.Name.CompareTo("shir_mor88@walla.com") != 0 &&
-                                template.Name.CompareTo("yinon_m") != 0 &&
-                                template.Name.CompareTo("michalsh96@gmail.com") != 0)
+                            template.GcmToken = String.Empty;
+                            template.Version = String.Empty;
+                            template.UserCountry = String.Empty;
+                            template.AppLocale = String.Empty;
+                            try
                             {
-                                if (template.ExpShapeList.Count > 0 && IsValid(template)) {
-                                    template.GcmToken = String.Empty;
-                                    template.Version = String.Empty;
-                                    template.UserCountry = String.Empty;
-                                    template.AppLocale = String.Empty;
-                                    mongoLocal.Insert(template);
-                                }                                
+                                
+                                mongoLocal.Insert(template);
+                            }
+                            catch(Exception exc)
+                            {
+
                             }
                         }
+
+                        //if (template.DeviceId.CompareTo("062bba750ae4e2b3") == 0)
+                        //{
+                        //    template.Name = template.Name.ToLower();
+
+                        //    if (template.Name.Contains("oded_luria")) {
+                        //        template.Name = "oded_luria";
+                        //    }
+
+                        //    if (template.Name.CompareTo("shir_mor88@walla.com") != 0 &&
+                        //        template.Name.CompareTo("yinon_m") != 0 &&
+                        //        template.Name.CompareTo("michalsh96@gmail.com") != 0)
+                        //    {
+                        //        if (template.ExpShapeList.Count > 0 && IsValid(template)) {
+                        //            template.GcmToken = String.Empty;
+                        //            template.Version = String.Empty;
+                        //            template.UserCountry = String.Empty;
+                        //            template.AppLocale = String.Empty;
+                        //            mongoLocal.Insert(template);
+                        //        }                                
+                        //    }
+                        //}
                     }
                     skip += limit;
 

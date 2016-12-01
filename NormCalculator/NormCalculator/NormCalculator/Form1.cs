@@ -1,4 +1,5 @@
-﻿using Consts;
+﻿using com.google.gson;
+using Consts;
 using Data.UserProfile.Extended;
 using flexjson;
 using java.util;
@@ -141,6 +142,9 @@ namespace NormCalculator
 
         /************************************* NORMAL STROKE PARAMETERS *************************************/
 
+        NumericNormContainer mNormContainerStrokeInterestPointParamMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeInterestPointParamStd = new NumericNormContainer();
+
         NumericNormContainer mNormContainerStrokeTransitionTimeMean = new NumericNormContainer();
         NumericNormContainer mNormContainerStrokeTransitionTimeStd = new NumericNormContainer();
 
@@ -235,10 +239,12 @@ namespace NormCalculator
 
         private void Start()
         {
-            IEnumerable<ModelTemplate> modelTemplates;           
+            IEnumerable<ModelTemplate> modelTemplates;
+
+            IMongoQuery query = Query<ModelTemplate>.EQ(c => c.DeviceId, "062bba750ae4e2b3");
 
             mListMongo = UtilsDB.GetCollShapes();
-            double totalNumbRecords = mListMongo.Count();
+            double totalNumbRecords = mListMongo.Count(query);
             //double totalNumbRecords = mListMongo.Count();
 
             int limit = 1;
@@ -303,6 +309,7 @@ namespace NormCalculator
 
             /*********************************** STROKE PARAMS ***********************************/
 
+            NumericNormContainer tempNormContainerStrokeInterestPointParam;
             NumericNormContainer tempNormContainerStrokeTransitionTime;
             NumericNormContainer tempNormContainerStrokeLength;
             NumericNormContainer tempNormContainerStrokeNumEvents;
@@ -346,21 +353,21 @@ namespace NormCalculator
             int strokeKey;
 
             List<string> listTempInstructions;
-            string gestureKey;    
+            string gestureKey;            
 
             try
             {
                 while (!isFinished)
                 {
-                    modelTemplates = mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
-                    //modelTemplates = mListMongo.FindAll().SetLimit(limit).SetSkip(skip);
+                    
+                    modelTemplates = mListMongo.Find(query).SetLimit(limit).SetSkip(skip);                   
 
                     foreach (ModelTemplate template in modelTemplates)
                     {
                         mCurrId = template._id.ToString();
                         mCurrentTemplateNum++;                            
 
-                        if(template.State.CompareTo("Hack") != 0 && template.ExpShapeList.Count > 0)
+                        if((template.State.CompareTo("Authenticate") == 0 || template.State.CompareTo("Register") == 0) && template.ExpShapeList.Count > 0)
                         {
                             try
                             {
@@ -413,6 +420,7 @@ namespace NormCalculator
 
                                 tempNormContainerGestureAccumulatedLengthSlope = new NumericNormContainer();
 
+                                tempNormContainerStrokeInterestPointParam = new NumericNormContainer();
                                 tempNormContainerStrokeTransitionTime = new NumericNormContainer();
                                 tempNormContainerStrokeLength = new NumericNormContainer();
                                 tempNormContainerStrokeNumEvents = new NumericNormContainer();
@@ -446,7 +454,7 @@ namespace NormCalculator
                                 for (int idxGesture = 0; idxGesture < tempTemplate.ListGestureExtended.size(); idxGesture++)
                                 {
                                     tempGesture = (GestureExtended)tempTemplate.ListGestureExtended.get(idxGesture);
-                                    gestureKey = GetGestureKey(tempGesture.Instruction, tempGesture.ListStrokesExtended.size());
+                                    gestureKey = GetGestureKey("RLETTER", tempGesture.ListStrokesExtended.size());
                                     //tempInstruction = tempGesture.Instruction;
                                     listTempInstructions.Add(gestureKey);
 
@@ -495,6 +503,8 @@ namespace NormCalculator
                                             {
                                                 tempNormContainerStrokeTransitionTime.AddValue(SafeAddValue(tempStroke.StrokeTransitionTime), tempInstruction, strokeKey);
                                             }
+
+                                            tempNormContainerStrokeInterestPointParam.AddValue(SafeAddValue(tempStroke.InterestPointDensityStrengthsParam), tempInstruction, strokeKey);
                                             tempNormContainerStrokeLength.AddValue(SafeAddValue(tempStroke.StrokePropertiesObj.LengthMM), tempInstruction, strokeKey);
                                             tempNormContainerStrokeNumEvents.AddValue(SafeAddValue(tempStroke.ListEventsExtended.size()), tempInstruction, strokeKey);
                                             tempNormContainerStrokeTimeInterval.AddValue(SafeAddValue(tempStroke.StrokeTimeInterval), tempInstruction, strokeKey);
@@ -590,6 +600,8 @@ namespace NormCalculator
                                         AddValueToNormContainer(tempInstruction, idxSpatial, tempNormContainerDeltaTetaTime, mNormContainerSpatialDeltaTetaMeanTime, mNormContainerSpatialDeltaTetaStdTime);
                                         AddValueToNormContainer(tempInstruction, idxSpatial, tempNormContainerAccumulatedNormalizedAreaTime, mNormContainerSpatialAccumulatedNormalizedAreaMeanTime, mNormContainerSpatialAccumulatedNormalizedAreaStdTime);
                                     }
+
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeInterestPointParam, mNormContainerStrokeInterestPointParamMean, mNormContainerStrokeInterestPointParamStd);
 
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeTransitionTime, mNormContainerStrokeTransitionTimeMean, mNormContainerStrokeTransitionTimeStd);
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeLength, mNormContainerStrokeLengthMean, mNormContainerStrokeLengthStd);
@@ -893,6 +905,9 @@ namespace NormCalculator
 
             /******************************************** NORMAL STROKE PARAMETERS ********************************************/
 
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_INTEREST_POINT_PARAM, mNormContainerStrokeInterestPointParamMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_INTEREST_POINT_PARAM, mNormContainerStrokeInterestPointParamStd);
+
             mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_TRANSITION_TIME, mNormContainerStrokeTransitionTimeMean);
             mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_TRANSITION_TIME, mNormContainerStrokeTransitionTimeStd);
 
@@ -1029,8 +1044,23 @@ namespace NormCalculator
             //double popSdGestureAccumulatedLengthSlope = normContainerMgr.GetNumericNormPopSd("SLETTER", ConstsParamNames.Gesture.GESTURE_ACCUMULATED_LENGTH_SLOPE);
             //double internalMeanGestureAccumulatedLengthSlope = normContainerMgr.GetNumericNormInternalSd("SLETTER", ConstsParamNames.Gesture.GESTURE_ACCUMULATED_LENGTH_SLOPE);            
 
+            StreamWriter streamWriterNormsJavaGson = InitStreamWriterResultNormsJavaGson();
+            StreamWriter streamWriterNormsJava = InitStreamWriterResultNormsJava();
+            StreamWriter streamWriterNormsCS = InitStreamWriterNormsCS();
+            
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            Gson gson = gsonBuilder.enableComplexMapKeySerialization().create();
+            
+            string gsonStr = gson.toJson(mNormContainerMgr);
+            streamWriterNormsJavaGson.WriteLine(gsonStr);
+            streamWriterNormsJavaGson.Flush();
+            streamWriterNormsJavaGson.Close();
+
             JSONSerializer jsonSerializer = new JSONSerializer();
             string jsonNormContainerMgr = jsonSerializer.deepSerialize(mNormContainerMgr);
+            streamWriterNormsJava.WriteLine(jsonNormContainerMgr);
+            streamWriterNormsJava.Flush();
+            streamWriterNormsJava.Close();
 
             ModelNormContainerMgr modelNormContainerMgr = new ModelNormContainerMgr(mNormContainerMgr);
             //NormContainerMgr normContainerMgr2 = modelNormContainerMgr.ToNormContainerMgr();
@@ -1040,6 +1070,10 @@ namespace NormCalculator
             try
             {
                 string jsonNormContainerMgrCsharp = JsonConvert.SerializeObject(modelNormContainerMgr);
+                streamWriterNormsCS.WriteLine(jsonNormContainerMgrCsharp);
+                streamWriterNormsCS.Flush();
+                streamWriterNormsCS.Close();
+
                 ModelNormContainerMgr tempNormContainerMgr = JsonConvert.DeserializeObject<ModelNormContainerMgr>(jsonNormContainerMgrCsharp);
                 NormContainerMgr normContainerMgr3 = tempNormContainerMgr.ToNormContainerMgr();
             }
@@ -1062,5 +1096,22 @@ namespace NormCalculator
             return string.Format("{0}-{1}", instruction, numStrokes.ToString());
         }
 
+        private StreamWriter InitStreamWriterResultNormsJavaGson()
+        {
+            StreamWriter streamWriter = File.CreateText(@"C:\Temp\normsjavagson.txt");
+            return streamWriter;
+        }
+
+        private StreamWriter InitStreamWriterResultNormsJava()
+        {
+            StreamWriter streamWriter = File.CreateText(@"C:\Temp\normsjava.txt");
+            return streamWriter;
+        }
+
+        private StreamWriter InitStreamWriterNormsCS()
+        {
+            StreamWriter streamWriter = File.CreateText(@"C:\Temp\normscs.txt");
+            return streamWriter;
+        }
     }
 }
