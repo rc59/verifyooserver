@@ -29,6 +29,8 @@ namespace VerifyooSimulator
 {
     public partial class Form1 : Form
     {
+        public const string USER_NAME = "rafi_s";
+
         double mLimitRecordsNaiveHack = 0;
         double mThreasholdForSelectedFAR = -1;
         double mCustomFAR = 0;
@@ -1090,18 +1092,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointDensityStrengthsDiff, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointDensityStrengthsWithEdgesDiff, 5).ToString());
 
-            AppendWithComma(stringBuilder, tempStrokeComparer.GetStoredStrokeKey().ToString());
-
-            AddParameterToPerformanceMgr("MaxInterestPointDeltaTeta", tempStrokeComparer.MaxInterestPointDeltaTeta);
-            AddParameterToPerformanceMgr("MaxInterestPointDensity", tempStrokeComparer.MaxInterestPointDensity);
-            AddParameterToPerformanceMgr("MaxInterestPointLocation", tempStrokeComparer.MaxInterestPointLocation);
-            AddParameterToPerformanceMgr("MaxInterestPointIndex", tempStrokeComparer.MaxInterestPointIndex);
-            AddParameterToPerformanceMgr("MaxInterestPointVelocity", tempStrokeComparer.MaxInterestPointVelocity);
-            AddParameterToPerformanceMgr("MaxInterestPointAcceleration", tempStrokeComparer.MaxInterestPointAcceleration);
-            AddParameterToPerformanceMgr("MaxInterestPointDeltaTeta", tempStrokeComparer.MaxInterestPointDeltaTeta);
-            AddParameterToPerformanceMgr("MaxInterestPointAvgVelocity", tempStrokeComparer.MaxInterestPointAvgVelocity);
-            AddParameterToPerformanceMgr("MaxInterestPointMaxVelocity", tempStrokeComparer.MaxInterestPointMaxVelocity);
-            AddParameterToPerformanceMgr("MaxInterestPointMaxAcceleration", tempStrokeComparer.MaxInterestPointMaxAcceleration);
+            AppendWithComma(stringBuilder, tempStrokeComparer.GetStoredStrokeKey().ToString());            
 
             AddParameterToPerformanceMgr("PcaScore", tempStrokeComparer.PcaScore);
             AddParameterToPerformanceMgr("DtwScore", tempStrokeComparer.DtwSpatialTotalScore);
@@ -1579,8 +1570,8 @@ namespace VerifyooSimulator
         private IEnumerable<ModelTemplate> FindAll(int limit, int skip)
         {
             //IMongoQuery query = Query<ModelTemplate>.EQ(c => c.DeviceId, "fake1");
-            //IMongoQuery query = Query<ModelTemplate>.EQ(c => c.Name, "anastasiya1ivanov@gmail.com");
-            IMongoQuery query = Query<ModelTemplate>.EQ(c => c.DeviceId, "062bba750ae4e2b3");
+            IMongoQuery query = Query<ModelTemplate>.EQ(c => c.Name, USER_NAME);
+            //IMongoQuery query = Query<ModelTemplate>.EQ(c => c.DeviceId, "062bba750ae4e2b3");
             return mListMongo.Find(query).SetLimit(limit).SetSkip(skip);
         }
 
@@ -1755,23 +1746,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "MiddleSurface");
 
             AppendWithComma(stringBuilder, "StrokeTimeInterval");
-
-            AppendWithComma(stringBuilder, "MaxInterestPointIndex");
-            AppendWithComma(stringBuilder, "MaxInterestPointBoundaryMin");
-            AppendWithComma(stringBuilder, "MaxInterestPointBoundaryMax");
-
-            AppendWithComma(stringBuilder, "MaxInterestPointAvgVelocity");
-            AppendWithComma(stringBuilder, "MaxInterestPointMaxVelocity");
-            AppendWithComma(stringBuilder, "MaxInterestPointMaxAcceleration");
-            AppendWithComma(stringBuilder, "MaxInterestPointDeltaTeta");
-            AppendWithComma(stringBuilder, "MaxInterestPointLocation");
-            AppendWithComma(stringBuilder, "MaxInterestPointDensity");
-            AppendWithComma(stringBuilder, "MaxInterestPointVelocity");
-            AppendWithComma(stringBuilder, "MaxInterestPointAcceleration");
-            AppendWithComma(stringBuilder, "MaxInterestPointPressure");
-            AppendWithComma(stringBuilder, "MaxInterestPointSurface");
-            AppendWithComma(stringBuilder, "InterestPointsMostFreqDensity");
-
+            
             AppendWithComma(stringBuilder, "InterestPointsStartIndex");
             AppendWithComma(stringBuilder, "InterestPointsEndIndex");
 
@@ -1968,22 +1943,6 @@ namespace VerifyooSimulator
 
             AppendWithComma(stringBuilder, inputStroke.StrokeTimeInterval.ToString());
 
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointIndex.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointBoundaryMin.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointBoundaryMax.ToString());
-
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointAvgVelocity.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointMaxVelocity.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointMaxAcceleration.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointDeltaTeta.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointLocation.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointDensity.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointVelocity.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointAcceleration.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointPressure.ToString());
-            AppendWithComma(stringBuilder, inputStroke.MaxInterestPointSurface.ToString());
-            AppendWithComma(stringBuilder, inputStroke.InterestPointsMostFreqDensity.ToString());
-            
             AppendWithComma(stringBuilder, inputStroke.InterestPointsStartIndex.ToString());
             AppendWithComma(stringBuilder, inputStroke.InterestPointsEndIndex.ToString());
 
@@ -2199,9 +2158,9 @@ namespace VerifyooSimulator
             {
                 while (!isFinished)
                 {
-                    //IMongoQuery query = Query<ModelTemplate>.EQ(c => c.Name, "rafi-x4");
-                    //modelTemplates = mongoCloud.Find(query).SetLimit(limit).SetSkip(skip);
-                    modelTemplates = mongoCloud.FindAll().SetLimit(limit).SetSkip(skip);
+                    IMongoQuery query = Query<ModelTemplate>.EQ(c => c.Name, USER_NAME);
+                    modelTemplates = mongoCloud.Find(query).SetLimit(limit).SetSkip(skip);
+                    //modelTemplates = mongoCloud.FindAll().SetLimit(limit).SetSkip(skip);
 
                     foreach (ModelTemplate template in modelTemplates)
                     {
@@ -2380,32 +2339,39 @@ namespace VerifyooSimulator
 
             for (int idx = 0; idx < listKeysTop.Length; idx++)
             {
-                tempKeyTop = (string) listKeysTop[idx];
-                tempNumericNormContainerMeans = (NumericNormContainer)normContainerMgr.HashMapNumericNormsMeans.get(tempKeyTop);
-                tempNumericNormContainerStds = (NumericNormContainer)normContainerMgr.HashMapNumericNormsSds.get(tempKeyTop);
-
-                listKeys = tempNumericNormContainerMeans.HashNorms.keySet().toArray();
-                for (int idxArray = 0; idxArray < listKeys.Length; idxArray++)
+                try
                 {
-                    tempKey = (string)listKeys[idxArray];
-                    tempUtilsAccumulatorMeans = (UtilsAccumulator) tempNumericNormContainerMeans.HashNorms.get(tempKey);
-                    tempUtilsAccumulatorStds = (UtilsAccumulator)tempNumericNormContainerStds.HashNorms.get(tempKey);
+                    tempKeyTop = (string)listKeysTop[idx];
+                    tempNumericNormContainerMeans = (NumericNormContainer)normContainerMgr.HashMapNumericNormsMeans.get(tempKeyTop);
+                    tempNumericNormContainerStds = (NumericNormContainer)normContainerMgr.HashMapNumericNormsSds.get(tempKeyTop);
 
-                    param = string.Format("{0}-{1}", tempKeyTop, tempKey);
+                    listKeys = tempNumericNormContainerMeans.HashNorms.keySet().toArray();
+                    for (int idxArray = 0; idxArray < listKeys.Length; idxArray++)
+                    {
+                        tempKey = (string)listKeys[idxArray];
+                        tempUtilsAccumulatorMeans = (UtilsAccumulator)tempNumericNormContainerMeans.HashNorms.get(tempKey);
+                        tempUtilsAccumulatorStds = (UtilsAccumulator)tempNumericNormContainerStds.HashNorms.get(tempKey);
 
-                    //if(param.Contains("RLETTER"))
-                    //{
-                        
-                    //}
-                    tempPopMean = tempUtilsAccumulatorMeans.Mean();
-                    tempPopStd = tempUtilsAccumulatorMeans.Stddev();
-                    tempPopN = tempUtilsAccumulatorMeans.N;
+                        param = string.Format("{0}-{1}", tempKeyTop, tempKey);
 
-                    tempInternalAvgStd = tempUtilsAccumulatorStds.Mean();
-                    tempInternalStdStds = tempUtilsAccumulatorStds.Stddev();
-                    tempInternalN = tempUtilsAccumulatorStds.N;
+                        //if(param.Contains("RLETTER"))
+                        //{
 
-                    WriteNormLine(param, tempPopMean, tempPopStd, tempPopN, tempInternalAvgStd, tempInternalStdStds, tempKeyTop, tempKey, "Normal");
+                        //}
+                        tempPopMean = tempUtilsAccumulatorMeans.Mean();
+                        tempPopStd = tempUtilsAccumulatorMeans.Stddev();
+                        tempPopN = tempUtilsAccumulatorMeans.N;
+
+                        tempInternalAvgStd = tempUtilsAccumulatorStds.Mean();
+                        tempInternalStdStds = tempUtilsAccumulatorStds.Stddev();
+                        tempInternalN = tempUtilsAccumulatorStds.N;
+
+                        WriteNormLine(param, tempPopMean, tempPopStd, tempPopN, tempInternalAvgStd, tempInternalStdStds, tempKeyTop, tempKey, "Normal");
+                    }
+                }
+                catch(Exception exc)
+                {
+                    string msg1 = exc.Message;
                 }
             }
 
