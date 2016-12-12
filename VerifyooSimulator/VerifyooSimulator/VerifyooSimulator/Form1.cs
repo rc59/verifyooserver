@@ -29,7 +29,7 @@ namespace VerifyooSimulator
 {
     public partial class Form1 : Form
     {
-        public const string USER_NAME = "rafi_s";
+        public const string USER_NAME = "roy_dalal";
 
         double mLimitRecordsNaiveHack = 0;
         double mThreasholdForSelectedFAR = -1;
@@ -605,8 +605,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "DtwYona");
 
             AppendWithComma(stringBuilder, "InterestPointScore");
-            AppendWithComma(stringBuilder, "InterestPointScoreFinal");
-            AppendWithComma(stringBuilder, "IsInterestPointFound");
+            AppendWithComma(stringBuilder, "InterestPointScoreFinal");            
                         
             AppendWithComma(stringBuilder, "VelocitiesConvolution");
 
@@ -619,14 +618,11 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "InterestPointCountDiff");
             AppendWithComma(stringBuilder, "InterestPointCountPercentageDiff");
 
-            AppendWithComma(stringBuilder, "InterestPointNewIdxStartAllDiff");
-            AppendWithComma(stringBuilder, "InterestPointNewIdxEndAllDiff");
-            AppendWithComma(stringBuilder, "InterestPointNewIdxAvgAllDiff");
-            AppendWithComma(stringBuilder, "InterestPointNewIdxLocationAllDiff");            
-
-            AppendWithComma(stringBuilder, "InterestPointDensityStrengthsDiff");
-            AppendWithComma(stringBuilder, "InterestPointDensityStrengthsWithEdgesDiff");            
-
+            //AppendWithComma(stringBuilder, "InterestPointNewIdxStartAllDiff");
+            //AppendWithComma(stringBuilder, "InterestPointNewIdxEndAllDiff");
+            //AppendWithComma(stringBuilder, "InterestPointNewIdxAvgAllDiff");
+            //AppendWithComma(stringBuilder, "InterestPointNewIdxLocationAllDiff");            
+          
             AppendWithComma(stringBuilder, "StrokeKey");
 
             for (int idx = 0; idx < STROKE_NUM_PARAMS; idx++)
@@ -1072,8 +1068,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.DtwYona, 10).ToString());
                 
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointScore, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointScoreFinal, 5).ToString());
-            AppendWithComma(stringBuilder, tempStrokeComparer.IsInterestPointFound.ToString());            
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointScoreFinal, 5).ToString());            
 
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.VelocitiesConvolution, 5).ToString());
 
@@ -1084,13 +1079,10 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxLocationDiff, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointCountDiff, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointCountPercentageDiff, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxStartAllDiff, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxEndAllDiff, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxAvgAllDiff, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxLocationAllDiff, 5).ToString());
-
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointDensityStrengthsDiff, 5).ToString());
-            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointDensityStrengthsWithEdgesDiff, 5).ToString());
+            //AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxStartAllDiff, 5).ToString());
+            //AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxEndAllDiff, 5).ToString());
+            //AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxAvgAllDiff, 5).ToString());
+            //AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxLocationAllDiff, 5).ToString());
 
             AppendWithComma(stringBuilder, tempStrokeComparer.GetStoredStrokeKey().ToString());            
 
@@ -1673,10 +1665,10 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "DeltaTetaAngleDiffProp");
             AppendWithComma(stringBuilder, "AngleDiffDeltaTetaProp");
 
-            AppendWithComma(stringBuilder, "EventDensityRaw");
-            AppendWithComma(stringBuilder, "EventDensity");            
+            AppendWithComma(stringBuilder, "EventDensityNewCalc");
+            AppendWithComma(stringBuilder, "EventDensitySignalStrength2");
+            AppendWithComma(stringBuilder, "EventDensity");
             AppendWithComma(stringBuilder, "EventDensitySignalStrength");            
-            AppendWithComma(stringBuilder, "EventDistance");
 
             //AppendWithComma(stringBuilder, "IsHistory");
 
@@ -1749,6 +1741,8 @@ namespace VerifyooSimulator
             
             AppendWithComma(stringBuilder, "InterestPointsStartIndex");
             AppendWithComma(stringBuilder, "InterestPointsEndIndex");
+
+            AppendWithComma(stringBuilder, "NumInterestPoints");
 
             AppendWithComma(stringBuilder, "StrokeKey");
 
@@ -1946,6 +1940,7 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, inputStroke.InterestPointsStartIndex.ToString());
             AppendWithComma(stringBuilder, inputStroke.InterestPointsEndIndex.ToString());
 
+            AppendWithComma(stringBuilder, inputStroke.ListInterestPoints.size().ToString());
             AppendWithComma(stringBuilder, inputStroke.GetStrokeKey().ToString());
 
             mStreamWriterCsvStrokes.WriteLine(stringBuilder.ToString());
@@ -2056,9 +2051,9 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(angleDiffDeltaTetaProp, NUM_DECIMALS).ToString());
 
             AppendWithComma(stringBuilder, inputEvent.EventDensityRaw.ToString());
+            AppendWithComma(stringBuilder, inputEvent.EventDensitySignalStrength2.ToString());
             AppendWithComma(stringBuilder, inputEvent.EventDensity.ToString());
             AppendWithComma(stringBuilder, inputEvent.EventDensitySignalStrength.ToString());
-            AppendWithComma(stringBuilder, inputEvent.EventDistance.ToString());
 
             //AppendWithComma(stringBuilder, inputEvent.IsHistory.ToString());
 

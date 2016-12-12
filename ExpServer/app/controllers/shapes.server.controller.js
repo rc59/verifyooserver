@@ -5,6 +5,11 @@ var mongoose = require('mongoose'),
     http = require('http'),
     matchLogic = require('./match-logic'),
     _ = require('lodash'),
+    TemplateDemo = mongoose.model('TemplateDemo'),
+    ShapeDemo = mongoose.model('ShapeDemo'),
+    StrokeDemo = mongoose.model('StrokeDemo'),
+    EventDemo = mongoose.model('EventDemo'),
+    Template = mongoose.model('Template'),
     Shape = mongoose.model('Shape'),
     Stroke = mongoose.model('Stroke'),
     Event = mongoose.model('Event'),
@@ -121,6 +126,34 @@ exports.isUserExists = function(req, res) {
     else {
         res.status(400).send({ message: false });
     }
+};
+
+exports.createTemplateDemo = function(req, res) {
+    var templateDemo = new TemplateDemo(req.body);
+
+    templateDemo.save(function(err) {
+        if (err) {
+            return res.status(400).send({
+                message: errorHandler.getErrorMessage(err)
+            });
+        } else {
+            res.jsonp(templateDemo);
+        }
+    });
+};
+
+exports.createTemplate = function(req, res) {
+    var template = new Template(req.body);
+
+    template.save(function(err) {
+        if (err) {
+            return res.status(400).send({
+                message: errorHandler.getErrorMessage(err)
+            });
+        } else {
+            res.jsonp(template);
+        }
+    });
 };
 
 exports.create = function(req, res) {

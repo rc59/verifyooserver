@@ -499,7 +499,7 @@ namespace NormCalculator
 
                                             if(tempStroke.StrokeTransitionTime > 0)
                                             {
-                                                tempNormContainerStrokeTransitionTime.AddValue(SafeAddValue(tempStroke.StrokeTransitionTime), tempInstruction, strokeKey);
+                                                tempNormContainerStrokeTransitionTime.AddValue(SafeAddValue(tempStroke.StrokeTransitionTime), tempInstruction, 0);
                                             }
 
                                             tempNormContainerStrokeInterestLocation.AddValue(SafeAddValue(tempStroke.InterestPointLocation), tempInstruction, strokeKey);
@@ -1087,11 +1087,11 @@ namespace NormCalculator
             streamWriterNormsJavaGson.Flush();
             streamWriterNormsJavaGson.Close();
 
-            JSONSerializer jsonSerializer = new JSONSerializer();
-            string jsonNormContainerMgr = jsonSerializer.deepSerialize(mNormContainerMgr);
-            streamWriterNormsJava.WriteLine(jsonNormContainerMgr);
-            streamWriterNormsJava.Flush();
-            streamWriterNormsJava.Close();
+            //JSONSerializer jsonSerializer = new JSONSerializer();
+            //string jsonNormContainerMgr = jsonSerializer.deepSerialize(mNormContainerMgr);
+            //streamWriterNormsJava.WriteLine(jsonNormContainerMgr);
+            //streamWriterNormsJava.Flush();
+            //streamWriterNormsJava.Close();
 
             ModelNormContainerMgr modelNormContainerMgr = new ModelNormContainerMgr(mNormContainerMgr);
             //NormContainerMgr normContainerMgr2 = modelNormContainerMgr.ToNormContainerMgr();
