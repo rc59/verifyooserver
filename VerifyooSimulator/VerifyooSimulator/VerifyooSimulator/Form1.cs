@@ -584,8 +584,6 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "DtwSpatialVelocityDistance16");
             AppendWithComma(stringBuilder, "DtwSpatialVelocityTime");
 
-            
-
             AppendWithComma(stringBuilder, "AccMovDiffX");
             AppendWithComma(stringBuilder, "AccMovDiffY");
             AppendWithComma(stringBuilder, "AccMovDiffZ");
@@ -614,15 +612,19 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "InterestPointNewIdxEndDiff");
             AppendWithComma(stringBuilder, "InterestPointNewIdxAvgDiff");
             AppendWithComma(stringBuilder, "InterestPointNewIdxLocationDiff");
-
             AppendWithComma(stringBuilder, "InterestPointCountDiff");
+            AppendWithComma(stringBuilder, "InterestPointCountDiffMinor");
             AppendWithComma(stringBuilder, "InterestPointCountPercentageDiff");
+
+            AppendWithComma(stringBuilder, "StrokeAvgDensityScore");
+            AppendWithComma(stringBuilder, "InterestPointNewIdxAvgVelocity");
+            AppendWithComma(stringBuilder, "InterestPointNewIdxIntensity");
 
             //AppendWithComma(stringBuilder, "InterestPointNewIdxStartAllDiff");
             //AppendWithComma(stringBuilder, "InterestPointNewIdxEndAllDiff");
             //AppendWithComma(stringBuilder, "InterestPointNewIdxAvgAllDiff");
             //AppendWithComma(stringBuilder, "InterestPointNewIdxLocationAllDiff");            
-          
+
             AppendWithComma(stringBuilder, "StrokeKey");
 
             for (int idx = 0; idx < STROKE_NUM_PARAMS; idx++)
@@ -1078,7 +1080,13 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxAvgDiff, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxLocationDiff, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointCountDiff, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointMinorCountDiff, 5).ToString());
             AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointCountPercentageDiff, 5).ToString());
+
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.StrokeAvgDensityScore, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxAvgVelocity, 5).ToString());
+            AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxIntensity, 5).ToString());
+            
             //AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxStartAllDiff, 5).ToString());
             //AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxEndAllDiff, 5).ToString());
             //AppendWithComma(stringBuilder, Math.Round(tempStrokeComparer.InterestPointNewIdxAvgAllDiff, 5).ToString());
@@ -1154,7 +1162,7 @@ namespace VerifyooSimulator
                     }
                 }
 
-                //AddAuthToReg(userContainerMgr);
+                AddAuthToReg(userContainerMgr);
 
                 if (mSimulationType.CompareTo(SIMULATOR_TYPE_NAIVE_HACK) != 0)
                 {
@@ -1562,8 +1570,8 @@ namespace VerifyooSimulator
         private IEnumerable<ModelTemplate> FindAll(int limit, int skip)
         {
             //IMongoQuery query = Query<ModelTemplate>.EQ(c => c.DeviceId, "fake1");
-            IMongoQuery query = Query<ModelTemplate>.EQ(c => c.Name, USER_NAME);
-            //IMongoQuery query = Query<ModelTemplate>.EQ(c => c.DeviceId, "062bba750ae4e2b3");
+            //IMongoQuery query = Query<ModelTemplate>.EQ(c => c.Name, USER_NAME);
+            IMongoQuery query = Query<ModelTemplate>.EQ(c => c.DeviceId, "062bba750ae4e2b3");
             return mListMongo.Find(query).SetLimit(limit).SetSkip(skip);
         }
 
@@ -1742,7 +1750,13 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, "InterestPointsStartIndex");
             AppendWithComma(stringBuilder, "InterestPointsEndIndex");
 
-            AppendWithComma(stringBuilder, "NumInterestPoints");
+            AppendWithComma(stringBuilder, "NumInterestPointsMajor");
+            AppendWithComma(stringBuilder, "NumInterestPointsMinor");
+
+            AppendWithComma(stringBuilder, "InterestPointLocation");
+            AppendWithComma(stringBuilder, "InterestPointAvgVelocity");
+            AppendWithComma(stringBuilder, "StrokeAverageDensity");
+            AppendWithComma(stringBuilder, "InterestPointIntensity");
 
             AppendWithComma(stringBuilder, "StrokeKey");
 
@@ -1940,7 +1954,14 @@ namespace VerifyooSimulator
             AppendWithComma(stringBuilder, inputStroke.InterestPointsStartIndex.ToString());
             AppendWithComma(stringBuilder, inputStroke.InterestPointsEndIndex.ToString());
 
-            AppendWithComma(stringBuilder, inputStroke.ListInterestPoints.size().ToString());
+            AppendWithComma(stringBuilder, inputStroke.NumInterestPointsMajor.ToString());
+            AppendWithComma(stringBuilder, inputStroke.NumInterestPointsMinor.ToString());
+
+            AppendWithComma(stringBuilder, inputStroke.InterestPointLocation.ToString());
+            AppendWithComma(stringBuilder, inputStroke.InterestPointAvgVelocity.ToString());
+            AppendWithComma(stringBuilder, inputStroke.StrokeAverageDensity.ToString());
+            AppendWithComma(stringBuilder, inputStroke.InterestPointIntensity.ToString());
+
             AppendWithComma(stringBuilder, inputStroke.GetStrokeKey().ToString());
 
             mStreamWriterCsvStrokes.WriteLine(stringBuilder.ToString());

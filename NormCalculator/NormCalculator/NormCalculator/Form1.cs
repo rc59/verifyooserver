@@ -142,6 +142,9 @@ namespace NormCalculator
 
         /************************************* NORMAL STROKE PARAMETERS *************************************/
 
+        NumericNormContainer mNormContainerStrokeAverageDensityMean = new NumericNormContainer();
+        NumericNormContainer mNormContainerStrokeAverageDensityStd = new NumericNormContainer();
+
         NumericNormContainer mNormContainerStrokeInterestPointLocationMean = new NumericNormContainer();
         NumericNormContainer mNormContainerStrokeInterestPointLocationStd = new NumericNormContainer();
 
@@ -309,6 +312,8 @@ namespace NormCalculator
 
             /*********************************** STROKE PARAMS ***********************************/
 
+            NumericNormContainer tempNormContainerStrokeAverageDensity;            
+
             NumericNormContainer tempNormContainerStrokeInterestLocation;
             NumericNormContainer tempNormContainerStrokeInterestDensity;
             NumericNormContainer tempNormContainerStrokeInterestIntensity;
@@ -419,6 +424,8 @@ namespace NormCalculator
 
                                 tempNormContainerGestureAccumulatedLengthSlope = new NumericNormContainer();
 
+                                tempNormContainerStrokeAverageDensity = new NumericNormContainer();                                
+
                                 tempNormContainerStrokeInterestLocation = new NumericNormContainer();
                                 tempNormContainerStrokeInterestDensity = new NumericNormContainer();
                                 tempNormContainerStrokeInterestIntensity = new NumericNormContainer();
@@ -502,6 +509,7 @@ namespace NormCalculator
                                                 tempNormContainerStrokeTransitionTime.AddValue(SafeAddValue(tempStroke.StrokeTransitionTime), tempInstruction, 0);
                                             }
 
+                                            tempNormContainerStrokeAverageDensity.AddValue(SafeAddValue(tempStroke.StrokeAverageDensity), tempInstruction, strokeKey);                                            
                                             tempNormContainerStrokeInterestLocation.AddValue(SafeAddValue(tempStroke.InterestPointLocation), tempInstruction, strokeKey);
                                             tempNormContainerStrokeInterestIntensity.AddValue(SafeAddValue(tempStroke.InterestPointIntensity), tempInstruction, strokeKey);
                                             tempNormContainerStrokeInterestDensity.AddValue(SafeAddValue(tempStroke.InterestPointDensity), tempInstruction, strokeKey);
@@ -599,6 +607,7 @@ namespace NormCalculator
                                         AddValueToNormContainer(tempInstruction, idxSpatial, tempNormContainerAccumulatedNormalizedAreaTime, mNormContainerSpatialAccumulatedNormalizedAreaMeanTime, mNormContainerSpatialAccumulatedNormalizedAreaStdTime);
                                     }
 
+                                    AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeAverageDensity, mNormContainerStrokeAverageDensityMean, mNormContainerStrokeAverageDensityStd);
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeInterestLocation, mNormContainerStrokeInterestPointLocationMean, mNormContainerStrokeInterestPointLocationStd);
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeInterestIntensity, mNormContainerStrokeInterestPointIntensityMean, mNormContainerStrokeInterestPointIntensityStd);
                                     AddValueToStrokesNormContainer(tempInstruction, tempNormContainerStrokeInterestDensity, mNormContainerStrokeInterestPointDensityMean, mNormContainerStrokeInterestPointDensityStd);
@@ -935,6 +944,9 @@ namespace NormCalculator
             //mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Gesture.GESTURE_ACCUMULATED_LENGTH_SLOPE, mNormContainerGestureAccumulatedLengthSlopeStd);
 
             /******************************************** NORMAL STROKE PARAMETERS ********************************************/
+
+            mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_AVG_DENSITY, mNormContainerStrokeAverageDensityMean);
+            mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_AVG_DENSITY, mNormContainerStrokeAverageDensityStd);
 
             mNormContainerMgr.HashMapNumericNormsMeans.put(ConstsParamNames.Stroke.STROKE_INT_POINT_LOCATION, mNormContainerStrokeInterestPointLocationMean);
             mNormContainerMgr.HashMapNumericNormsSds.put(ConstsParamNames.Stroke.STROKE_INT_POINT_LOCATION, mNormContainerStrokeInterestPointLocationStd);
