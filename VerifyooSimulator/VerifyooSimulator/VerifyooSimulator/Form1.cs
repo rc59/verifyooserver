@@ -29,7 +29,7 @@ namespace VerifyooSimulator
 {
     public partial class Form1 : Form
     {
-        public const string USER_NAME = "roy_dalal";
+        public const string USER_NAME = "rafi_chen";
 
         double mLimitRecordsNaiveHack = 0;
         double mThreasholdForSelectedFAR = -1;
@@ -235,7 +235,7 @@ namespace VerifyooSimulator
         private string GetPercentageString(double value)
         {           
             double percentage = value / mTotalNumComparisons * 100;
-            string percentageString = string.Format("{0}%", Math.Round(percentage, 4));
+            string percentageString = string.Format("{0}%", Math.Round(percentage, 5));
             return percentageString;
         }
 
@@ -251,7 +251,7 @@ namespace VerifyooSimulator
                 percentage = GetFAR(percentage) * 100;
             }
             
-            string percentageString = string.Format("{0}%", Math.Round(percentage, 4));
+            string percentageString = string.Format("{0}%", Math.Round(percentage, 5));
             return percentageString;
         }
 
